@@ -23,7 +23,7 @@
   "require": {
     "doctrine/dbal": "^2.5",
     "jtl/connector": "^2.4",
-    "jtl/connector-dbc": "^0.12.0"
+    "jtl/connector-dbc": "^0.13.1"
   },
   "autoload": {
     "psr-4": {
