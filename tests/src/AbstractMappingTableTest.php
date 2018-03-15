@@ -24,9 +24,8 @@ class AbstractMappingTableTest extends DBTestCase
     public function testHostIndex()
     {
         $tableSchema = $this->table->getTableSchema();
-
-        $this->assertTrue($tableSchema->hasIndex(AbstractMappingTable::HOST_INDEX_NAME));
-        $hostIndex = $tableSchema->getIndex(AbstractMappingTable::HOST_INDEX_NAME);
+        $this->assertTrue($tableSchema->hasIndex($this->table->createIndexName(AbstractMappingTable::HOST_INDEX_NAME)));
+        $hostIndex = $tableSchema->getIndex($this->table->createIndexName(AbstractMappingTable::HOST_INDEX_NAME));
         $hostColumns = $hostIndex->getColumns();
         $this->assertCount(1, $hostColumns);
         /** @var Column $hostColumn */
@@ -48,8 +47,8 @@ class AbstractMappingTableTest extends DBTestCase
     public function testEndpointIndex()
     {
         $tableSchema = $this->table->getTableSchema();
-        $this->assertTrue($tableSchema->hasIndex(MappingTableStub::ENDPOINT_INDEX_NAME));
-        $epIndex = $tableSchema->getIndex(MappingTableStub::ENDPOINT_INDEX_NAME);
+        $this->assertTrue($tableSchema->hasIndex($this->table->createIndexName(AbstractMappingTable::ENDPOINT_INDEX_NAME)));
+        $epIndex = $tableSchema->getIndex($this->table->createIndexName(AbstractMappingTable::ENDPOINT_INDEX_NAME));
         $epColumns = $epIndex->getColumns();
         $this->assertCount(3, $epColumns);
         $this->assertEquals(MappingTableStub::COL_ID1, $epColumns[0]);

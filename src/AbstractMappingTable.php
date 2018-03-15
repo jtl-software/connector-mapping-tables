@@ -13,8 +13,8 @@ use jtl\Connector\CDBC\TableException;
 
 abstract class AbstractMappingTable extends AbstractTable implements MappingTableInterface
 {
-    const ENDPOINT_INDEX_NAME = 'ENDPOINT_IDX';
-    const HOST_INDEX_NAME = 'HOST_ID_IDX';
+    const ENDPOINT_INDEX_NAME = 'endpoint_idx';
+    const HOST_INDEX_NAME = 'host_idx';
     const HOST_ID = 'host_id';
 
     /**
@@ -30,6 +30,7 @@ abstract class AbstractMappingTable extends AbstractTable implements MappingTabl
     /**
      * AbstractMappingTable constructor.
      * @param DBManager $dbManager
+     * @throws \Exception
      */
     public function __construct(DBManager $dbManager)
     {
@@ -39,13 +40,23 @@ abstract class AbstractMappingTable extends AbstractTable implements MappingTabl
 
     /**
      * @return Table
+     * @throws TableException
      */
     public function getTableSchema()
     {
         $tableSchema = parent::getTableSchema();
         $tableSchema->addColumn(self::HOST_ID, Type::INTEGER, ['notnull' => false]);
-        $tableSchema->addIndex([self::HOST_ID], self::HOST_INDEX_NAME);
+        $tableSchema->addIndex([self::HOST_ID], $this->createIndexName(self::HOST_INDEX_NAME));
         return $tableSchema;
+    }
+
+    /**
+     * @param string $name
+     * @return string
+     */
+    public function createIndexName($name)
+    {
+        return $this->getTableName() . '_' . $name;
     }
 
     /**
@@ -72,7 +83,7 @@ abstract class AbstractMappingTable extends AbstractTable implements MappingTabl
 
         $tableSchema->setPrimaryKey(array_keys($primaryColumns));
         if(count($primaryColumns) < count($endpointColumns)) {
-            $tableSchema->addIndex(array_keys($endpointColumns), self::ENDPOINT_INDEX_NAME);
+            $tableSchema->addIndex(array_keys($endpointColumns), $this->createIndexName(self::ENDPOINT_INDEX_NAME));
         }
     }
 
