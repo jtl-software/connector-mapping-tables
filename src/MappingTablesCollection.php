@@ -100,7 +100,7 @@ class MappingTablesCollection
         });
 
         if(count($result) > 0) {
-            return $result[0];
+            return reset($result);
         }
 
         return null;
