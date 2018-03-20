@@ -6,7 +6,7 @@
 namespace jtl\Connector\MappingTables;
 
 
-class MappingTableCollectionTest extends DBTestCase
+class MappingTablesCollectionTest extends DBTestCase
 {
     /**
      * @var MappingTablesCollection
@@ -49,12 +49,10 @@ class MappingTableCollectionTest extends DBTestCase
         $this->assertFalse($collection->has('whatever'));
     }
 
-    /**
-     * @expectedException \jtl\Connector\MappingTables\MappingTableException
-     * @expectedExceptionCode \jtl\Connector\MappingTables\MappingTableException::TABLE_TYPE_NOT_FOUND
-     */
     public function testGetNotFound()
     {
+        $this->expectException(RuntimeException::class);
+        $this->expectExceptionCode(RuntimeException::TABLE_TYPE_NOT_FOUND);
         (new MappingTablesCollection([$this->table]))->get('yeeeha');
     }
 

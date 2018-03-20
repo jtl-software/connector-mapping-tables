@@ -5,9 +5,7 @@
  */
 namespace jtl\Connector\MappingTables;
 
-use jtl\Connector\CDBC\TableException;
-
-class MappingTableException extends TableException {
+class RuntimeException extends \jtl\Connector\CDBC\RuntimeException {
     const TABLE_TYPE_NOT_FOUND = 100;
     const COLUMN_DATA_MISSING = 110;
     const ENDPOINT_COLUMN_EXISTS = 120;
@@ -16,7 +14,7 @@ class MappingTableException extends TableException {
 
     /**
      * @param string $type
-     * @return MappingTableException
+     * @return RuntimeException
      */
     public static function tableTypeNotFound($type)
     {
@@ -25,7 +23,7 @@ class MappingTableException extends TableException {
 
     /**
      * @param string $columnName
-     * @return MappingTableException
+     * @return RuntimeException
      */
     public static function columnDataMissing($columnName)
     {
@@ -34,7 +32,7 @@ class MappingTableException extends TableException {
 
     /**
      * @param string $columnName
-     * @return MappingTableException
+     * @return RuntimeException
      */
     public static function columnExists($columnName)
     {
@@ -43,7 +41,7 @@ class MappingTableException extends TableException {
 
     /**
      * @param string $columnName
-     * @return MappingTableException
+     * @return RuntimeException
      */
     public static function columnNotFound($columnName)
     {
@@ -51,7 +49,7 @@ class MappingTableException extends TableException {
     }
 
     /**
-     * @return MappingTableException
+     * @return RuntimeException
      */
     public static function endpointColumnsNotDefined()
     {

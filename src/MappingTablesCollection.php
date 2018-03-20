@@ -5,12 +5,14 @@
  */
 namespace jtl\Connector\MappingTables;
 
+use jtl\Connector\CDBC\TablesCollection;
+
 class MappingTablesCollection
 {
     /**
-     * @var MappingTableInterface[]
+     * @var TablesCollection|AbstractMappingTable[]
      */
-    protected $tables = [];
+    protected $collection;
 
     /**
      * MappingTableCollection constructor.
@@ -18,11 +20,12 @@ class MappingTablesCollection
      */
     public function __construct(array $tables = [])
     {
-        foreach($tables as $table){
+        $this->collection = new TablesCollection();
+
+        foreach($tables as $table) {
             $this->set($table);
         }
     }
-
 
     /**
      * @param MappingTableInterface $table
@@ -30,7 +33,7 @@ class MappingTablesCollection
      */
     public function set(MappingTableInterface $table)
     {
-        $this->tables[$table->getType()] = $table;
+        $this->collection->set($table);
         return $this;
     }
 
@@ -40,12 +43,7 @@ class MappingTablesCollection
      */
     public function removeByInstance(MappingTableInterface $table)
     {
-        $index = $table->getType();
-        if(isset($this->tables[$index]) && ($this->tables[$index] === $table)) {
-            unset($this->tables[$index]);
-            return true;
-        }
-        return false;
+        return $this->collection->removeByInstance($table);
     }
 
     /**
@@ -55,8 +53,8 @@ class MappingTablesCollection
     public function removeByType($type)
     {
         if($this->has($type)) {
-            unset($this->tables[$type]);
-            return true;
+            $table = $this->findByType($type);
+            return $this->collection->removeByInstance($table);
         }
         return false;
     }
@@ -67,7 +65,7 @@ class MappingTablesCollection
      */
     public function has($type)
     {
-        return isset($this->tables[$type]) && $this->tables[$type] instanceof MappingTableInterface;
+        return $this->findByType($type) instanceof MappingTableInterface;
     }
 
     /**
@@ -78,9 +76,9 @@ class MappingTablesCollection
     public function get($type)
     {
         if(!$this->has($type)) {
-            throw MappingTableException::tableTypeNotFound($type);
+            throw RuntimeException::tableTypeNotFound($type);
         }
-        return $this->tables[$type];
+        return $this->findByType($type);
     }
 
     /**
@@ -88,6 +86,23 @@ class MappingTablesCollection
      */
     public function toArray()
     {
-        return array_values($this->tables);
+        return $this->collection->toArray();
+    }
+
+    /**
+     * @param int $type
+     * @return AbstractMappingTable|null
+     */
+    protected function findByType($type)
+    {
+        $result = array_filter($this->collection->toArray(), function(AbstractMappingTable $table) use ($type) {
+            return $table->getType() === $type;
+        });
+
+        if(count($result) > 0) {
+            return $result[0];
+        }
+
+        return null;
     }
 }

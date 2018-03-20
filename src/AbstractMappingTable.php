@@ -66,7 +66,7 @@ abstract class AbstractMappingTable extends AbstractTable implements MappingTabl
 
     /**
      * @param Table $tableSchema
-     * @throws MappingTableException
+     * @throws RuntimeException
      * @return void
      */
     protected function createTableSchema(Table $tableSchema)
@@ -74,7 +74,7 @@ abstract class AbstractMappingTable extends AbstractTable implements MappingTabl
         $endpointColumns = $this->getEndpointColumns();
         $primaryColumns = $this->getPrimaryColumns();
         if(count($endpointColumns) === 0){
-            throw MappingTableException::endpointColumnsNotDefined();
+            throw RuntimeException::endpointColumnsNotDefined();
         }
 
         foreach($endpointColumns as $columnName => $columnData){
@@ -323,7 +323,7 @@ abstract class AbstractMappingTable extends AbstractTable implements MappingTabl
     /**
      * @param mixed[] $data
      * @return mixed[]
-     * @throws MappingTableException
+     * @throws RuntimeException
      */
     protected function createEndpointData(array $data)
     {
@@ -331,7 +331,7 @@ abstract class AbstractMappingTable extends AbstractTable implements MappingTabl
         $dataCount = count($data);
         $columnNames = array_keys($columns);
         if($dataCount < count($columns)){
-            throw MappingTableException::columnDataMissing($columnNames[$dataCount]);
+            throw RuntimeException::columnDataMissing($columnNames[$dataCount]);
         }
         return $this->mapRow(array_combine($columnNames, $data), $columnNames);
     }
@@ -342,12 +342,12 @@ abstract class AbstractMappingTable extends AbstractTable implements MappingTabl
      * @param mixed $options
      * @param boolean $primary
      * @return AbstractMappingTable
-     * @throws MappingTableException
+     * @throws RuntimeException
      */
     protected function addEndpointColumn($name, $type, array $options = [], $primary = true)
     {
         if($this->hasEndpointColumn($name)){
-            throw MappingTableException::columnExists($name);
+            throw RuntimeException::columnExists($name);
         }
         $this->columns[$name]['type'] = $type;
         $this->columns[$name]['options'] = $options;
