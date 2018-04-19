@@ -15,19 +15,15 @@ class MappingTablesManager implements IPrimaryKeyMapper
 
     /**
      * MappingTablesManager constructor.
-     * @param MappingTablesCollection|MappingTableInterface[] $mappingTables
+     * @param MappingTableInterface[] $mappingTables
      */
-    public function __construct($mappingTables = [])
+    public function __construct(array $mappingTables = [])
     {
-        if(is_array($mappingTables)) {
-            $mappingTables = new MappingTablesCollection($mappingTables);
-        }
-
-        $this->collection = $mappingTables;
+        $this->collection = new MappingTablesCollection($mappingTables);
     }
 
     /**
-     * @param mixed $type
+     * @param integer $type
      * @return MappingTableInterface
      */
     public function getTable($type)

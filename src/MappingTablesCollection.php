@@ -71,7 +71,7 @@ class MappingTablesCollection
     /**
      * @param integer $type
      * @return MappingTableInterface
-     * @throws \Exception
+     * @throws RuntimeException
      */
     public function get($type)
     {
