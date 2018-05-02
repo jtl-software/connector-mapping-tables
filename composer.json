@@ -22,8 +22,8 @@
   ],
   "require": {
     "doctrine/dbal": "^2.5",
-    "jtl/connector": "^2.4",
-    "jtl/connector-dbc": "^0.14.0"
+    "jtl/connector-dbc": "^0.14.0",
+    "jtl/connector": "v3"
   },
   "autoload": {
     "psr-4": {

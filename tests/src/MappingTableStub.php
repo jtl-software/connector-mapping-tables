@@ -26,7 +26,6 @@ class MappingTableStub extends AbstractMappingTable
         return self::TABLE_NAME;
     }
 
-
     public function defineEndpoint()
     {
         $this
