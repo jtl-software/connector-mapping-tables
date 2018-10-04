@@ -9,6 +9,13 @@ use jtl\Connector\CDBC\TablesCollection;
 
 class MappingTablesCollection
 {
+    protected $strictMode = true;
+
+    /**
+     * @var DummyTable
+     */
+    protected $dummyTable;
+
     /**
      * @var TablesCollection|AbstractMappingTable[]
      */
@@ -17,14 +24,17 @@ class MappingTablesCollection
     /**
      * MappingTableCollection constructor.
      * @param MappingTableInterface[] $tables
+     * @param bool $strictMode
      */
-    public function __construct(array $tables = [])
+    public function __construct(array $tables = [], $strictMode = true)
     {
         $this->collection = new TablesCollection();
 
         foreach($tables as $table) {
             $this->set($table);
         }
+
+        $this->strictMode = (bool)$strictMode;
     }
 
     /**
@@ -75,10 +85,15 @@ class MappingTablesCollection
      */
     public function get($type)
     {
-        if(!$this->has($type)) {
-            throw RuntimeException::tableTypeNotFound($type);
+        if($this->has($type)) {
+            return $this->findByType($type);
         }
-        return $this->findByType($type);
+
+        if(!$this->strictMode) {
+            return $this->getDummyTable()->setType($type);
+        }
+
+        throw RuntimeException::tableTypeNotFound($type);
     }
 
     /**
@@ -90,7 +105,36 @@ class MappingTablesCollection
     }
 
     /**
-     * @param int $type
+     * @return boolean
+     */
+    public function isStrictMode()
+    {
+        return $this->strictMode;
+    }
+
+    /**
+     * @param bool $strictMode
+     * @return DummyTable
+     */
+    public function setStrictMode($strictMode)
+    {
+        $this->strictMode = (bool)$strictMode;
+        return $this;
+    }
+
+    /**
+     * @return DummyTable
+     */
+    protected function getDummyTable()
+    {
+        if(!$this->dummyTable instanceof DummyTable) {
+            $this->dummyTable = new DummyTable();
+        }
+        return $this->dummyTable;
+    }
+
+    /**
+     * @param integer $type
      * @return AbstractMappingTable|null
      */
     protected function findByType($type)

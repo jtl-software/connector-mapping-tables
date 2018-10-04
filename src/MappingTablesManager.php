@@ -16,10 +16,11 @@ class MappingTablesManager implements IPrimaryKeyMapper
     /**
      * MappingTablesManager constructor.
      * @param MappingTableInterface[] $mappingTables
+     * @param boolean $strictMode
      */
-    public function __construct(array $mappingTables = [])
+    public function __construct(array $mappingTables = [], $strictMode = true)
     {
-        $this->collection = new MappingTablesCollection($mappingTables);
+        $this->collection = new MappingTablesCollection($mappingTables, $strictMode);
     }
 
     /**
@@ -141,6 +142,24 @@ class MappingTablesManager implements IPrimaryKeyMapper
         foreach($tables as $table) {
             $this->setMappingTable($table);
         }
+        return $this;
+    }
+
+    /**
+     * @return boolean
+     */
+    public function isStrictMode()
+    {
+        return $this->collection->isStrictMode();
+    }
+
+    /**
+     * @param bool $strictMode
+     * @return MappingTablesManager
+     */
+    public function setStrictMode($strictMode)
+    {
+        $this->collection->setStrictMode($strictMode);
         return $this;
     }
 }

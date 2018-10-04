@@ -92,4 +92,19 @@ class MappingTablesManagerTest extends DBTestCase
     {
         $this->assertEquals(3, $this->mtm->count($this->table->getType()));
     }
+
+    public function testGetNotExistingTableWithStrictModeDisabled()
+    {
+        $this->mtm->setStrictMode(false);
+        $type = 234234236;
+        $table = $this->mtm->getTable($type);
+        $this->assertInstanceOf(DummyTable::class, $table);
+    }
+
+    public function testGetNotExistingTableWithStrictModeEnabled()
+    {
+        $this->expectException(RuntimeException::class);
+        $this->expectExceptionCode(RuntimeException::TABLE_TYPE_NOT_FOUND);
+        $this->mtm->getTable(7217641241);
+    }
 }

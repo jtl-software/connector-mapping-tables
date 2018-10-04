@@ -71,4 +71,13 @@ class MappingTablesCollectionTest extends DBTestCase
         $collection->removeByInstance($this->table);
         $this->assertCount(0, $collection->toArray());
     }
+
+    public function testGetNotExistingTableWithStrictModeDisabled()
+    {
+        $type = 73443534;
+        $collection = new MappingTablesCollection([$this->table], false);
+        $this->assertFalse($collection->has($type));
+        $table = $collection->get($type);
+        $this->assertInstanceOf(DummyTable::class, $table);
+    }
 }
