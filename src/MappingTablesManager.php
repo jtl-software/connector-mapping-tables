@@ -61,7 +61,7 @@ class MappingTablesManager implements IPrimaryKeyMapper
      */
     public function save($endpointId, $hostId, $type)
     {
-        return $this->collection->get($type)->save($endpointId, $hostId);
+        return $this->collection->get($type)->save($endpointId, $hostId) > 0;
     }
 
     /**
@@ -72,7 +72,7 @@ class MappingTablesManager implements IPrimaryKeyMapper
      */
     public function delete($endpointId = null, $hostId = null, $type)
     {
-        return $this->collection->get($type)->remove($endpointId, $hostId);
+        return $this->collection->get($type)->remove($endpointId, $hostId) > 0;
     }
 
     /**
@@ -110,7 +110,7 @@ class MappingTablesManager implements IPrimaryKeyMapper
     {
         $return = true;
         foreach($this->collection->toArray() as $table) {
-            $return = $table->clear() && $return;
+            $return = $table->clear() > 0 && $return;
         }
         return $return;
     }

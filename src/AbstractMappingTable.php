@@ -40,7 +40,7 @@ abstract class AbstractMappingTable extends AbstractTable implements MappingTabl
 
     /**
      * @return Table
-     * @throws TableException
+     * @throws \Doctrine\DBAL\DBALException
      */
     public function getTableSchema()
     {
@@ -111,20 +111,16 @@ abstract class AbstractMappingTable extends AbstractTable implements MappingTabl
 
     /**
      * @param integer $hostId
+     * @param string|null $relationType
      * @return null|string
      */
-    public function getEndpointId($hostId)
+    public function getEndpointId($hostId, $relationType = null)
     {
-        $columns = array_keys($this->getEndpointColumns());
-        $endpointData = $this->createQueryBuilder()
-            ->select($columns)
-            ->from($this->getTableName())
-            ->where(self::HOST_ID . ' = :' . self::HOST_ID)
-            ->setParameter(self::HOST_ID, $hostId)
+        $endpointData = $this->createEndpointIdQuery($hostId)
             ->execute()
             ->fetch();
 
-        if(is_array($endpointData)){
+        if (is_array($endpointData)) {
             return $this->buildEndpoint($endpointData);
         }
         return null;
@@ -176,19 +172,18 @@ abstract class AbstractMappingTable extends AbstractTable implements MappingTabl
            ->delete($this->getTableName())
            ->execute();
 
-       return is_int($rows) && $rows >= 0;
+       return is_int($rows) ? $rows : 0;
     }
 
     /**
-     * @param string[] $where
-     * @param mixed[] $parameters
+     * @param array $where
+     * @param array $parameters
      * @return integer
-     * @throws TableException
+     * @throws \Doctrine\DBAL\DBALException
      */
     public function count(array $where = [], array $parameters = [])
     {
-        $qb = $this->createQueryBuilder();
-        $qb
+        $qb = $this->createQueryBuilder()
             ->select($this->getDbManager()->getConnection()->getDatabasePlatform()->getCountExpression('*'))
             ->from($this->getTableName())
         ;
@@ -302,6 +297,21 @@ abstract class AbstractMappingTable extends AbstractTable implements MappingTabl
         return $this->createEndpointData($data);
     }
 
+
+    /**
+     * @param $hostId
+     * @return \jtl\Connector\CDBC\Query\QueryBuilder
+     */
+    protected function createEndpointIdQuery($hostId)
+    {
+        $columns = array_keys($this->getEndpointColumns());
+        return $this->createQueryBuilder()
+            ->select($columns)
+            ->from($this->getTableName())
+            ->where(self::HOST_ID . ' = :' . self::HOST_ID)
+            ->setParameter(self::HOST_ID, $hostId);
+    }
+
     /**
      * @param string $endpointId
      * @return mixed[]
@@ -321,9 +331,9 @@ abstract class AbstractMappingTable extends AbstractTable implements MappingTabl
     }
 
     /**
-     * @param mixed[] $data
+     * @param array $data
      * @return mixed[]
-     * @throws RuntimeException
+     * @throws \Doctrine\DBAL\DBALException
      */
     protected function createEndpointData(array $data)
     {

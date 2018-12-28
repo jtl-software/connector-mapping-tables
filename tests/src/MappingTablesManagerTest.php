@@ -21,7 +21,6 @@ class MappingTablesManagerTest extends DBTestCase
 
     protected function setUp()
     {
-
         parent::setUp();
         $this->mtm = new MappingTablesManager([$this->table]);
     }

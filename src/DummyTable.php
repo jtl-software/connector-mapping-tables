@@ -49,9 +49,10 @@ class DummyTable implements MappingTableInterface
 
     /**
      * @param integer $hostId
+     * @param string|null $relationType
      * @return string
      */
-    public function getEndpointId($hostId)
+    public function getEndpointId($hostId, $relationType = null)
     {
         return '';
     }
