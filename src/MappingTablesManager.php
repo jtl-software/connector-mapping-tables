@@ -50,7 +50,7 @@ class MappingTablesManager implements IPrimaryKeyMapper
      */
     public function getEndpointId($hostId, $type, $relationType = null)
     {
-        return $this->collection->get($type)->getEndpointId($hostId);
+        return $this->collection->get($type)->getEndpointId($hostId, $relationType);
     }
 
     /**
