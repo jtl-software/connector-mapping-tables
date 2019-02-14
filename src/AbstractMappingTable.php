@@ -243,22 +243,13 @@ abstract class AbstractMappingTable extends AbstractTable implements MappingTabl
     public function findNotFetchedEndpoints(array $endpoints)
     {
         $platform = $this->getConnection()->getDatabasePlatform();
-        $endpointColumns = array_keys($this->getEndpointColumns());
         $primaryColumns = array_keys($this->getPrimaryColumns());
 
         $concatArray = [];
-        $preparedConcatArray = [];
-        foreach($endpointColumns as $column)
+        foreach($primaryColumns as $column)
         {
             $concatArray[] = $column;
-            if(in_array($column, $primaryColumns)) {
-                $preparedConcatArray[] = $column;
-                if($column !== end($primaryColumns)){
-                    $preparedConcatArray[] = $this->getConnection()->quote($this->endpointDelimiter);
-                }
-            }
-
-            if($column !== end($endpointColumns)){
+            if($column !== end($primaryColumns)){
                 $concatArray[] = $this->getConnection()->quote($this->endpointDelimiter);
             }
         }
@@ -269,20 +260,24 @@ abstract class AbstractMappingTable extends AbstractTable implements MappingTabl
                 return in_array($key, $primaryColumns);
             }, \ARRAY_FILTER_USE_KEY);
 
-            $preparedEndpoints[] = implode($this->endpointDelimiter, $extracted);
+            $preparedEndpoints[implode($this->endpointDelimiter, $extracted)] = $endpoint;
         }
 
         $concatExpression = call_user_func_array([$platform, 'getConcatExpression'], $concatArray);
-        $preparedConcatExpression = call_user_func_array([$platform, 'getConcatExpression'], $preparedConcatArray);
         $qb = $this->createQueryBuilder()
             ->select($concatExpression)
             ->from($this->getTableName())
-            ->where($this->getConnection()->getExpressionBuilder()->in($preparedConcatExpression, ':preparedEndpoints'))
-            ->setParameter('preparedEndpoints', $preparedEndpoints, Connection::PARAM_STR_ARRAY);
+            ->where($this->getConnection()->getExpressionBuilder()->in($concatExpression, ':preparedEndpoints'))
+            ->setParameter('preparedEndpoints', array_keys($preparedEndpoints), Connection::PARAM_STR_ARRAY);
 
         $fetchedEndpoints = $qb->execute()->fetchAll(\PDO::FETCH_COLUMN);
-        if(is_array($fetchedEndpoints)){
-            return array_diff($endpoints, $fetchedEndpoints);
+        if(is_array($fetchedEndpoints) && !empty($fetchedEndpoints)){
+            foreach($preparedEndpoints as $prepared => $endpoint) {
+                if(in_array($prepared, $fetchedEndpoints)) {
+                    unset($preparedEndpoints[$prepared]);
+                }
+            }
+            return array_values($preparedEndpoints);
         }
         return $endpoints;
     }
