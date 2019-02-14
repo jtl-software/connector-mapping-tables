@@ -148,10 +148,14 @@ abstract class AbstractMappingTable extends AbstractTable implements MappingTabl
         $qb = $this->createQueryBuilder();
         $qb->delete($this->getTableName());
 
+        $primaryColumns = array_keys($this->getPrimaryColumns());
+
         if($endpointId !== null){
             foreach($this->extractEndpoint($endpointId) as $column => $value){
-                $qb->andWhere($column . ' = :' . $column)
-                   ->setParameter($column, $value);
+                if(in_array($column, $primaryColumns)) {
+                    $qb->andWhere($column . ' = :' . $column)
+                        ->setParameter($column, $value);
+                }
             }
         }
 
