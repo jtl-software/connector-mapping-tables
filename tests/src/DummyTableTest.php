@@ -65,9 +65,9 @@ class DummyTableTest extends TestCase
 
     public function testGetEndpointId()
     {
-        $this->assertEquals('', $this->obj->getEndpointId(12321));
-        $this->assertEquals('', $this->obj->getEndpointId(3333));
-        $this->assertEquals('', $this->obj->getEndpointId(0));
+        $this->assertEquals('', $this->obj->getEndpoint(12321));
+        $this->assertEquals('', $this->obj->getEndpoint(3333));
+        $this->assertEquals('', $this->obj->getEndpoint(0));
     }
 
     public function testSetType()

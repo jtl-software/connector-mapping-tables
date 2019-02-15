@@ -14,10 +14,10 @@ interface MappingTableInterface
     /**
      * Host ID getter
      *
-     * @param string $endpointId
+     * @param string $endpoint
      * @return integer|null
      */
-    public function getHostId($endpointId);
+    public function getHostId($endpoint);
 
     /**
      * Endpoint ID getter
@@ -26,25 +26,25 @@ interface MappingTableInterface
      * @param string|null $relationType
      * @return string|null
      */
-    public function getEndpointId($hostId, $relationType = null);
+    public function getEndpoint($hostId, $relationType = null);
 
     /**
      * Save link to database
      *
-     * @param string $endpointId
+     * @param string $endpoint
      * @param integer $hostId
      * @return integer
      */
-    public function save($endpointId, $hostId);
+    public function save($endpoint, $hostId);
 
     /**
      * Delete link from database
      *
-     * @param string $endpointId
+     * @param string $endpoint
      * @param integer $hostId
      * @return integer
      */
-    public function remove($endpointId = null, $hostId = null);
+    public function remove($endpoint = null, $hostId = null);
 
     /**
      * Clears the entire link table

@@ -88,24 +88,29 @@ abstract class AbstractMappingTable extends AbstractTable implements MappingTabl
     }
 
     /**
-     * @param string $endpointId
+     * @param string $endpoint
      * @return null|integer
      */
-    public function getHostId($endpointId)
+    public function getHostId($endpoint)
     {
         $qb = $this->createQueryBuilder()
             ->select(self::HOST_ID)
             ->from($this->getTableName());
 
-        foreach($this->extractEndpoint($endpointId) as $column => $value) {
-            $qb->andWhere($column . ' = :' . $column)
-               ->setParameter($column, $value);
+        $primaryColumns = array_keys($this->getPrimaryColumns());
+
+        foreach($this->extractEndpoint($endpoint) as $column => $value) {
+            if(in_array($column, $primaryColumns)) {
+                $qb->andWhere($column . ' = :' . $column)
+                    ->setParameter($column, $value);
+            }
         }
 
-        $column = $qb->execute()->fetchColumn(0);
-        if($column !== false){
-            return (int)$column;
+        $hostId = $qb->execute()->fetchColumn(0);
+        if($hostId !== false){
+            return (int)$hostId;
         }
+
         return null;
     }
 
@@ -114,7 +119,7 @@ abstract class AbstractMappingTable extends AbstractTable implements MappingTabl
      * @param string|null $relationType
      * @return null|string
      */
-    public function getEndpointId($hostId, $relationType = null)
+    public function getEndpoint($hostId, $relationType = null)
     {
         $endpointData = $this->createEndpointIdQuery($hostId)
             ->execute()
@@ -127,31 +132,31 @@ abstract class AbstractMappingTable extends AbstractTable implements MappingTabl
     }
 
     /**
-     * @param string $endpointId
+     * @param string $endpoint
      * @param integer $hostId
      * @return integer
      */
-    public function save($endpointId, $hostId)
+    public function save($endpoint, $hostId)
     {
-        $data = $this->extractEndpoint($endpointId);
+        $data = $this->extractEndpoint($endpoint);
         $data[self::HOST_ID] = $hostId;
         return $this->getConnection()->insert($this->getTableName(), $data);
     }
 
     /**
-     * @param string|null $endpointId
+     * @param string|null $endpoint
      * @param integer|null $hostId
      * @return integer
      */
-    public function remove($endpointId = null, $hostId = null)
+    public function remove($endpoint = null, $hostId = null)
     {
         $qb = $this->createQueryBuilder();
         $qb->delete($this->getTableName());
 
         $primaryColumns = array_keys($this->getPrimaryColumns());
 
-        if($endpointId !== null){
-            foreach($this->extractEndpoint($endpointId) as $column => $value){
+        if($endpoint !== null){
+            foreach($this->extractEndpoint($endpoint) as $column => $value){
                 if(in_array($column, $primaryColumns)) {
                     $qb->andWhere($column . ' = :' . $column)
                         ->setParameter($column, $value);

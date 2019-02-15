@@ -65,9 +65,9 @@ class AbstractMappingTableTest extends DBTestCase
 
     public function testGetEndpointId()
     {
-        $this->assertEquals('1||1||foo', $this->table->getEndpointId(3));
-        $this->assertEquals('1||2||bar', $this->table->getEndpointId(2));
-        $this->assertEquals('4||2||foobar', $this->table->getEndpointId(5));
+        $this->assertEquals('1||1||foo', $this->table->getEndpoint(3));
+        $this->assertEquals('1||2||bar', $this->table->getEndpoint(2));
+        $this->assertEquals('4||2||foobar', $this->table->getEndpoint(5));
     }
 
     public function testSave()
@@ -78,18 +78,18 @@ class AbstractMappingTableTest extends DBTestCase
 
     public function testRemoveByEndpointId()
     {
-        $this->assertEquals('1||1||foo', $this->table->getEndpointId(3));
+        $this->assertEquals('1||1||foo', $this->table->getEndpoint(3));
         $this->table->remove('1||1||foo');
         $this->assertTableRowCount($this->table->getTableName(), 2);
-        $this->assertEquals(null, $this->table->getEndpointId(3));
+        $this->assertEquals(null, $this->table->getEndpoint(3));
     }
 
     public function testRemoveByHostId()
     {
-        $this->assertEquals('1||1||foo', $this->table->getEndpointId(3));
+        $this->assertEquals('1||1||foo', $this->table->getEndpoint(3));
         $this->table->remove(null, 3);
         $this->assertTableRowCount($this->table->getTableName(), 2);
-        $this->assertEquals(null, $this->table->getEndpointId(3));
+        $this->assertEquals(null, $this->table->getEndpoint(3));
     }
 
     public function testClear()

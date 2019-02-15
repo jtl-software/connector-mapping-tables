@@ -39,10 +39,10 @@ class DummyTable implements MappingTableInterface
     }
 
     /**
-     * @param string $endpointId
+     * @param string $endpoint
      * @return integer
      */
-    public function getHostId($endpointId)
+    public function getHostId($endpoint)
     {
         return 0;
     }
@@ -52,27 +52,27 @@ class DummyTable implements MappingTableInterface
      * @param string|null $relationType
      * @return string
      */
-    public function getEndpointId($hostId, $relationType = null)
+    public function getEndpoint($hostId, $relationType = null)
     {
         return '';
     }
 
     /**
-     * @param string $endpointId
+     * @param string $endpoint
      * @param integer $hostId
      * @return boolean
      */
-    public function save($endpointId, $hostId)
+    public function save($endpoint, $hostId)
     {
         return true;
     }
 
     /**
-     * @param null $endpointId
+     * @param null $endpoint
      * @param null $hostId
      * @return boolean
      */
-    public function remove($endpointId = null, $hostId = null)
+    public function remove($endpoint = null, $hostId = null)
     {
         return true;
     }
