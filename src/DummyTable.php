@@ -96,7 +96,7 @@ class DummyTable implements MappingTableInterface
     /**
      * @return array|string[]
      */
-    public function findEndpoints(): array
+    public function findEndpoints(array $where = [], array $parameters = []): array
     {
         return [];
     }
