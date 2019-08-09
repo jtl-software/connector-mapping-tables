@@ -89,7 +89,8 @@ abstract class AbstractMappingTable extends AbstractTable implements MappingTabl
 
     /**
      * @param string $endpoint
-     * @return null|integer
+     * @return int|null
+     * @throws \Doctrine\DBAL\DBALException
      */
     public function getHostId($endpoint)
     {
@@ -133,20 +134,27 @@ abstract class AbstractMappingTable extends AbstractTable implements MappingTabl
 
     /**
      * @param string $endpoint
-     * @param integer $hostId
-     * @return integer
+     * @param int $hostId
+     * @return int
+     * @throws \Doctrine\DBAL\DBALException
      */
     public function save($endpoint, $hostId)
     {
         $data = $this->extractEndpoint($endpoint);
         $data[self::HOST_ID] = $hostId;
-        return $this->getConnection()->insert($this->getTableName(), $data);
+
+        $types = array_map(function(array $column) {
+            return $column['type'];
+        }, $this->getEndpointColumns());
+
+        return $this->getConnection()->insert($this->getTableName(), $data, $types);
     }
 
     /**
-     * @param string|null $endpoint
-     * @param integer|null $hostId
-     * @return integer
+     * @param null $endpoint
+     * @param null $hostId
+     * @return \Doctrine\DBAL\Driver\Statement|int
+     * @throws \Doctrine\DBAL\DBALException
      */
     public function remove($endpoint = null, $hostId = null)
     {
@@ -315,6 +323,7 @@ abstract class AbstractMappingTable extends AbstractTable implements MappingTabl
     /**
      * @param string $endpointId
      * @return mixed[]
+     * @throws \Doctrine\DBAL\DBALException
      */
     public function extractEndpoint($endpointId)
     {
@@ -322,9 +331,8 @@ abstract class AbstractMappingTable extends AbstractTable implements MappingTabl
         return $this->createEndpointData($data);
     }
 
-
     /**
-     * @param $hostId
+     * @param int $hostId
      * @return \jtl\Connector\CDBC\Query\QueryBuilder
      */
     protected function createEndpointIdQuery($hostId)
@@ -356,7 +364,7 @@ abstract class AbstractMappingTable extends AbstractTable implements MappingTabl
     }
 
     /**
-     * @param array $data
+     * @param mixed[] $data
      * @return mixed[]
      * @throws \Doctrine\DBAL\DBALException
      */
@@ -400,7 +408,7 @@ abstract class AbstractMappingTable extends AbstractTable implements MappingTabl
     }
 
     /**
-     * @return mixed[]
+     * @return string[]
      */
     protected function getEndpointColumns()
     {
@@ -408,7 +416,7 @@ abstract class AbstractMappingTable extends AbstractTable implements MappingTabl
     }
 
     /**
-     * @return mixed[]
+     * @return string[]
      */
     protected function getPrimaryColumns()
     {
