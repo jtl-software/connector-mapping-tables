@@ -221,7 +221,7 @@ abstract class AbstractMappingTable extends AbstractTable implements MappingTabl
      * @param mixed[] $parameters
      * @return mixed[]
      */
-    public function findAllEndpoints(array $where = [], array $parameters = [])
+    public function findEndpoints(array $where = [], array $parameters = [])
     {
         $columns = array_keys($this->getEndpointColumns());
 

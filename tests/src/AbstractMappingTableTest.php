@@ -118,7 +118,7 @@ class AbstractMappingTableTest extends DBTestCase
 
     public function testFindAllEndpoints()
     {
-        $endpoints = $this->table->findAllEndpoints();
+        $endpoints = $this->table->findEndpoints();
         $this->assertCount(3, $endpoints);
         $this->assertEquals('1||1||foo', $endpoints[0]);
         $this->assertEquals('1||2||bar', $endpoints[1]);
@@ -128,7 +128,7 @@ class AbstractMappingTableTest extends DBTestCase
     public function testFindAllEndpointsWithNoData()
     {
         $this->table->clear();
-        $endpoints = $this->table->findAllEndpoints();
+        $endpoints = $this->table->findEndpoints();
         $this->assertTrue(is_array($endpoints));
         $this->assertEmpty($endpoints);
     }

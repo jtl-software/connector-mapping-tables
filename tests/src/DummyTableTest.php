@@ -29,7 +29,7 @@ class DummyTableTest extends TestCase
 
     public function testFindAllEndpoints()
     {
-        $this->assertEquals([], $this->obj->findAllEndpoints());
+        $this->assertEquals([], $this->obj->findEndpoints());
     }
 
     public function testGetTypeDefault()

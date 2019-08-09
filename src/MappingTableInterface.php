@@ -59,9 +59,11 @@ interface MappingTableInterface
     public function count();
 
     /**
-     * @return string[]
+     * @param array $where
+     * @param array $parameters
+     * @return mixed
      */
-    public function findAllEndpoints();
+    public function findEndpoints(array $where = [], array $parameters = []);
 
     /**
      * @param string[] $endpoints

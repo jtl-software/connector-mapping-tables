@@ -81,7 +81,7 @@ class MappingTablesManager implements IPrimaryKeyMapper
      */
     public function findAllEndpoints($type)
     {
-        return $this->collection->get($type)->findAllEndpoints();
+        return $this->collection->get($type)->findEndpoints();
     }
 
     /**

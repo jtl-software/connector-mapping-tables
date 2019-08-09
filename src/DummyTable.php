@@ -96,7 +96,7 @@ class DummyTable implements MappingTableInterface
     /**
      * @return array|string[]
      */
-    public function findAllEndpoints(): array
+    public function findEndpoints(): array
     {
         return [];
     }
