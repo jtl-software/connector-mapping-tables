@@ -3,17 +3,17 @@
  * @author Immanuel Klinkenberg <immanuel.klinkenberg@jtl-software.com>
  * @copyright 2010-2017 JTL-Software GmbH
  */
-namespace jtl\Connector\MappingTables;
+namespace Jtl\Connector\MappingTables;
 
 
-class MappingTablesCollectionTest extends DBTestCase
+class MappingTablesCollectionTest extends DbTestCase
 {
     /**
      * @var MappingTablesCollection
      */
     protected $collection;
 
-    protected function setUp()
+    protected function setUp(): void
     {
         parent::setUp();
         $this->collection = new MappingTablesCollection([$this->table]);
@@ -46,14 +46,14 @@ class MappingTablesCollectionTest extends DBTestCase
     public function testHasNot()
     {
         $collection = new MappingTablesCollection([$this->table]);
-        $this->assertFalse($collection->has('whatever'));
+        $this->assertFalse($collection->has(9854));
     }
 
     public function testGetNotFound()
     {
         $this->expectException(RuntimeException::class);
         $this->expectExceptionCode(RuntimeException::TABLE_TYPE_NOT_FOUND);
-        (new MappingTablesCollection([$this->table]))->get('yeeeha');
+        (new MappingTablesCollection([$this->table]))->get(3214);
     }
 
     public function testRemoveByType()

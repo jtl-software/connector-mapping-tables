@@ -3,12 +3,14 @@
  * @author Immanuel Klinkenberg <immanuel.klinkenberg@jtl-software.com>
  * @copyright 2010-2016 JTL-Software GmbH
  */
-namespace jtl\Connector\MappingTables;
-use jtl\Connector\CDBC\DBManager;
+namespace Jtl\Connector\MappingTables;
+use Doctrine\DBAL\DBALException;
+use Jtl\Connector\Dbc\DbManager;
+use Jtl\Connector\Dbc\DbManagerStub;
 use PHPUnit\DbUnit\DataSet\YamlDataSet;
 use PHPUnit\DbUnit\Database\DefaultConnection;
 
-abstract class DBTestCase extends \PHPUnit\DbUnit\TestCase
+abstract class DbTestCase extends \PHPUnit\DbUnit\TestCase
 {
     const TABLES_PREFIX = 'pre';
     const SCHEMA = TESTROOT . '/tmp/db.sqlite';
@@ -18,7 +20,7 @@ abstract class DBTestCase extends \PHPUnit\DbUnit\TestCase
      */
     protected $pdo;
     /**
-     * @var \jtl\Connector\CDBC\DBManagerStub
+     * @var DbManagerStub
      */
     protected $dbManager;
 
@@ -33,11 +35,11 @@ abstract class DBTestCase extends \PHPUnit\DbUnit\TestCase
     protected $table;
 
 
-    protected function setUp()
+    protected function setUp(): void
     {
-        $this->table = new MappingTableStub($this->getDBManager());
-        if($this->getDBManager()->hasSchemaUpdate()){
-            $this->getDBManager()->updateDatabaseSchema();
+        $this->table = new MappingTableStub($this->getDbManager());
+        if($this->getDbManager()->hasSchemaUpdate()){
+            $this->getDbManager()->updateDatabaseSchema();
         }
         parent::setUp();
     }
@@ -45,7 +47,7 @@ abstract class DBTestCase extends \PHPUnit\DbUnit\TestCase
     /**
      * @return PDO
      */
-    protected function getPDO()
+    protected function getPdo()
     {
         if(!$this->pdo instanceof \PDO){
             if(file_exists(self::SCHEMA)){
@@ -57,13 +59,14 @@ abstract class DBTestCase extends \PHPUnit\DbUnit\TestCase
     }
 
     /**
-     * @return DBManagerStub
+     * @return DbManager|DbManagerStub
+     * @throws DBALException
      */
-    protected function getDBManager()
+    protected function getDbManager()
     {
         if(is_null($this->dbManager)){
-            //$this->dbManager = DBManagerStub::createFromPDO($this->getConnection()->getConnection(), null, self::TABLES_PREFIX);
-            $this->dbManager = DBManager::createFromPDO($this->getConnection()->getConnection(), null, self::TABLES_PREFIX);
+            //$this->dbManager = DbManagerStub::createFromPDO($this->getConnection()->getConnection(), null, self::TABLES_PREFIX);
+            $this->dbManager = DbManager::createFromPDO($this->getConnection()->getConnection(), null, self::TABLES_PREFIX);
         }
         return $this->dbManager;
     }
@@ -73,7 +76,7 @@ abstract class DBTestCase extends \PHPUnit\DbUnit\TestCase
      */
     protected function getConnection()
     {
-        return $this->createDefaultDBConnection($this->getPDO(), self::SCHEMA);
+        return $this->createDefaultDBConnection($this->getPdo(), self::SCHEMA);
     }
 
     /**

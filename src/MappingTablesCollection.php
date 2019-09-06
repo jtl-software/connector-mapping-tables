@@ -3,12 +3,15 @@
  * @author Immanuel Klinkenberg <immanuel.klinkenberg@jtl-software.com>
  * @copyright 2010-2016 JTL-Software GmbH
  */
-namespace jtl\Connector\MappingTables;
+namespace Jtl\Connector\MappingTables;
 
-use jtl\Connector\CDBC\TablesCollection;
+use Jtl\Connector\Dbc\TablesCollection;
 
 class MappingTablesCollection
 {
+    /**
+     * @var boolean
+     */
     protected $strictMode = true;
 
     /**
@@ -24,9 +27,9 @@ class MappingTablesCollection
     /**
      * MappingTableCollection constructor.
      * @param MappingTableInterface[] $tables
-     * @param bool $strictMode
+     * @param boolean $strictMode
      */
-    public function __construct(array $tables = [], $strictMode = true)
+    public function __construct(array $tables = [], bool $strictMode = true)
     {
         $this->collection = new TablesCollection();
 
@@ -34,14 +37,14 @@ class MappingTablesCollection
             $this->set($table);
         }
 
-        $this->strictMode = (bool)$strictMode;
+        $this->strictMode = $strictMode;
     }
 
     /**
      * @param MappingTableInterface $table
      * @return MappingTablesCollection
      */
-    public function set(MappingTableInterface $table)
+    public function set(MappingTableInterface $table): MappingTablesCollection
     {
         $this->collection->set($table);
         return $this;
@@ -50,8 +53,9 @@ class MappingTablesCollection
     /**
      * @param MappingTableInterface $table
      * @return boolean
+     * @throws \Exception
      */
-    public function removeByInstance(MappingTableInterface $table)
+    public function removeByInstance(MappingTableInterface $table): bool
     {
         return $this->collection->removeByInstance($table);
     }
@@ -59,8 +63,9 @@ class MappingTablesCollection
     /**
      * @param integer $type
      * @return boolean
+     * @throws \Exception
      */
-    public function removeByType($type)
+    public function removeByType(int $type): bool
     {
         if($this->has($type)) {
             $table = $this->findByType($type);
@@ -73,7 +78,7 @@ class MappingTablesCollection
      * @param integer $type
      * @return boolean
      */
-    public function has($type)
+    public function has(int $type): bool
     {
         return $this->findByType($type) instanceof MappingTableInterface;
     }
@@ -83,7 +88,7 @@ class MappingTablesCollection
      * @return MappingTableInterface
      * @throws RuntimeException
      */
-    public function get($type)
+    public function get(int $type): MappingTableInterface
     {
         if($this->has($type)) {
             return $this->findByType($type);
@@ -99,7 +104,7 @@ class MappingTablesCollection
     /**
      * @return MappingTableInterface[]
      */
-    public function toArray()
+    public function toArray(): array
     {
         return $this->collection->toArray();
     }
@@ -107,39 +112,40 @@ class MappingTablesCollection
     /**
      * @return boolean
      */
-    public function isStrictMode()
+    public function isStrictMode(): bool
     {
         return $this->strictMode;
     }
 
     /**
-     * @param bool $strictMode
-     * @return DummyTable
+     * @param boolean $strictMode
+     * @return MappingTablesCollection
      */
-    public function setStrictMode($strictMode)
+    public function setStrictMode(bool $strictMode): MappingTablesCollection
     {
-        $this->strictMode = (bool)$strictMode;
+        $this->strictMode = $strictMode;
         return $this;
     }
 
     /**
      * @return DummyTable
      */
-    protected function getDummyTable()
+    protected function getDummyTable(): DummyTable
     {
         if(!$this->dummyTable instanceof DummyTable) {
             $this->dummyTable = new DummyTable();
         }
+
         return $this->dummyTable;
     }
 
     /**
      * @param integer $type
-     * @return AbstractMappingTable|null
+     * @return MappingTableInterface|null
      */
-    protected function findByType($type)
+    protected function findByType(int $type): ?MappingTableInterface
     {
-        $result = array_filter($this->collection->toArray(), function(AbstractMappingTable $table) use ($type) {
+        $result = array_filter($this->collection->toArray(), function(MappingTableInterface $table) use ($type) {
             return $table->getType() === $type;
         });
 

@@ -4,7 +4,7 @@
  * @copyright 2010-2018 JTL-Software GmbH
  */
 
-namespace jtl\Connector\MappingTables;
+namespace Jtl\Connector\MappingTables;
 
 use PHPUnit\Framework\TestCase;
 
@@ -15,7 +15,7 @@ class DummyTableTest extends TestCase
      */
     protected $obj;
 
-    protected function setUp()
+    protected function setUp(): void
     {
         parent::setUp();
         $this->obj = new DummyTable();

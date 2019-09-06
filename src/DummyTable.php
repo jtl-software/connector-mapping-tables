@@ -3,7 +3,9 @@
  * @author Immanuel Klinkenberg <immanuel.klinkenberg@jtl-software.com>
  * @copyright 2010-2018 JTL-Software GmbH
  */
-namespace jtl\Connector\MappingTables;
+namespace Jtl\Connector\MappingTables;
+
+use Jtl\Connector\Dbc\Query\QueryBuilder;
 
 class DummyTable implements MappingTableInterface
 {
@@ -23,7 +25,7 @@ class DummyTable implements MappingTableInterface
     /**
      * @return integer
      */
-    public function getType()
+    public function getType(): int
     {
         return $this->type;
     }
@@ -32,7 +34,7 @@ class DummyTable implements MappingTableInterface
      * @param integer $type
      * @return DummyTable
      */
-    public function setType($type)
+    public function setType($type): DummyTable
     {
         $this->type = $type;
         return $this;
@@ -42,9 +44,9 @@ class DummyTable implements MappingTableInterface
      * @param string $endpoint
      * @return integer
      */
-    public function getHostId($endpoint)
+    public function getHostId(string $endpoint): ?int
     {
-        return 0;
+        return null;
     }
 
     /**
@@ -52,27 +54,27 @@ class DummyTable implements MappingTableInterface
      * @param string|null $relationType
      * @return string
      */
-    public function getEndpoint($hostId, $relationType = null)
+    public function getEndpoint(int $hostId, string $relationType = null): ?string
     {
-        return '';
+        return null;
     }
 
     /**
      * @param string $endpoint
      * @param integer $hostId
-     * @return boolean
+     * @return booelan
      */
-    public function save($endpoint, $hostId)
+    public function save(string $endpoint, int $hostId): bool
     {
         return true;
     }
 
     /**
-     * @param null $endpoint
-     * @param null $hostId
+     * @param string|null $endpoint
+     * @param int|null $hostId
      * @return boolean
      */
-    public function remove($endpoint = null, $hostId = null)
+    public function remove(string $endpoint = null, int $hostId = null): bool
     {
         return true;
     }
@@ -80,23 +82,33 @@ class DummyTable implements MappingTableInterface
     /**
      * @return boolean
      */
-    public function clear()
+    public function clear(): bool
     {
         return true;
     }
 
     /**
+     * @param array $where
+     * @param array $parameters
+     * @param array $orderBy
+     * @param int|null $limit
+     * @param int|null $offset
      * @return integer
      */
-    public function count()
+    public function count(array $where = [], array $parameters = [], array $orderBy = [], int $limit = null, int $offset = null): int
     {
         return 0;
     }
 
     /**
-     * @return array|string[]
+     * @param array $where
+     * @param array $parameters
+     * @param array $orderBy
+     * @param int|null $limit
+     * @param int|null $offset
+     * @return array
      */
-    public function findEndpoints(array $where = [], array $parameters = []): array
+    public function findEndpoints(array $where = [], array $parameters = [], array $orderBy = [], int $limit = null, int $offset = null): array
     {
         return [];
     }

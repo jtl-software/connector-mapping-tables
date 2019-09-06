@@ -1,5 +1,6 @@
 <?php
-namespace jtl\Connector\MappingTables;
+namespace Jtl\Connector\MappingTables;
+
 /**
  * @author Immanuel Klinkenberg <immanuel.klinkenberg@jtl-software.com>
  * @copyright 2010-2017 JTL-Software GmbH
@@ -7,9 +8,9 @@ namespace jtl\Connector\MappingTables;
 interface MappingTableInterface
 {
     /**
-     * @return mixed
+     * @return integer
      */
-    public function getType();
+    public function getType(): int;
 
     /**
      * Host ID getter
@@ -17,7 +18,7 @@ interface MappingTableInterface
      * @param string $endpoint
      * @return integer|null
      */
-    public function getHostId($endpoint);
+    public function getHostId(string $endpoint): ?int;
 
     /**
      * Endpoint ID getter
@@ -26,48 +27,56 @@ interface MappingTableInterface
      * @param string|null $relationType
      * @return string|null
      */
-    public function getEndpoint($hostId, $relationType = null);
+    public function getEndpoint(int $hostId, string $relationType = null): ?string;
 
     /**
      * Save link to database
      *
      * @param string $endpoint
      * @param integer $hostId
-     * @return integer
+     * @return boolean
      */
-    public function save($endpoint, $hostId);
+    public function save(string $endpoint, int $hostId): bool;
 
     /**
      * Delete link from database
      *
      * @param string $endpoint
      * @param integer $hostId
-     * @return integer
+     * @return boolean
      */
-    public function remove($endpoint = null, $hostId = null);
+    public function remove(string $endpoint = null, int $hostId = null): bool;
 
     /**
      * Clears the entire link table
      *
-     * @return integer
+     * @return boolean
      */
-    public function clear();
+    public function clear(): bool;
 
     /**
+     * @param string[] $where
+     * @param mixed[] $parameters
+     * @param string[] $orderBy
+     * @param int|null $limit
+     * @param int|null $offset
      * @return integer
      */
-    public function count();
+    public function count(array $where = [], array $parameters = [], array $orderBy = [], int $limit = null, int $offset = null): int;
 
     /**
-     * @param array $where
-     * @param array $parameters
-     * @return mixed
+     * @param string[] $where
+     * @param mixed[] $parameters
+     * @param string[] $orderBy
+     * @param int|null $limit
+     * @param int|null $offset
+     * @return string[]
      */
-    public function findEndpoints(array $where = [], array $parameters = []);
+    public function findEndpoints(array $where = [], array $parameters = [], array $orderBy = [], int $limit = null, int $offset = null): array;
 
     /**
      * @param string[] $endpoints
      * @return string[]
      */
-    public function findNotFetchedEndpoints(array $endpoints);
+    public function findNotFetchedEndpoints(array $endpoints): array;
 }
