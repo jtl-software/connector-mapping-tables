@@ -13,7 +13,6 @@ use Doctrine\DBAL\Types\Type;
 use Jtl\Connector\Dbc\AbstractTable;
 use Jtl\Connector\Dbc\DbManager;
 use Jtl\Connector\Dbc\Query\QueryBuilder;
-use Jtl\Connector\Dbc\RuntimeException;
 use Jtl\Connector\Dbc\TableException;
 
 abstract class AbstractMappingTable extends AbstractTable implements MappingTableInterface
