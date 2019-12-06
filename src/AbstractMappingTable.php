@@ -9,7 +9,7 @@ namespace Jtl\Connector\MappingTables;
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\DBALException;
 use Doctrine\DBAL\Schema\Table;
-use Doctrine\DBAL\Types\Type;
+use Doctrine\DBAL\Types\Types;
 use Jtl\Connector\Dbc\AbstractTable;
 use Jtl\Connector\Dbc\DbManager;
 use Jtl\Connector\Dbc\Query\QueryBuilder;
@@ -49,7 +49,7 @@ abstract class AbstractMappingTable extends AbstractTable implements MappingTabl
     public function getTableSchema(): Table
     {
         $tableSchema = parent::getTableSchema();
-        $tableSchema->addColumn(self::HOST_ID, Type::INTEGER, ['notnull' => false]);
+        $tableSchema->addColumn(self::HOST_ID, Types::INTEGER, ['notnull' => false]);
         $tableSchema->addIndex([self::HOST_ID], $this->createIndexName(self::HOST_INDEX_NAME));
         return $tableSchema;
     }

@@ -6,7 +6,7 @@
 namespace Jtl\Connector\MappingTables;
 
 use Doctrine\DBAL\Schema\Table;
-use Doctrine\DBAL\Types\Type;
+use Doctrine\DBAL\Types\Types;
 
 class MappingTableStub extends AbstractMappingTable
 {
@@ -28,9 +28,9 @@ class MappingTableStub extends AbstractMappingTable
     public function defineEndpoint(): void
     {
         $this
-            ->addEndpointColumn(self::COL_ID1, Type::INTEGER)
-            ->addEndpointColumn(self::COL_ID2, Type::INTEGER)
-            ->addEndpointColumn(self::COL_VAR, Type::STRING, [], false)
+            ->addEndpointColumn(self::COL_ID1, Types::INTEGER)
+            ->addEndpointColumn(self::COL_ID2, Types::INTEGER)
+            ->addEndpointColumn(self::COL_VAR, Types::STRING, [], false)
         ;
     }
 
