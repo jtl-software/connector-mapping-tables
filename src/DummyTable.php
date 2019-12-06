@@ -5,8 +5,6 @@
  */
 namespace Jtl\Connector\MappingTables;
 
-use Jtl\Connector\Dbc\Query\QueryBuilder;
-
 class DummyTable implements MappingTableInterface
 {
     /**
@@ -54,7 +52,7 @@ class DummyTable implements MappingTableInterface
      * @param string|null $relationType
      * @return string
      */
-    public function getEndpoint(int $hostId, string $relationType = null): ?string
+    public function getEndpoint(int $hostId): ?string
     {
         return null;
     }
@@ -62,7 +60,7 @@ class DummyTable implements MappingTableInterface
     /**
      * @param string $endpoint
      * @param integer $hostId
-     * @return booelan
+     * @return boolean
      */
     public function save(string $endpoint, int $hostId): bool
     {
@@ -80,11 +78,11 @@ class DummyTable implements MappingTableInterface
     }
 
     /**
-     * @return boolean
+     * @return integer
      */
-    public function clear(): bool
+    public function clear(): int
     {
-        return true;
+        return 0;
     }
 
     /**
@@ -121,5 +119,4 @@ class DummyTable implements MappingTableInterface
     {
         return $endpoints;
     }
-
 }

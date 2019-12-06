@@ -4,9 +4,9 @@
  * @copyright 2010-2017 JTL-Software GmbH
  */
 namespace Jtl\Connector\MappingTables;
-use jtl\Connector\Mapper\IPrimaryKeyMapper;
+use Jtl\Connector\Core\Mapper\PrimaryKeyMapperInterface;
 
-class MappingTablesManager implements IPrimaryKeyMapper
+class MappingTablesManager implements PrimaryKeyMapperInterface
 {
     /**
      * @var MappingTablesCollection
@@ -33,24 +33,23 @@ class MappingTablesManager implements IPrimaryKeyMapper
     }
 
     /**
-     * @param string $endpointId
      * @param integer $type
+     * @param string $endpointId
      * @return integer|null
      */
-    public function getHostId($endpointId, $type): ?int
+    public function getHostId(int $type, string $endpointId): ?int
     {
         return $this->collection->get($type)->getHostId($endpointId);
     }
 
     /**
-     * @param integer $hostId
      * @param integer $type
-     * @param null $relationType
+     * @param integer $hostId
      * @return string
      */
-    public function getEndpointId($hostId, $type, $relationType = null): ?string
+    public function getEndpointId(int $type, int $hostId): ?string
     {
-        return $this->collection->get($type)->getEndpoint($hostId, $relationType);
+        return $this->collection->get($type)->getEndpoint($hostId);
     }
 
     /**
@@ -59,18 +58,18 @@ class MappingTablesManager implements IPrimaryKeyMapper
      * @param int $type
      * @return boolean
      */
-    public function save($endpointId, $hostId, $type): bool
+    public function save(int $type, string $endpointId, int $hostId): bool
     {
         return $this->collection->get($type)->save($endpointId, $hostId);
     }
 
     /**
+     * @param integer $type
      * @param string|null $endpointId
      * @param integer|null $hostId
-     * @param integer $type
      * @return boolean
      */
-    public function delete($endpointId = null, $hostId = null, $type): bool
+    public function delete(int $type, string $endpointId = null, int $hostId = null): bool
     {
         return $this->collection->get($type)->remove($endpointId, $hostId);
     }
@@ -85,11 +84,11 @@ class MappingTablesManager implements IPrimaryKeyMapper
     }
 
     /**
+     * @param int $type
      * @param string[] $endpoints
-     * @param string $type
      * @return string[]
      */
-    public function findNotFetchedEndpoints(array $endpoints, string $type): array
+    public function findNotFetchedEndpoints(int $type, array $endpoints): array
     {
         return $this->collection->get($type)->findNotFetchedEndpoints($endpoints);
     }
@@ -104,22 +103,19 @@ class MappingTablesManager implements IPrimaryKeyMapper
     }
 
     /**
+     * @param integer|null $type
      * @return boolean
      */
-    public function clear(): bool
+    public function clear(int $type = null): bool
     {
-        $return = true;
-        foreach($this->collection->toArray() as $table) {
-            $return = $table->clear() > 0 && $return;
+        if(!is_null($type)) {
+            return $this->collection->get($type)->clear() >= 0;
         }
-        return $return;
-    }
 
-    /**
-     * @return boolean
-     */
-    public function gc(): bool
-    {
+        foreach($this->collection->toArray() as $table) {
+            $table->clear();
+        }
+
         return true;
     }
 
@@ -134,7 +130,7 @@ class MappingTablesManager implements IPrimaryKeyMapper
     }
 
     /**
-     * @param MappingTableInterface $tables[]
+     * @param array $tables
      * @return MappingTablesManager
      */
     public function setMappingTables(array $tables): MappingTablesManager

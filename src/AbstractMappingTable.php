@@ -133,6 +133,7 @@ abstract class AbstractMappingTable extends AbstractTable implements MappingTabl
         if (is_array($endpointData)) {
             return $this->buildEndpoint($endpointData);
         }
+
         return null;
     }
 
@@ -186,15 +187,13 @@ abstract class AbstractMappingTable extends AbstractTable implements MappingTabl
     }
 
     /**
-     * @return bool
+     * @return integer
      */
-    public function clear(): bool
+    public function clear(): int
     {
-        $rows = $this->createQueryBuilder()
+        return $this->createQueryBuilder()
             ->delete($this->getTableName())
             ->execute();
-
-        return is_int($rows) ? $rows > 0 : false;
     }
 
     /**

@@ -76,6 +76,4 @@ class MappingTableStub extends AbstractMappingTable
     {
         return parent::getEndpointColumns();
     }
-
-
 }

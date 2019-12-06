@@ -24,10 +24,9 @@ interface MappingTableInterface
      * Endpoint ID getter
      *
      * @param integer $hostId
-     * @param string|null $relationType
      * @return string|null
      */
-    public function getEndpoint(int $hostId, string $relationType = null): ?string;
+    public function getEndpoint(int $hostId): ?string;
 
     /**
      * Save link to database
@@ -49,10 +48,9 @@ interface MappingTableInterface
 
     /**
      * Clears the entire link table
-     *
-     * @return boolean
+     * @return integer
      */
-    public function clear(): bool;
+    public function clear(): int;
 
     /**
      * @param string[] $where

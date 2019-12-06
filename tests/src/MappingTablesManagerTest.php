@@ -32,32 +32,39 @@ class MappingTablesManagerTest extends DbTestCase
 
     public function testGetHostId()
     {
-        $this->assertEquals(5, $this->mtm->getHostId("4||2||foobar", $this->table->getType()));
+        $expected = 5;
+        $actual = $this->mtm->getHostId($this->table->getType(), "4||2||foobar");
+        $this->assertEquals($expected, $actual);
     }
 
     public function testGetEndpointId()
     {
-        $this->assertEquals("1||2||bar", $this->mtm->getEndpointId(2, $this->table->getType()));
+        $expected = "1||2||bar";
+        $actual = $this->mtm->getEndpointId($this->table->getType(), 2);
+        $this->assertEquals($expected, $actual);
     }
 
     public function testSave()
     {
-        $ep = '1||8||asdf';
-        $host = 9;
-        $this->mtm->save($ep, $host, $this->table->getType());
-        $this->assertEquals($host, $this->mtm->getHostId($ep, $this->table->getType()));
+        $endpoint = '1||8||asdf';
+        $hostId = 9;
+        $this->mtm->save($this->table->getType(), $endpoint, $hostId);
+        $this->assertEquals($hostId, $this->mtm->getHostId($this->table->getType(), $endpoint));
+        $this->assertEquals($endpoint, $this->mtm->getEndpointId($this->table->getType(), $hostId));
     }
 
     public function testDeleteByEndpointId()
     {
-        $this->mtm->delete("1||2||bar", null, $this->table->getType());
-        $this->assertNull($this->mtm->getHostId("1||2||bar", $this->table->getType()));
+        $endpoint = "1||2||bar";
+        $this->mtm->delete($this->table->getType(), $endpoint);
+        $this->assertNull($this->mtm->getHostId($this->table->getType(), $endpoint));
     }
 
     public function testDeleteByHostId()
     {
-        $this->mtm->delete(null, 3, $this->table->getType());
-        $this->assertNull($this->mtm->getEndpointId(3, $this->table->getType()));
+        $hostId = 3;
+        $this->mtm->delete($this->table->getType(), null, $hostId);
+        $this->assertNull($this->mtm->getEndpointId($this->table->getType(), $hostId));
     }
 
     public function testFindAllEndpoints()
@@ -68,7 +75,7 @@ class MappingTablesManagerTest extends DbTestCase
     public function testFindNotFetchedEndpoints()
     {
         $endpoints = ['1||1||foo', '1||2||bar', '2||1||yo', '2||2||lo', '2||3||so'];
-        $notFetched = $this->mtm->findNotFetchedEndpoints($endpoints, $this->table->getType());
+        $notFetched = $this->mtm->findNotFetchedEndpoints($this->table->getType(), $endpoints);
         $this->assertCount(3, $notFetched);
         $this->assertTrue(in_array('2||1||yo', $notFetched));
         $this->assertTrue(in_array('2||2||lo', $notFetched));
@@ -80,11 +87,6 @@ class MappingTablesManagerTest extends DbTestCase
         $this->assertTableRowCount($this->table->getTableName(), 3);
         $this->assertTrue($this->mtm->clear());
         $this->assertTableRowCount($this->table->getTableName(), 0);
-    }
-
-    public function testGc()
-    {
-        $this->assertTrue($this->mtm->gc());
     }
 
     public function testCount()
