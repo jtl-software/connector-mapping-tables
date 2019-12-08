@@ -8,13 +8,14 @@ namespace Jtl\Connector\MappingTables;
 use Doctrine\DBAL\Schema\Table;
 use Doctrine\DBAL\Types\Types;
 
-class MappingTableStub extends AbstractMappingTable
+class TableStub extends AbstractTable
 {
     const COL_ID1 = 'id1';
     const COL_ID2 = 'id2';
     const COL_VAR = 'strg';
 
-    const TYPE = 815;
+    const TYPE1 = 815;
+    const TYPE2 = 7;
     const TABLE_NAME = 'mapping_table';
 
     /**
@@ -35,11 +36,11 @@ class MappingTableStub extends AbstractMappingTable
     }
 
     /**
-     * @return integer
+     * @return integer[]
      */
-    public function getType(): int
+    public function getTypes(): array
     {
-        return self::TYPE;
+        return [self::TYPE1, self::TYPE2];
     }
 
     public function createTableSchema(Table $tableSchema): void
@@ -62,7 +63,7 @@ class MappingTableStub extends AbstractMappingTable
         return parent::createEndpointData($data);
     }
 
-    public function addEndpointColumn($name, $type, array $options = [], $primary = true): AbstractMappingTable
+    public function addEndpointColumn($name, $type, array $options = [], $primary = true): AbstractTable
     {
         return parent::addEndpointColumn($name, $type, $options, $primary);
     }

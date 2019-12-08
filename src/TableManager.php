@@ -6,28 +6,27 @@
 namespace Jtl\Connector\MappingTables;
 use Jtl\Connector\Core\Mapper\PrimaryKeyMapperInterface;
 
-class MappingTablesManager implements PrimaryKeyMapperInterface
+class TableManager implements PrimaryKeyMapperInterface
 {
     /**
-     * @var MappingTablesCollection
+     * @var TableCollection
      */
     protected $collection;
 
     /**
      * MappingTablesManager constructor.
-     * @param MappingTableInterface[] $mappingTables
-     * @param boolean $strictMode
+     * @param TableInterface ...$tables
      */
-    public function __construct(array $mappingTables = [], bool $strictMode = true)
+    public function __construct(TableInterface ...$tables)
     {
-        $this->collection = new MappingTablesCollection($mappingTables, $strictMode);
+        $this->collection = new TableCollection(...$tables);
     }
 
     /**
      * @param integer $type
-     * @return MappingTableInterface
+     * @return TableInterface
      */
-    public function getTable(int $type): MappingTableInterface
+    public function getTableByType(int $type): TableInterface
     {
         return $this->collection->get($type);
     }
@@ -49,7 +48,7 @@ class MappingTablesManager implements PrimaryKeyMapperInterface
      */
     public function getEndpointId(int $type, int $hostId): ?string
     {
-        return $this->collection->get($type)->getEndpoint($hostId);
+        return $this->collection->get($type)->getEndpoint($type, $hostId);
     }
 
     /**
@@ -60,7 +59,7 @@ class MappingTablesManager implements PrimaryKeyMapperInterface
      */
     public function save(int $type, string $endpointId, int $hostId): bool
     {
-        return $this->collection->get($type)->save($endpointId, $hostId);
+        return is_int($this->collection->get($type)->save($endpointId, $hostId));
     }
 
     /**
@@ -71,16 +70,16 @@ class MappingTablesManager implements PrimaryKeyMapperInterface
      */
     public function delete(int $type, string $endpointId = null, int $hostId = null): bool
     {
-        return $this->collection->get($type)->remove($endpointId, $hostId);
+        return is_int($this->collection->get($type)->delete($type, $endpointId, $hostId));
     }
 
     /**
      * @param integer $type
      * @return string[]
      */
-    public function findAllEndpoints($type): array
+    public function findAllEndpointIds($type): array
     {
-        return $this->collection->get($type)->findEndpoints();
+        return $this->collection->get($type)->findEndpoints($type);
     }
 
     /**
@@ -88,9 +87,9 @@ class MappingTablesManager implements PrimaryKeyMapperInterface
      * @param string[] $endpoints
      * @return string[]
      */
-    public function findNotFetchedEndpoints(int $type, array $endpoints): array
+    public function filterMappedEndpointIds(int $type, array $endpoints): array
     {
-        return $this->collection->get($type)->findNotFetchedEndpoints($endpoints);
+        return $this->collection->get($type)->filterMappedEndpoints($endpoints);
     }
 
     /**
@@ -109,7 +108,7 @@ class MappingTablesManager implements PrimaryKeyMapperInterface
     public function clear(int $type = null): bool
     {
         if(!is_null($type)) {
-            return $this->collection->get($type)->clear() >= 0;
+            return is_int($this->collection->get($type)->clear($type));
         }
 
         foreach($this->collection->toArray() as $table) {
@@ -120,10 +119,10 @@ class MappingTablesManager implements PrimaryKeyMapperInterface
     }
 
     /**
-     * @param MappingTableInterface $table
-     * @return MappingTablesManager
+     * @param TableInterface $table
+     * @return TableManager
      */
-    public function setMappingTable(MappingTableInterface $table): MappingTablesManager
+    public function setMappingTable(TableInterface $table): TableManager
     {
         $this->collection->set($table);
         return $this;
@@ -131,9 +130,9 @@ class MappingTablesManager implements PrimaryKeyMapperInterface
 
     /**
      * @param array $tables
-     * @return MappingTablesManager
+     * @return TableManager
      */
-    public function setMappingTables(array $tables): MappingTablesManager
+    public function setMappingTables(array $tables): TableManager
     {
         foreach($tables as $table) {
             $this->setMappingTable($table);
@@ -151,9 +150,9 @@ class MappingTablesManager implements PrimaryKeyMapperInterface
 
     /**
      * @param bool $strictMode
-     * @return MappingTablesManager
+     * @return TableManager
      */
-    public function setStrictMode($strictMode): MappingTablesManager
+    public function setStrictMode(bool $strictMode): TableManager
     {
         $this->collection->setStrictMode($strictMode);
         return $this;

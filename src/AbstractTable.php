@@ -10,16 +10,17 @@ use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\DBALException;
 use Doctrine\DBAL\Schema\Table;
 use Doctrine\DBAL\Types\Types;
-use Jtl\Connector\Dbc\AbstractTable;
+use Jtl\Connector\Dbc\AbstractTable as AbstractDbcTable;
 use Jtl\Connector\Dbc\DbManager;
 use Jtl\Connector\Dbc\Query\QueryBuilder;
 use Jtl\Connector\Dbc\TableException;
 
-abstract class AbstractMappingTable extends AbstractTable implements MappingTableInterface
+abstract class AbstractTable extends AbstractDbcTable implements TableInterface
 {
     const ENDPOINT_INDEX_NAME = 'endpoint_idx';
     const HOST_INDEX_NAME = 'host_idx';
     const HOST_ID = 'host_id';
+    const IDENTITY_TYPE = 'identity_type';
 
     /**
      * @var string
@@ -38,8 +39,19 @@ abstract class AbstractMappingTable extends AbstractTable implements MappingTabl
      */
     public function __construct(DbManager $dbManager)
     {
+        if(count($this->getTypes()) === 0) {
+            throw RuntimeException::typesEmpty();
+        }
+
+        foreach($this->getTypes() as $type) {
+            if(!is_int($type)) {
+                throw RuntimeException::wrongTypes();
+            }
+        }
+
         parent::__construct($dbManager);
         $this->defineEndpoint();
+        $this->addEndpointColumn(self::IDENTITY_TYPE, Types::INTEGER);
     }
 
     /**
@@ -60,7 +72,7 @@ abstract class AbstractMappingTable extends AbstractTable implements MappingTabl
      */
     public function createIndexName(string $name): string
     {
-        return $this->getTableName() . '_' . $name;
+        return sprintf('%s_%s', $this->getTableName(), $name);
     }
 
     /**
@@ -93,7 +105,7 @@ abstract class AbstractMappingTable extends AbstractTable implements MappingTabl
 
     /**
      * @param string $endpoint
-     * @return int|null
+     * @return integer|null
      * @throws DBALException
      */
     public function getHostId(string $endpoint): ?int
@@ -120,13 +132,13 @@ abstract class AbstractMappingTable extends AbstractTable implements MappingTabl
     }
 
     /**
+     * @param integer $type
      * @param integer $hostId
-     * @param string|null $relationType
      * @return null|string
      */
-    public function getEndpoint(int $hostId, string $relationType = null): ?string
+    public function getEndpoint(int $type, int $hostId): ?string
     {
-        $endpointData = $this->createEndpointIdQuery($hostId)
+        $endpointData = $this->createEndpointIdQuery($type, $hostId)
             ->execute()
             ->fetch();
 
@@ -139,11 +151,11 @@ abstract class AbstractMappingTable extends AbstractTable implements MappingTabl
 
     /**
      * @param string $endpoint
-     * @param int $hostId
-     * @return boolean
+     * @param integer $hostId
+     * @return integer
      * @throws DBALException
      */
-    public function save(string $endpoint, int $hostId): bool
+    public function save(string $endpoint, int $hostId): int
     {
         $data = $this->extractEndpoint($endpoint);
         $data[self::HOST_ID] = $hostId;
@@ -152,19 +164,20 @@ abstract class AbstractMappingTable extends AbstractTable implements MappingTabl
             return $column['type'];
         }, $this->getEndpointColumns());
 
-        return $this->getConnection()->insert($this->getTableName(), $data, $types) > 0;
+        return $this->getConnection()->insert($this->getTableName(), $data, $types);
     }
 
     /**
+     * @param integer $type
      * @param string|null $endpoint
      * @param integer|null $hostId
-     * @return bool
+     * @return integer
      * @throws DBALException
      */
-    public function remove(string $endpoint = null, int $hostId = null): bool
+    public function delete(int $type, string $endpoint = null, int $hostId = null): int
     {
-        $qb = $this->createQueryBuilder();
-        $qb->delete($this->getTableName());
+        $qb = $this->createQueryBuilder()
+            ->delete($this->getTableName());
 
         $primaryColumns = array_keys($this->getPrimaryColumns());
 
@@ -175,6 +188,9 @@ abstract class AbstractMappingTable extends AbstractTable implements MappingTabl
                         ->setParameter($column, $value);
                 }
             }
+        } else {
+            $qb->andWhere(sprintf('%s = :%s', self::IDENTITY_TYPE, self::IDENTITY_TYPE))
+                ->setParameter(self::IDENTITY_TYPE, $type);
         }
 
         if ($hostId !== null) {
@@ -182,53 +198,59 @@ abstract class AbstractMappingTable extends AbstractTable implements MappingTabl
                 ->setParameter(self::HOST_ID, $hostId);
         }
 
-        $rows = $qb->execute() > 0;
-        return is_int($rows) ? $rows > 0 : false;
+        return $qb->execute();
     }
 
     /**
+     * @param integer $type
      * @return integer
      */
-    public function clear(): int
+    public function clear(int $type = null): int
     {
-        return $this->createQueryBuilder()
-            ->delete($this->getTableName())
-            ->execute();
+        $qb = $this->createQueryBuilder()
+            ->delete($this->getTableName());
+
+        if (!is_null($type)) {
+            $qb->andWhere(sprintf('%s = :%s', self::IDENTITY_TYPE, self::IDENTITY_TYPE))
+                ->setParameter(self::IDENTITY_TYPE, $type);
+        }
+
+        return $qb->execute();
     }
 
     /**
+     * @param integer $type
      * @param string[] $where
      * @param mixed[] $parameters
      * @param string[] $orderBy
-     * @param int|null $limit
-     * @param int|null $offset
+     * @param integer|null $limit
+     * @param integer|null $offset
      * @return integer
      * @throws DBALException
      */
-    public function count(array $where = [], array $parameters = [], array $orderBy = [], int $limit = null, int $offset = null): int
+    public function count(int $type = null, array $where = [], array $parameters = [], array $orderBy = [], int $limit = null, int $offset = null): int
     {
-        return $this->createFindQuery($where, $parameters, $orderBy, $limit, $offset)
+        return $this->createFindQuery($type, $where, $parameters, $orderBy, $limit, $offset)
             ->select($this->getDbManager()->getConnection()->getDatabasePlatform()->getCountExpression('*'))
             ->execute()
-            ->fetchColumn(0)
-        ;
+            ->fetchColumn(0);
     }
 
     /**
+     * @param integer|null $type
      * @param string[] $where
      * @param mixed[] $parameters
      * @param string[] $orderBy
-     * @param int|null $limit
-     * @param int|null $offset
+     * @param integer|null $limit
+     * @param integer|null $offset
      * @return string[]
      * @throws DBALException
      */
-    public function findEndpoints(array $where = [], array $parameters = [], array $orderBy = [], int $limit = null, int $offset = null): array
+    public function findEndpoints(int $type = null, array $where = [], array $parameters = [], array $orderBy = [], int $limit = null, int $offset = null): array
     {
-        $stmt = $this->createFindQuery($where, $parameters, $orderBy, $limit, $offset)
+        $stmt = $this->createFindQuery($type, $where, $parameters, $orderBy, $limit, $offset)
             ->select(array_keys($this->getEndpointColumns()))
-            ->execute()
-        ;
+            ->execute();
 
         return array_map(function (array $data) {
             return $this->buildEndpoint($data);
@@ -236,19 +258,24 @@ abstract class AbstractMappingTable extends AbstractTable implements MappingTabl
     }
 
     /**
+     * @param integer|null $type
      * @param array $where
      * @param array $parameters
      * @param array $orderBy
-     * @param int|null $limit
-     * @param int|null $offset
+     * @param integer|null $limit
+     * @param integer|null $offset
      * @return QueryBuilder
      * @throws DBALException
      */
-    public function createFindQuery(array $where = [], array $parameters = [], array $orderBy = [], int $limit = null, int $offset = null): QueryBuilder
+    public function createFindQuery(int $type = null, array $where = [], array $parameters = [], array $orderBy = [], int $limit = null, int $offset = null): QueryBuilder
     {
         $qb = $this->createQueryBuilder()
-            ->from($this->getTableName())
-        ;
+            ->from($this->getTableName());
+
+        if(!is_null($type)) {
+            $qb->andWhere(sprintf('%s = :%s', self::IDENTITY_TYPE, self::IDENTITY_TYPE))
+                ->setParameter(self::IDENTITY_TYPE, $type);
+        }
 
         foreach ($where as $condition) {
             $qb->andWhere($condition);
@@ -282,7 +309,7 @@ abstract class AbstractMappingTable extends AbstractTable implements MappingTabl
      * @return array|string[]
      * @throws DBALException
      */
-    public function findNotFetchedEndpoints(array $endpoints): array
+    public function filterMappedEndpoints(array $endpoints): array
     {
         $platform = $this->getConnection()->getDatabasePlatform();
         $primaryColumns = array_keys($this->getPrimaryColumns());
@@ -333,9 +360,9 @@ abstract class AbstractMappingTable extends AbstractTable implements MappingTabl
 
     /**
      * @param string $endpointDelimiter
-     * @return AbstractMappingTable
+     * @return AbstractTable
      */
-    public function setEndpointDelimiter(string $endpointDelimiter): AbstractMappingTable
+    public function setEndpointDelimiter(string $endpointDelimiter): AbstractTable
     {
         $this->endpointDelimiter = $endpointDelimiter;
         return $this;
@@ -362,17 +389,34 @@ abstract class AbstractMappingTable extends AbstractTable implements MappingTabl
     }
 
     /**
-     * @param int $hostId
+     * @param integer|null $type
+     * @return TableProxy
+     */
+    public function createProxy(int $type = null): TableProxy
+    {
+        if(is_null($type)) {
+            $types = $this->getTypes();
+            $type = reset($types);
+        }
+
+        return new TableProxy($type, $this);
+    }
+
+    /**
+     * @param integer $type
+     * @param integer $hostId
      * @return QueryBuilder
      */
-    protected function createEndpointIdQuery(int $hostId): QueryBuilder
+    protected function createEndpointIdQuery(int $type, int $hostId): QueryBuilder
     {
         $columns = array_keys($this->getEndpointColumns());
         return $this->createQueryBuilder()
             ->select($columns)
             ->from($this->getTableName())
-            ->where(self::HOST_ID . ' = :' . self::HOST_ID)
-            ->setParameter(self::HOST_ID, $hostId);
+            ->andWhere(sprintf('%s = :%s', self::HOST_ID, self::HOST_ID))
+            ->setParameter(self::HOST_ID, $hostId)
+            ->andWhere(sprintf('%s = :%s', self::IDENTITY_TYPE, self::IDENTITY_TYPE))
+            ->setParameter(self::IDENTITY_TYPE, $type);
     }
 
     /**
@@ -414,10 +458,10 @@ abstract class AbstractMappingTable extends AbstractTable implements MappingTabl
      * @param string $type
      * @param mixed $options
      * @param boolean $primary
-     * @return AbstractMappingTable
+     * @return AbstractTable
      * @throws RuntimeException
      */
-    protected function addEndpointColumn(string $name, string $type, array $options = [], bool $primary = true): AbstractMappingTable
+    protected function addEndpointColumn(string $name, string $type, array $options = [], bool $primary = true): AbstractTable
     {
         if ($this->hasEndpointColumn($name)) {
             throw RuntimeException::columnExists($name);

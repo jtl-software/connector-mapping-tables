@@ -12,6 +12,9 @@ class RuntimeException extends \RuntimeException
     const ENDPOINT_COLUMN_EXISTS = 30;
     const ENDPOINT_COLUMN_NOT_FOUND = 50;
     const ENDPOINT_COLUMNS_MISSING = 50;
+    const TYPE_NOT_FOUND = 60;
+    const TYPES_ARRAY_EMPTY = 70;
+    const TYPES_WRONG_DATA_TYPE = 80;
 
     /**
      * @param int $type
@@ -19,7 +22,7 @@ class RuntimeException extends \RuntimeException
      */
     public static function tableTypeNotFound(int $type): RuntimeException
     {
-        return new static('MappingTable for type ' . $type . ' not found!', self::TABLE_TYPE_NOT_FOUND);
+        return new static('MappingTable for type ' . $type . ' not found', self::TABLE_TYPE_NOT_FOUND);
     }
 
     /**
@@ -28,7 +31,7 @@ class RuntimeException extends \RuntimeException
      */
     public static function columnDataMissing(string $columnName): RuntimeException
     {
-        return new static('Data for column ' . $columnName . ' is missing!', self::COLUMN_DATA_MISSING);
+        return new static('Data for column ' . $columnName . ' is missing', self::COLUMN_DATA_MISSING);
     }
 
     /**
@@ -37,7 +40,7 @@ class RuntimeException extends \RuntimeException
      */
     public static function columnExists(string $columnName): RuntimeException
     {
-        return new static('Endpoint column with name ' . $columnName . ' exists!', self::ENDPOINT_COLUMN_EXISTS);
+        return new static('Endpoint column with name ' . $columnName . ' exists', self::ENDPOINT_COLUMN_EXISTS);
     }
 
     /**
@@ -46,7 +49,7 @@ class RuntimeException extends \RuntimeException
      */
     public static function columnNotFound(string $columnName): RuntimeException
     {
-        return new static('Endpoint column with name ' . $columnName . ' is not defined!', self::ENDPOINT_COLUMN_NOT_FOUND);
+        return new static('Endpoint column with name ' . $columnName . ' is not defined', self::ENDPOINT_COLUMN_NOT_FOUND);
     }
 
     /**
@@ -54,6 +57,31 @@ class RuntimeException extends \RuntimeException
      */
     public static function endpointColumnsNotDefined(): RuntimeException
     {
-        return new static('No endpoint columns are defined! There need to be at least one endpoint column!', self::ENDPOINT_COLUMNS_MISSING);
+        return new static('No endpoint columns are defined! There need to be at least one endpoint column', self::ENDPOINT_COLUMNS_MISSING);
+    }
+
+    /**
+     * @param int $type
+     * @return RuntimeException
+     */
+    public static function typeNotFound(int $type): RuntimeException
+    {
+        return new static(sprintf('Table is not responsible for type %s', $type), self::TYPE_NOT_FOUND);
+    }
+
+    /**
+     * @return RuntimeException
+     */
+    public static function typesEmpty(): RuntimeException
+    {
+        return new static('getTypes() must return an array which contains at least one integer value', self::TYPES_ARRAY_EMPTY);
+    }
+
+    /**
+     * @return RuntimeException
+     */
+    public static function wrongTypes(): RuntimeException
+    {
+        return new static('getTypes() must return an array with integer values only', self::TYPES_WRONG_DATA_TYPE);
     }
 }

@@ -5,54 +5,49 @@ namespace Jtl\Connector\MappingTables;
  * @author Immanuel Klinkenberg <immanuel.klinkenberg@jtl-software.com>
  * @copyright 2010-2017 JTL-Software GmbH
  */
-interface MappingTableInterface
+interface TableInterface
 {
     /**
-     * @return integer
+     * @return integer[]
      */
-    public function getType(): int;
+    public function getTypes(): array;
 
     /**
-     * Host ID getter
-     *
      * @param string $endpoint
      * @return integer|null
      */
     public function getHostId(string $endpoint): ?int;
 
     /**
-     * Endpoint ID getter
-     *
+     * @param integer $type
      * @param integer $hostId
      * @return string|null
      */
-    public function getEndpoint(int $hostId): ?string;
+    public function getEndpoint(int $type, int $hostId): ?string;
 
     /**
-     * Save link to database
-     *
      * @param string $endpoint
      * @param integer $hostId
-     * @return boolean
-     */
-    public function save(string $endpoint, int $hostId): bool;
-
-    /**
-     * Delete link from database
-     *
-     * @param string $endpoint
-     * @param integer $hostId
-     * @return boolean
-     */
-    public function remove(string $endpoint = null, int $hostId = null): bool;
-
-    /**
-     * Clears the entire link table
      * @return integer
      */
-    public function clear(): int;
+    public function save(string $endpoint, int $hostId): int;
 
     /**
+     * @param integer $type
+     * @param string $endpoint
+     * @param integer $hostId
+     * @return integer
+     */
+    public function delete(int $type, string $endpoint = null, int $hostId = null): int;
+
+    /**
+     * @param integer|null $type
+     * @return integer
+     */
+    public function clear(int $type = null): int;
+
+    /**
+     * @param integer|null $type
      * @param string[] $where
      * @param mixed[] $parameters
      * @param string[] $orderBy
@@ -60,9 +55,10 @@ interface MappingTableInterface
      * @param int|null $offset
      * @return integer
      */
-    public function count(array $where = [], array $parameters = [], array $orderBy = [], int $limit = null, int $offset = null): int;
+    public function count(int $type = null, array $where = [], array $parameters = [], array $orderBy = [], int $limit = null, int $offset = null): int;
 
     /**
+     * @param integer|null $type
      * @param string[] $where
      * @param mixed[] $parameters
      * @param string[] $orderBy
@@ -70,11 +66,11 @@ interface MappingTableInterface
      * @param int|null $offset
      * @return string[]
      */
-    public function findEndpoints(array $where = [], array $parameters = [], array $orderBy = [], int $limit = null, int $offset = null): array;
+    public function findEndpoints(int $type = null, array $where = [], array $parameters = [], array $orderBy = [], int $limit = null, int $offset = null): array;
 
     /**
      * @param string[] $endpoints
      * @return string[]
      */
-    public function findNotFetchedEndpoints(array $endpoints): array;
+    public function filterMappedEndpoints(array $endpoints): array;
 }

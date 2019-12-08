@@ -8,48 +8,43 @@ namespace Jtl\Connector\MappingTables;
 
 use PHPUnit\Framework\TestCase;
 
-class DummyTableTest extends TestCase
+class TableDummyTest extends TestCase
 {
     /**
-     * @var DummyTable
+     * @var TableDummy
      */
     protected $table;
 
     protected function setUp(): void
     {
         parent::setUp();
-        $this->table = new DummyTable();
+        $this->table = new TableDummy();
     }
 
     public function testClear()
     {
         $expected = 0;
-        $actual = $this->table->clear();
+        $actual = $this->table->clear(12);
         $this->assertEquals($expected, $actual);
     }
 
-    public function testFindAllEndpoints()
+    public function testFindEndpoints()
     {
-        $this->assertEquals([], $this->table->findEndpoints());
+        $this->assertEquals([], $this->table->findEndpoints(23));
+        $this->assertEquals([], $this->table->findEndpoints(5324));
+        $this->assertEquals([], $this->table->findEndpoints(222));
     }
 
     public function testGetTypeDefault()
     {
-        $this->assertEquals(0, $this->table->getType());
-    }
-
-    public function testGetTypeChanged()
-    {
-        $type = 123;
-        $this->table->setType($type);
-        $this->assertEquals($type, $this->table->getType());
+        $this->assertEquals([], $this->table->getTypes());
     }
 
     public function testRemove()
     {
-        $this->assertTrue($this->table->remove());
-        $this->assertTrue($this->table->remove('irgendwas'));
-        $this->assertTrue($this->table->remove(null, 1234));
+        $this->assertEquals(0, $this->table->delete(9999));
+        $this->assertEquals(0, $this->table->delete(421, 'irgendwas'));
+        $this->assertEquals(0, $this->table->delete(007,null, 1234));
     }
 
     public function testGetHostId()
@@ -66,24 +61,28 @@ class DummyTableTest extends TestCase
 
     public function testGetEndpointId()
     {
-        $this->assertEquals('', $this->table->getEndpoint(12321));
-        $this->assertEquals('', $this->table->getEndpoint(3333));
-        $this->assertEquals('', $this->table->getEndpoint(0));
+        $this->assertEquals('', $this->table->getEndpoint(5,12321));
+        $this->assertEquals('', $this->table->getEndpoint(9,3333));
+        $this->assertEquals('', $this->table->getEndpoint(1222,0));
     }
 
     public function testSetType()
     {
         $this->table->setType(444);
-        $this->assertEquals(444, $this->table->getType());
+        $types = $this->table->getTypes();
+        $this->assertCount(1, $types);
         $this->table->setType(555);
-        $this->assertEquals(555, $this->table->getType());
+        $types = $this->table->getTypes();
+        $this->assertCount(2, $types);
+        $this->assertContains(444, $types);
+        $this->assertContains(555, $types);
     }
 
     public function testSave()
     {
-        $this->assertTrue($this->table->save('foo', 125));
-        $this->assertTrue($this->table->save('bar', 444));
-        $this->assertTrue($this->table->save('something', 444));
+        $this->assertEquals(0, $this->table->save('foo', 125));
+        $this->assertEquals(0, $this->table->save('bar', 444));
+        $this->assertEquals(0, $this->table->save('something', 444));
     }
 
     public function testFindNotFetchedEndpoints()
@@ -91,7 +90,7 @@ class DummyTableTest extends TestCase
         $endpoints = ['a', 'b', 'c', 'd'];
         $this->table->save('a', 333);
         $this->table->save('b', 9714);
-        $notFetched = $this->table->findNotFetchedEndpoints($endpoints);
+        $notFetched = $this->table->filterMappedEndpoints($endpoints);
         $this->assertEquals($endpoints, $notFetched);
     }
 }

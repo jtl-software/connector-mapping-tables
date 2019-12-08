@@ -30,14 +30,14 @@ abstract class DbTestCase extends \PHPUnit\DbUnit\TestCase
     protected $yamlDataSet;
 
     /**
-     * @var MappingTableStub
+     * @var TableStub
      */
     protected $table;
 
 
     protected function setUp(): void
     {
-        $this->table = new MappingTableStub($this->getDbManager());
+        $this->table = new TableStub($this->getDbManager());
         if($this->getDbManager()->hasSchemaUpdate()){
             $this->getDbManager()->updateDatabaseSchema();
         }
@@ -85,7 +85,7 @@ abstract class DbTestCase extends \PHPUnit\DbUnit\TestCase
     protected function getYamlDataSet()
     {
         if(!$this->yamlDataSet instanceof YamlDataSet){
-            $this->yamlDataSet = new YamlDataSet(TESTROOT . '/files/mapping_table_stub.yaml');
+            $this->yamlDataSet = new YamlDataSet(TESTROOT . '/files/table_stub.yaml');
         }
         return $this->yamlDataSet;
     }
