@@ -54,7 +54,6 @@ class TableProxy
     }
 
     /**
-     * @param integer $type
      * @param integer $hostId
      * @return string|null
      */
@@ -64,7 +63,6 @@ class TableProxy
     }
 
     /**
-     * @param integer $type
      * @param string $endpoint
      * @param integer $hostId
      * @return boolean

@@ -39,8 +39,8 @@ class TableManagerTest extends DbTestCase
 
     public function testGetEndpointId()
     {
-        $expected = sprintf('1||2||bar||%s', TableStub::TYPE1);
-        $actual = $this->mtm->getEndpointId(TableStub::TYPE1, 2);
+        $expected = sprintf('1||2||bar||%s', TableStub::TYPE2);
+        $actual = $this->mtm->getEndpointId(TableStub::TYPE2, 2);
         $this->assertEquals($expected, $actual);
     }
 
@@ -55,9 +55,9 @@ class TableManagerTest extends DbTestCase
 
     public function testDeleteByEndpointId()
     {
-        $endpoint = sprintf('1||2||bar||%s', TableStub::TYPE1);
-        $this->mtm->delete(TableStub::TYPE1, $endpoint);
-        $this->assertNull($this->mtm->getHostId(TableStub::TYPE1, $endpoint));
+        $endpoint = sprintf('1||2||bar||%s', TableStub::TYPE2);
+        $this->mtm->delete(TableStub::TYPE2, $endpoint);
+        $this->assertNull($this->mtm->getHostId(TableStub::TYPE2, $endpoint));
     }
 
     public function testDeleteByHostId()
@@ -67,16 +67,17 @@ class TableManagerTest extends DbTestCase
         $this->assertNull($this->mtm->getEndpointId(TableStub::TYPE1, $hostId));
     }
 
-    public function testFindAllEndpoints()
+    public function testFindAllEndpointsIds()
     {
-        $this->assertCount(3, $this->mtm->findAllEndpointIds(TableStub::TYPE1));
+        $this->assertCount(2, $this->mtm->findAllEndpointIds(TableStub::TYPE1));
+        $this->assertCount(1, $this->mtm->findAllEndpointIds(TableStub::TYPE2));
     }
 
     public function testFindNotFetchedEndpoints()
     {
         $fetched = [
             sprintf('1||1||foo||%s', TableStub::TYPE1),
-            sprintf('1||2||bar||%s', TableStub::TYPE1),
+            sprintf('1||2||bar||%s', TableStub::TYPE2),
         ];
 
         $notFetchedExpected = [

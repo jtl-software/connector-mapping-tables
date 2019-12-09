@@ -9,8 +9,8 @@ pre_mapping_table:
     id1: "1"
     id2: "2"
     strg: "bar"
+    identity_type: 7
     host_id: 2
-    identity_type: 815
   -
     id1: "4"
     id2: "2"
