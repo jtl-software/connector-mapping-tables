@@ -1,6 +1,8 @@
 <?php
 namespace Jtl\Connector\MappingTables;
 
+use Doctrine\DBAL\DBALException;
+
 class TableProxy
 {
     /**
@@ -15,16 +17,12 @@ class TableProxy
 
     /**
      * MappingTableDecorator constructor.
-     * @param int $type
+     * @param integer $type
      * @param TableInterface $table
      */
     public function __construct(int $type, TableInterface $table)
     {
-        if(!in_array($type, $table->getTypes(), true)) {
-            throw RuntimeException::typeNotFound($type);
-        }
-
-        $this->type = $type;
+        $this->setType($type);
         $this->table = $table;
     }
 
@@ -37,7 +35,7 @@ class TableProxy
     }
 
     /**
-     * @return int
+     * @return integer
      */
     public function getType(): int
     {
@@ -45,8 +43,23 @@ class TableProxy
     }
 
     /**
+     * @param int $type
+     * @return TableProxy
+     */
+    public function setType(int $type): TableProxy
+    {
+        if (!in_array($type, $this->table->getTypes(), true)) {
+            throw RuntimeException::typeNotFound($type);
+        }
+
+        $this->type = $type;
+        return $this;
+    }
+
+    /**
      * @param string $endpoint
      * @return integer|null
+     * @throws DBALException
      */
     public function getHostId(string $endpoint): ?int
     {
@@ -65,7 +78,8 @@ class TableProxy
     /**
      * @param string $endpoint
      * @param integer $hostId
-     * @return boolean
+     * @return integer
+     * @throws DBALException
      */
     public function save(string $endpoint, int $hostId): int
     {
@@ -73,9 +87,10 @@ class TableProxy
     }
 
     /**
-     * @param string $endpoint
-     * @param integer $hostId
-     * @return int
+     * @param string|null $endpoint
+     * @param integer|null $hostId
+     * @return integer
+     * @throws DBALException
      */
     public function delete(string $endpoint = null, int $hostId = null): int
     {
@@ -91,12 +106,13 @@ class TableProxy
     }
 
     /**
-     * @param string[] $where
-     * @param mixed[] $parameters
-     * @param string[] $orderBy
-     * @param int|null $limit
-     * @param int|null $offset
+     * @param array $where
+     * @param array $parameters
+     * @param array $orderBy
+     * @param integer|null $limit
+     * @param integer|null $offset
      * @return integer
+     * @throws DBALException
      */
     public function count(array $where = [], array $parameters = [], array $orderBy = [], int $limit = null, int $offset = null): int
     {
@@ -104,12 +120,13 @@ class TableProxy
     }
 
     /**
-     * @param string[] $where
-     * @param mixed[] $parameters
-     * @param string[] $orderBy
-     * @param int|null $limit
-     * @param int|null $offset
-     * @return string[]
+     * @param array $where
+     * @param array $parameters
+     * @param array $orderBy
+     * @param integer|null $limit
+     * @param integer|null $offset
+     * @return array
+     * @throws DBALException
      */
     public function findEndpoints(array $where = [], array $parameters = [], array $orderBy = [], int $limit = null, int $offset = null): array
     {
@@ -119,6 +136,7 @@ class TableProxy
     /**
      * @param string[] $endpoints
      * @return string[]
+     * @throws DBALException
      */
     public function filterMappedEndpoints(array $endpoints): array
     {
