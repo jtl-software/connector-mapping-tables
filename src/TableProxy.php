@@ -22,8 +22,8 @@ class TableProxy
      */
     public function __construct(int $type, TableInterface $table)
     {
-        $this->setType($type);
         $this->table = $table;
+        $this->setType($type);
     }
 
     /**
@@ -43,7 +43,7 @@ class TableProxy
     }
 
     /**
-     * @param int $type
+     * @param integer $type
      * @return TableProxy
      */
     public function setType(int $type): TableProxy
@@ -59,11 +59,10 @@ class TableProxy
     /**
      * @param string $endpoint
      * @return integer|null
-     * @throws DBALException
      */
     public function getHostId(string $endpoint): ?int
     {
-        return $this->table->getHostId($this->type, $endpoint);
+        return $this->table->getHostId($endpoint);
     }
 
     /**
@@ -79,18 +78,16 @@ class TableProxy
      * @param string $endpoint
      * @param integer $hostId
      * @return integer
-     * @throws DBALException
      */
     public function save(string $endpoint, int $hostId): int
     {
-        return $this->table->save($this->type, $endpoint, $hostId);
+        return $this->table->save($endpoint, $hostId);
     }
 
     /**
      * @param string|null $endpoint
      * @param integer|null $hostId
      * @return integer
-     * @throws DBALException
      */
     public function delete(string $endpoint = null, int $hostId = null): int
     {
@@ -112,7 +109,6 @@ class TableProxy
      * @param integer|null $limit
      * @param integer|null $offset
      * @return integer
-     * @throws DBALException
      */
     public function count(array $where = [], array $parameters = [], array $orderBy = [], int $limit = null, int $offset = null): int
     {
@@ -126,7 +122,6 @@ class TableProxy
      * @param integer|null $limit
      * @param integer|null $offset
      * @return array
-     * @throws DBALException
      */
     public function findEndpoints(array $where = [], array $parameters = [], array $orderBy = [], int $limit = null, int $offset = null): array
     {
@@ -134,9 +129,8 @@ class TableProxy
     }
 
     /**
-     * @param string[] $endpoints
-     * @return string[]
-     * @throws DBALException
+     * @param array $endpoints
+     * @return array
      */
     public function filterMappedEndpoints(array $endpoints): array
     {

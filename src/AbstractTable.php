@@ -106,6 +106,7 @@ abstract class AbstractTable extends AbstractDbcTable implements TableInterface
      * @param string $endpoint
      * @return integer|null
      * @throws DBALException
+     * @throws RuntimeException
      */
     public function getHostId(string $endpoint): ?int
     {
@@ -153,6 +154,7 @@ abstract class AbstractTable extends AbstractDbcTable implements TableInterface
      * @param integer $hostId
      * @return integer
      * @throws DBALException
+     * @throws RuntimeException
      */
     public function save(string $endpoint, int $hostId): int
     {
@@ -172,6 +174,7 @@ abstract class AbstractTable extends AbstractDbcTable implements TableInterface
      * @param integer|null $hostId
      * @return integer
      * @throws DBALException
+     * @throws RuntimeException
      */
     public function delete(int $type, string $endpoint = null, int $hostId = null): int
     {
@@ -188,6 +191,10 @@ abstract class AbstractTable extends AbstractDbcTable implements TableInterface
                 }
             }
         } else {
+            if(!$this->isResponsible($type)) {
+                throw RuntimeException::unknownType($type);
+            }
+
             $qb->andWhere(sprintf('%s = :%s', self::IDENTITY_TYPE, self::IDENTITY_TYPE))
                 ->setParameter(self::IDENTITY_TYPE, $type);
         }
@@ -203,6 +210,7 @@ abstract class AbstractTable extends AbstractDbcTable implements TableInterface
     /**
      * @param integer $type
      * @return integer
+     * @throws RuntimeException
      */
     public function clear(int $type = null): int
     {
@@ -210,6 +218,10 @@ abstract class AbstractTable extends AbstractDbcTable implements TableInterface
             ->delete($this->getTableName());
 
         if (!is_null($type)) {
+            if(!$this->isResponsible($type)) {
+                throw RuntimeException::unknownType($type);
+            }
+
             $qb->andWhere(sprintf('%s = :%s', self::IDENTITY_TYPE, self::IDENTITY_TYPE))
                 ->setParameter(self::IDENTITY_TYPE, $type);
         }
@@ -244,6 +256,7 @@ abstract class AbstractTable extends AbstractDbcTable implements TableInterface
      * @param integer|null $offset
      * @return string[]
      * @throws DBALException
+     * @throws RuntimeException
      */
     public function findEndpoints(int $type = null, array $where = [], array $parameters = [], array $orderBy = [], int $limit = null, int $offset = null): array
     {
@@ -265,6 +278,7 @@ abstract class AbstractTable extends AbstractDbcTable implements TableInterface
      * @param integer|null $offset
      * @return QueryBuilder
      * @throws DBALException
+     * @throws RuntimeException
      */
     public function createFindQuery(int $type = null, array $where = [], array $parameters = [], array $orderBy = [], int $limit = null, int $offset = null): QueryBuilder
     {
@@ -272,6 +286,10 @@ abstract class AbstractTable extends AbstractDbcTable implements TableInterface
             ->from($this->getTableName());
 
         if(!is_null($type)) {
+            if(!$this->isResponsible($type)) {
+                throw RuntimeException::unknownType($type);
+            }
+
             $qb->andWhere(sprintf('%s = :%s', self::IDENTITY_TYPE, self::IDENTITY_TYPE))
                 ->setParameter(self::IDENTITY_TYPE, $type);
         }
@@ -383,8 +401,12 @@ abstract class AbstractTable extends AbstractDbcTable implements TableInterface
      */
     public function extractEndpoint(string $endpointId): array
     {
-        $data = $this->explodeEndpoint($endpointId);
-        return $this->createEndpointData($data);
+        $data = $this->createEndpointData($this->explodeEndpoint($endpointId));
+        $type = $data[self::IDENTITY_TYPE];
+        if(!$this->isResponsible($type)) {
+            throw RuntimeException::unknownType($type);
+        }
+        return $data;
     }
 
     /**
@@ -403,11 +425,25 @@ abstract class AbstractTable extends AbstractDbcTable implements TableInterface
 
     /**
      * @param integer $type
+     * @return boolean
+     */
+    public function isResponsible(int $type): bool
+    {
+        return in_array($type, $this->getTypes());
+    }
+
+    /**
+     * @param integer $type
      * @param integer $hostId
      * @return QueryBuilder
+     * @throws RuntimeException
      */
     protected function createEndpointIdQuery(int $type, int $hostId): QueryBuilder
     {
+        if(!$this->isResponsible($type)) {
+            throw RuntimeException::unknownType($type);
+        }
+
         $columns = array_keys($this->getEndpointColumns());
         return $this->createQueryBuilder()
             ->select($columns)

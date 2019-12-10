@@ -3,7 +3,9 @@
  * @author Immanuel Klinkenberg <immanuel.klinkenberg@jtl-software.com>
  * @copyright 2010-2017 JTL-Software GmbH
  */
+
 namespace Jtl\Connector\MappingTables;
+
 use Jtl\Connector\Core\Mapper\PrimaryKeyMapperInterface;
 
 class TableManager implements PrimaryKeyMapperInterface
@@ -96,9 +98,17 @@ class TableManager implements PrimaryKeyMapperInterface
      * @param integer $type
      * @return integer
      */
-    public function count($type): int
+    public function count(int $type = null): int
     {
-        return $this->collection->get($type)->count();
+        if (!is_null($type)) {
+            return $this->collection->get($type)->count($type);
+        }
+
+        $count = 0;
+        foreach($this->collection->toArray() as $table) {
+            $count += $table->count();
+        }
+        return $count;
     }
 
     /**
@@ -107,11 +117,11 @@ class TableManager implements PrimaryKeyMapperInterface
      */
     public function clear(int $type = null): bool
     {
-        if(!is_null($type)) {
+        if (!is_null($type)) {
             return is_int($this->collection->get($type)->clear($type));
         }
 
-        foreach($this->collection->toArray() as $table) {
+        foreach ($this->collection->toArray() as $table) {
             $table->clear();
         }
 
@@ -134,7 +144,7 @@ class TableManager implements PrimaryKeyMapperInterface
      */
     public function setMappingTables(array $tables): TableManager
     {
-        foreach($tables as $table) {
+        foreach ($tables as $table) {
             $this->setMappingTable($table);
         }
         return $this;

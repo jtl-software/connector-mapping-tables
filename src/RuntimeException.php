@@ -15,6 +15,7 @@ class RuntimeException extends \RuntimeException
     const TYPE_NOT_FOUND = 60;
     const TYPES_ARRAY_EMPTY = 70;
     const TYPES_WRONG_DATA_TYPE = 80;
+    const UNKNOWN_TYPE = 90;
 
     /**
      * @param int $type
@@ -83,5 +84,15 @@ class RuntimeException extends \RuntimeException
     public static function wrongTypes(): RuntimeException
     {
         return new static('getTypes() must return an array with integer values only', self::TYPES_WRONG_DATA_TYPE);
+    }
+
+    /**
+     * @param integer $type
+     * @return RuntimeException
+     */
+    public static function unknownType(int $type): RuntimeException
+    {
+        $msg = sprintf('Table is not responsible for this type (%s)', $type);
+        return new static($msg, self::UNKNOWN_TYPE);
     }
 }

@@ -19,6 +19,7 @@ abstract class DbTestCase extends \PHPUnit\DbUnit\TestCase
      * @var PDO
      */
     protected $pdo;
+
     /**
      * @var DbManagerStub
      */

@@ -69,7 +69,7 @@ class TableManagerTest extends DbTestCase
 
     public function testFindAllEndpointsIds()
     {
-        $this->assertCount(2, $this->mtm->findAllEndpointIds(TableStub::TYPE1));
+        $this->assertCount(3, $this->mtm->findAllEndpointIds(TableStub::TYPE1));
         $this->assertCount(1, $this->mtm->findAllEndpointIds(TableStub::TYPE2));
     }
 
@@ -95,8 +95,19 @@ class TableManagerTest extends DbTestCase
 
     public function testClear()
     {
-        $this->assertTableRowCount($this->table->getTableName(), 3);
+        $this->assertTableRowCount($this->table->getTableName(), 4);
         $this->assertTrue($this->mtm->clear());
+        $this->assertTableRowCount($this->table->getTableName(), 0);
+    }
+
+    public function testClearByType()
+    {
+        $this->assertTableRowCount($this->table->getTableName(), 4);
+        $this->assertTrue($this->mtm->clear(TableStub::TYPE1));
+        $this->assertTableRowCount($this->table->getTableName(), 1);
+        $this->assertTrue($this->mtm->clear(TableStub::TYPE1));
+        $this->assertTableRowCount($this->table->getTableName(), 1);
+        $this->assertTrue($this->mtm->clear(TableStub::TYPE2));
         $this->assertTableRowCount($this->table->getTableName(), 0);
     }
 

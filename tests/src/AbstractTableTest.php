@@ -76,23 +76,31 @@ class AbstractTableTest extends DbTestCase
     public function testSave()
     {
         $this->table->save(sprintf('1||45||yolo||%s', TableStub::TYPE1), 4);
-        $this->assertTableRowCount($this->table->getTableName(), 4);
+        $this->assertTableRowCount($this->table->getTableName(), 5);
     }
 
-    public function testRemoveByEndpointId()
+    public function testDeleteByEndpointId()
     {
         $this->assertEquals(sprintf('1||1||foo||%s', TableStub::TYPE1), $this->table->getEndpoint(TableStub::TYPE1, 3));
         $this->table->delete(TableStub::TYPE1, sprintf('1||1||foo||%s', TableStub::TYPE1));
-        $this->assertTableRowCount($this->table->getTableName(), 2);
+        $this->assertTableRowCount($this->table->getTableName(), 3);
         $this->assertEquals(null, $this->table->getEndpoint(TableStub::TYPE1, 3));
     }
 
-    public function testRemoveByHostId()
+    public function testDeleteByHostId()
     {
         $this->assertEquals(sprintf('1||1||foo||%s', TableStub::TYPE1), $this->table->getEndpoint(TableStub::TYPE1, 3));
         $this->table->delete(TableStub::TYPE1, null, 3);
-        $this->assertTableRowCount($this->table->getTableName(), 2);
+        $this->assertTableRowCount($this->table->getTableName(), 3);
         $this->assertEquals(null, $this->table->getEndpoint(TableStub::TYPE1, 3));
+    }
+
+    public function testDeleteByHostIdMultipleEntries()
+    {
+        $this->assertTableRowCount($this->table->getTableName(), 4);
+        $this->table->delete(TableStub::TYPE1, null, 5);
+        $this->assertTableRowCount($this->table->getTableName(), 2);
+        $this->assertEquals(null, $this->table->getEndpoint(TableStub::TYPE1, 5));
     }
 
     public function testClearDifferentTypes()
@@ -103,14 +111,28 @@ class AbstractTableTest extends DbTestCase
         $this->assertTableRowCount($this->table->getTableName(), 0);
     }
 
+    public function testClearAll()
+    {
+        $this->assertTableRowCount($this->table->getTableName(), 4);
+        $this->table->clear();
+        $this->assertTableRowCount($this->table->getTableName(), 0);
+    }
+
+    public function testClearUnknownType()
+    {
+        $this->expectException(RuntimeException::class);
+        $this->expectExceptionCode(RuntimeException::UNKNOWN_TYPE);
+        $this->table->clear(44232);
+    }
+
     public function testCount()
     {
-        $this->assertTableRowCount($this->table->getTableName(), 3);
-        $this->assertEquals(2, $this->table->count(TableStub::TYPE1));
+        $this->assertTableRowCount($this->table->getTableName(), 4);
+        $this->assertEquals(3, $this->table->count(TableStub::TYPE1));
         $this->assertEquals(1, $this->table->count(TableStub::TYPE2));
         $this->table->delete(TableStub::TYPE1, sprintf('1||1||foo||%s', TableStub::TYPE1));
-        $this->assertTableRowCount($this->table->getTableName(), 2);
-        $this->assertEquals(1, $this->table->count(TableStub::TYPE1));
+        $this->assertTableRowCount($this->table->getTableName(), 3);
+        $this->assertEquals(2, $this->table->count(TableStub::TYPE1));
     }
 
     public function testCountWithWhereCondition()
@@ -124,7 +146,7 @@ class AbstractTableTest extends DbTestCase
     public function testFindEndpointsByType()
     {
         $endpoints = $this->table->findEndpoints(TableStub::TYPE1);
-        $this->assertCount(2, $endpoints);
+        $this->assertCount(3, $endpoints);
         $this->assertEquals(sprintf('1||1||foo||%s', TableStub::TYPE1), $endpoints[0]);
         $this->assertEquals(sprintf('4||2||foobar||%s', TableStub::TYPE1), $endpoints[1]);
         $endpoints = $this->table->findEndpoints(TableStub::TYPE2);
@@ -174,6 +196,14 @@ class AbstractTableTest extends DbTestCase
         $expected = [TableStub::COL_ID1 => 3, TableStub::COL_ID2 => 5, TableStub::COL_VAR => 'bar', TableStub::IDENTITY_TYPE => TableStub::TYPE1];
         $data = $this->table->extractEndpoint($endpoint);
         $this->assertEquals($expected, $data);
+    }
+
+    public function testExtractEndpointUnknownType()
+    {
+        $this->expectException(RuntimeException::class);
+        $this->expectExceptionCode(RuntimeException::UNKNOWN_TYPE);
+        $endpoint = sprintf('3||5||bar||%s', 3244);
+        $this->table->extractEndpoint($endpoint);
     }
 
     public function testAddColumnType()
