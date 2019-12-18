@@ -1,18 +1,12 @@
 {
   "name": "jtl/connector-mapping-tables",
   "description": "Creating connector mapping tables easily and dbms independent",
-  "type": "project",
+  "type": "library",
+  "license": "MIT",
   "authors": [
     {
       "name": "Immanuel Klinkenberg",
       "email": "immanuel.klinkenberg@jtl-software.com"
-    }
-  ],
-  "repositories": [
-    {
-      "type": "git",
-      "url": "git@gitlab.jtl-software.com:connector/cdbc.git",
-      "reference": "origin/master"
     }
   ],
   "require": {
