@@ -13,6 +13,7 @@ use Jtl\Connector\Dbc\AbstractTable as AbstractDbcTable;
 use Jtl\Connector\Dbc\DbManager;
 use Jtl\Connector\Dbc\Query\QueryBuilder;
 use Jtl\Connector\Dbc\TableException;
+use Jtl\Connector\MappingTables\Schema\EndpointColumn;
 
 abstract class AbstractTable extends AbstractDbcTable implements TableInterface
 {
@@ -27,9 +28,9 @@ abstract class AbstractTable extends AbstractDbcTable implements TableInterface
     protected $endpointDelimiter = '||';
 
     /**
-     * @var string[]
+     * @var EndpointColumn[]
      */
-    protected $columns = [];
+    protected $endpointColumns = [];
 
     /**
      * AbstractMappingTable constructor.
@@ -92,8 +93,8 @@ abstract class AbstractTable extends AbstractDbcTable implements TableInterface
             throw RuntimeException::endpointColumnsNotDefined();
         }
 
-        foreach ($endpointColumns as $columnName => $columnData) {
-            $tableSchema->addColumn($columnName, $columnData['type'], $columnData['options']);
+        foreach ($endpointColumns as $columnName => $endpointColumn) {
+            $tableSchema->addColumn($endpointColumn->getName(), $endpointColumn->getType(), $endpointColumn->getOptions());
         }
 
         $tableSchema->setPrimaryKey(array_keys($primaryColumns));
@@ -119,7 +120,7 @@ abstract class AbstractTable extends AbstractDbcTable implements TableInterface
         foreach ($this->extractEndpoint($endpoint) as $column => $value) {
             if (in_array($column, $primaryColumns)) {
                 $qb->andWhere($column . ' = :' . $column)
-                    ->setParameter($column, $value);
+                    ->setParameter($column, $value, $this->endpointColumns[$column]->getType());
             }
         }
 
@@ -161,8 +162,8 @@ abstract class AbstractTable extends AbstractDbcTable implements TableInterface
         $data = $this->extractEndpoint($endpoint);
         $data[self::HOST_ID] = $hostId;
 
-        $types = array_map(function (array $column) {
-            return $column['type'];
+        $types = array_map(function (EndpointColumn $column) {
+            return $column->getType();
         }, $this->getEndpointColumns());
 
         return $this->getConnection()->insert($this->getTableName(), $data, $types);
@@ -501,9 +502,12 @@ abstract class AbstractTable extends AbstractDbcTable implements TableInterface
         if ($this->hasEndpointColumn($name)) {
             throw RuntimeException::columnExists($name);
         }
-        $this->columns[$name]['type'] = $type;
-        $this->columns[$name]['options'] = $options;
-        $this->columns[$name]['primary'] = $primary;
+//        $this->endpointColumns[$name]['type'] = $type;
+//        $this->endpointColumns[$name]['options'] = $options;
+//        $this->endpointColumns[$name]['primary'] = $primary;
+
+        $this->endpointColumns[$name] = EndpointColumn::create($name, $type, $options, $primary);
+
         return $this;
     }
 
@@ -513,15 +517,15 @@ abstract class AbstractTable extends AbstractDbcTable implements TableInterface
      */
     protected function hasEndpointColumn(string $name): bool
     {
-        return isset($this->columns[$name]);
+        return isset($this->endpointColumns[$name]);
     }
 
     /**
-     * @return string[]
+     * @return EndpointColumn[]
      */
     protected function getEndpointColumns(): array
     {
-        return $this->columns;
+        return $this->endpointColumns;
     }
 
     /**
@@ -529,8 +533,8 @@ abstract class AbstractTable extends AbstractDbcTable implements TableInterface
      */
     protected function getPrimaryColumns(): array
     {
-        return array_filter($this->columns, function (array $column) {
-            return isset($column['primary']) && $column['primary'] === true;
+        return array_filter($this->endpointColumns, function (EndpointColumn $column) {
+            return $column->isPrimary();
         });
     }
 }
