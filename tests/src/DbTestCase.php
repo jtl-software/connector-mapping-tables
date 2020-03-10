@@ -12,7 +12,7 @@ use PHPUnit\DbUnit\Database\DefaultConnection;
 
 abstract class DbTestCase extends \PHPUnit\DbUnit\TestCase
 {
-    const TABLES_PREFIX = 'pre';
+    const TABLES_PREFIX = 'pre_';
     const SCHEMA = TESTROOT . '/tmp/db.sqlite';
 
     /**

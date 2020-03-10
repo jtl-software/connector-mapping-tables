@@ -11,7 +11,7 @@
   ],
   "require": {
     "doctrine/dbal": "^2.5",
-    "jtl/connector-dbc": "^1.0",
+    "jtl/connector-dbc": "^1.2",
     "jtl/connector": "dev-develop"
   },
   "require-dev": {
