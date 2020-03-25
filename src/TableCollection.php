@@ -32,7 +32,7 @@ class TableCollection
     {
         $this->collection = new DbcTableCollection();
 
-        foreach($tables as $table) {
+        foreach ($tables as $table) {
             $this->set($table);
         }
     }
@@ -64,7 +64,7 @@ class TableCollection
      */
     public function removeByType(int $type): bool
     {
-        if($this->has($type)) {
+        if ($this->has($type)) {
             $table = $this->findByType($type);
             return $this->collection->removeByInstance($table);
         }
@@ -87,11 +87,11 @@ class TableCollection
      */
     public function get(int $type): TableInterface
     {
-        if($this->has($type)) {
+        if ($this->has($type)) {
             return $this->findByType($type);
         }
 
-        if(!$this->strictMode) {
+        if (!$this->strictMode) {
             return $this->getTableDummy($type);
         }
 
@@ -130,7 +130,7 @@ class TableCollection
      */
     protected function getTableDummy(int $type): TableDummy
     {
-        if(!$this->tableDummy instanceof TableDummy) {
+        if (!$this->tableDummy instanceof TableDummy) {
             $this->tableDummy = new TableDummy();
         }
         $this->tableDummy->setType($type);
@@ -143,11 +143,11 @@ class TableCollection
      */
     protected function findByType(int $type): ?TableInterface
     {
-        $result = array_values(array_filter($this->collection->toArray(), function(TableInterface $table) use ($type) {
+        $result = array_values(array_filter($this->collection->toArray(), function (TableInterface $table) use ($type) {
             return in_array($type, $table->getTypes(), true);
         }));
 
-        if(count($result) > 0) {
+        if (count($result) > 0) {
             return $result[0];
         }
 

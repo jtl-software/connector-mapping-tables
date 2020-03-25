@@ -1,4 +1,5 @@
 <?php
+
 namespace Jtl\Connector\MappingTables;
 
 use PHPUnit\Framework\TestCase;

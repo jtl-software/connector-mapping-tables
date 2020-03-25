@@ -105,7 +105,7 @@ class TableManager implements PrimaryKeyMapperInterface
         }
 
         $count = 0;
-        foreach($this->collection->toArray() as $table) {
+        foreach ($this->collection->toArray() as $table) {
             $count += $table->count();
         }
         return $count;

@@ -10,7 +10,6 @@ use Doctrine\DBAL\Schema\Column;
 use Doctrine\DBAL\Types\Types;
 use Jtl\Connector\Dbc\DbManager;
 
-
 class AbstractTableTest extends DbTestCase
 {
     public function testTableSchema()

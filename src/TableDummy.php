@@ -25,7 +25,7 @@ class TableDummy implements TableInterface
      */
     public function setType(int $type)
     {
-        if(!in_array($type, $this->types, true)) {
+        if (!in_array($type, $this->types, true)) {
             $this->types[] = $type;
         }
     }

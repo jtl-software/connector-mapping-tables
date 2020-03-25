@@ -4,6 +4,7 @@
  * @copyright 2010-2016 JTL-Software GmbH
  */
 namespace Jtl\Connector\MappingTables;
+
 use Doctrine\DBAL\DBALException;
 use Jtl\Connector\Dbc\DbManager;
 use Jtl\Connector\Dbc\DbManagerStub;
@@ -39,7 +40,7 @@ abstract class DbTestCase extends \PHPUnit\DbUnit\TestCase
     protected function setUp(): void
     {
         $this->table = new TableStub($this->getDbManager());
-        if($this->getDbManager()->hasSchemaUpdate()){
+        if ($this->getDbManager()->hasSchemaUpdate()) {
             $this->getDbManager()->updateDatabaseSchema();
         }
         parent::setUp();
@@ -50,8 +51,8 @@ abstract class DbTestCase extends \PHPUnit\DbUnit\TestCase
      */
     protected function getPdo()
     {
-        if(!$this->pdo instanceof \PDO){
-            if(file_exists(self::SCHEMA)){
+        if (!$this->pdo instanceof \PDO) {
+            if (file_exists(self::SCHEMA)) {
                 unlink(self::SCHEMA);
             }
             $this->pdo = new \PDO('sqlite:' . self::SCHEMA);
@@ -65,7 +66,7 @@ abstract class DbTestCase extends \PHPUnit\DbUnit\TestCase
      */
     protected function getDbManager()
     {
-        if(is_null($this->dbManager)){
+        if (is_null($this->dbManager)) {
             //$this->dbManager = DbManagerStub::createFromPDO($this->getConnection()->getConnection(), null, self::TABLES_PREFIX);
             $this->dbManager = DbManager::createFromPDO($this->getConnection()->getConnection(), null, self::TABLES_PREFIX);
         }
@@ -85,7 +86,7 @@ abstract class DbTestCase extends \PHPUnit\DbUnit\TestCase
      */
     protected function getYamlDataSet()
     {
-        if(!$this->yamlDataSet instanceof YamlDataSet){
+        if (!$this->yamlDataSet instanceof YamlDataSet) {
             $this->yamlDataSet = new YamlDataSet(TESTROOT . '/files/table_stub.yaml');
         }
         return $this->yamlDataSet;

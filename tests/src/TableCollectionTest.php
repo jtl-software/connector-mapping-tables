@@ -5,7 +5,6 @@
  */
 namespace Jtl\Connector\MappingTables;
 
-
 class TableCollectionTest extends DbTestCase
 {
     /**
