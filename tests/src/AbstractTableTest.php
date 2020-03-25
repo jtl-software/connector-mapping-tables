@@ -198,6 +198,26 @@ class AbstractTableTest extends DbTestCase
         $this->assertEquals($expected, $data);
     }
 
+    public function testExplodeEndpoint()
+    {
+        $delimiter = '>=<';
+        $this->table->setEndpointDelimiter($delimiter);
+        $exptected1 = 'foo';
+        $exptected2 = 'bar';
+        $endpoint = sprintf('%s%s%s', $exptected1, $delimiter, $exptected2);
+        $exploded = $this->table->explodeEndpoint($endpoint);
+        $this->assertCount(2, $exploded);
+        $this->assertEquals($exptected1, $exploded[0]);
+        $this->assertEquals($exptected2, $exploded[1]);
+    }
+
+    public function testExplodeEndpointWithEmptyString()
+    {
+        $this->expectException(RuntimeException::class);
+        $this->expectExceptionCode(RuntimeException::EMPTY_ENDPOINT_ID);
+        $this->table->explodeEndpoint('');
+    }
+
     public function testExtractEndpointUnknownType()
     {
         $this->expectException(RuntimeException::class);

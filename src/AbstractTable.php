@@ -3,6 +3,7 @@
  * @author Immanuel Klinkenberg <immanuel.klinkenberg@jtl-software.com>
  * @copyright 2010-2017 JTL-Software GmbH
  */
+
 namespace Jtl\Connector\MappingTables;
 
 use Doctrine\DBAL\Connection;
@@ -39,12 +40,12 @@ abstract class AbstractTable extends AbstractDbcTable implements TableInterface
      */
     public function __construct(DbManager $dbManager)
     {
-        if(count($this->getTypes()) === 0) {
+        if (count($this->getTypes()) === 0) {
             throw RuntimeException::typesEmpty();
         }
 
-        foreach($this->getTypes() as $type) {
-            if(!is_int($type)) {
+        foreach ($this->getTypes() as $type) {
+            if (!is_int($type)) {
                 throw RuntimeException::wrongTypes();
             }
         }
@@ -192,7 +193,7 @@ abstract class AbstractTable extends AbstractDbcTable implements TableInterface
                 }
             }
         } else {
-            if(!$this->isResponsible($type)) {
+            if (!$this->isResponsible($type)) {
                 throw RuntimeException::unknownType($type);
             }
 
@@ -219,7 +220,7 @@ abstract class AbstractTable extends AbstractDbcTable implements TableInterface
             ->delete($this->getTableName());
 
         if (!is_null($type)) {
-            if(!$this->isResponsible($type)) {
+            if (!$this->isResponsible($type)) {
                 throw RuntimeException::unknownType($type);
             }
 
@@ -286,8 +287,8 @@ abstract class AbstractTable extends AbstractDbcTable implements TableInterface
         $qb = $this->createQueryBuilder()
             ->from($this->getTableName());
 
-        if(!is_null($type)) {
-            if(!$this->isResponsible($type)) {
+        if (!is_null($type)) {
+            if (!$this->isResponsible($type)) {
                 throw RuntimeException::unknownType($type);
             }
 
@@ -404,7 +405,7 @@ abstract class AbstractTable extends AbstractDbcTable implements TableInterface
     {
         $data = $this->createEndpointData($this->explodeEndpoint($endpointId));
         $type = $data[self::IDENTITY_TYPE];
-        if(!$this->isResponsible($type)) {
+        if (!$this->isResponsible($type)) {
             throw RuntimeException::unknownType($type);
         }
         return $data;
@@ -416,7 +417,7 @@ abstract class AbstractTable extends AbstractDbcTable implements TableInterface
      */
     public function createProxy(int $type = null): TableProxy
     {
-        if(is_null($type)) {
+        if (is_null($type)) {
             $types = $this->getTypes();
             $type = reset($types);
         }
@@ -441,7 +442,7 @@ abstract class AbstractTable extends AbstractDbcTable implements TableInterface
      */
     protected function createEndpointIdQuery(int $type, int $hostId): QueryBuilder
     {
-        if(!$this->isResponsible($type)) {
+        if (!$this->isResponsible($type)) {
             throw RuntimeException::unknownType($type);
         }
 
@@ -457,10 +458,13 @@ abstract class AbstractTable extends AbstractDbcTable implements TableInterface
 
     /**
      * @param string $endpointId
-     * @return mixed[]
+     * @return array
      */
-    protected function explodeEndpoint($endpointId): array
+    protected function explodeEndpoint(string $endpointId): array
     {
+        if (empty($endpointId)) {
+            throw RuntimeException::emptyEndpointId();
+        }
         return explode($this->endpointDelimiter, $endpointId);
     }
 

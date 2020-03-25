@@ -7,15 +7,17 @@ namespace Jtl\Connector\MappingTables;
 
 class RuntimeException extends \RuntimeException
 {
-    const TABLE_TYPE_NOT_FOUND = 10;
-    const COLUMN_DATA_MISSING = 20;
-    const ENDPOINT_COLUMN_EXISTS = 30;
-    const ENDPOINT_COLUMN_NOT_FOUND = 50;
-    const ENDPOINT_COLUMNS_MISSING = 50;
-    const TYPE_NOT_FOUND = 60;
-    const TYPES_ARRAY_EMPTY = 70;
-    const TYPES_WRONG_DATA_TYPE = 80;
-    const UNKNOWN_TYPE = 90;
+    public const
+        TABLE_TYPE_NOT_FOUND = 10,
+        COLUMN_DATA_MISSING = 20,
+        ENDPOINT_COLUMN_EXISTS = 30,
+        ENDPOINT_COLUMN_NOT_FOUND = 50,
+        ENDPOINT_COLUMNS_MISSING = 50,
+        TYPE_NOT_FOUND = 60,
+        TYPES_ARRAY_EMPTY = 70,
+        TYPES_WRONG_DATA_TYPE = 80,
+        UNKNOWN_TYPE = 90,
+        EMPTY_ENDPOINT_ID = 100;
 
     /**
      * @param int $type
@@ -94,5 +96,13 @@ class RuntimeException extends \RuntimeException
     {
         $msg = sprintf('Table is not responsible for this type (%s)', $type);
         return new static($msg, self::UNKNOWN_TYPE);
+    }
+
+    /**
+     * @return RuntimeException
+     */
+    public static function emptyEndpointId(): RuntimeException
+    {
+        return new static('Endpoint id is empty', static::EMPTY_ENDPOINT_ID);
     }
 }
