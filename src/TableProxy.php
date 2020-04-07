@@ -92,7 +92,7 @@ class TableProxy
      */
     public function delete(string $endpoint = null, int $hostId = null): int
     {
-        return $this->table->delete($this->type, $endpoint, $hostId);
+        return $this->table->remove($this->type, $endpoint, $hostId);
     }
 
     /**

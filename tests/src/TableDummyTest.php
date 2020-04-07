@@ -42,9 +42,9 @@ class TableDummyTest extends TestCase
 
     public function testRemove()
     {
-        $this->assertEquals(0, $this->table->delete(9999));
-        $this->assertEquals(0, $this->table->delete(421, 'irgendwas'));
-        $this->assertEquals(0, $this->table->delete(007, null, 1234));
+        $this->assertEquals(0, $this->table->remove(9999));
+        $this->assertEquals(0, $this->table->remove(421, 'irgendwas'));
+        $this->assertEquals(0, $this->table->remove(007, null, 1234));
     }
 
     public function testGetHostId()

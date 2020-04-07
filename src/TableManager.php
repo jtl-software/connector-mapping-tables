@@ -72,7 +72,7 @@ class TableManager implements PrimaryKeyMapperInterface
      */
     public function delete(int $type, string $endpointId = null, int $hostId = null): bool
     {
-        return is_int($this->collection->get($type)->delete($type, $endpointId, $hostId));
+        return is_int($this->collection->get($type)->remove($type, $endpointId, $hostId));
     }
 
     /**

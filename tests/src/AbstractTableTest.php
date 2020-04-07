@@ -81,7 +81,7 @@ class AbstractTableTest extends DbTestCase
     public function testDeleteByEndpointId()
     {
         $this->assertEquals(sprintf('1||1||foo||%s', TableStub::TYPE1), $this->table->getEndpoint(TableStub::TYPE1, 3));
-        $this->table->delete(TableStub::TYPE1, sprintf('1||1||foo||%s', TableStub::TYPE1));
+        $this->table->remove(TableStub::TYPE1, sprintf('1||1||foo||%s', TableStub::TYPE1));
         $this->assertTableRowCount($this->table->getTableName(), 3);
         $this->assertEquals(null, $this->table->getEndpoint(TableStub::TYPE1, 3));
     }
@@ -89,7 +89,7 @@ class AbstractTableTest extends DbTestCase
     public function testDeleteByHostId()
     {
         $this->assertEquals(sprintf('1||1||foo||%s', TableStub::TYPE1), $this->table->getEndpoint(TableStub::TYPE1, 3));
-        $this->table->delete(TableStub::TYPE1, null, 3);
+        $this->table->remove(TableStub::TYPE1, null, 3);
         $this->assertTableRowCount($this->table->getTableName(), 3);
         $this->assertEquals(null, $this->table->getEndpoint(TableStub::TYPE1, 3));
     }
@@ -97,7 +97,7 @@ class AbstractTableTest extends DbTestCase
     public function testDeleteByHostIdMultipleEntries()
     {
         $this->assertTableRowCount($this->table->getTableName(), 4);
-        $this->table->delete(TableStub::TYPE1, null, 5);
+        $this->table->remove(TableStub::TYPE1, null, 5);
         $this->assertTableRowCount($this->table->getTableName(), 2);
         $this->assertEquals(null, $this->table->getEndpoint(TableStub::TYPE1, 5));
     }
@@ -129,7 +129,7 @@ class AbstractTableTest extends DbTestCase
         $this->assertTableRowCount($this->table->getTableName(), 4);
         $this->assertEquals(3, $this->table->count(TableStub::TYPE1));
         $this->assertEquals(1, $this->table->count(TableStub::TYPE2));
-        $this->table->delete(TableStub::TYPE1, sprintf('1||1||foo||%s', TableStub::TYPE1));
+        $this->table->remove(TableStub::TYPE1, sprintf('1||1||foo||%s', TableStub::TYPE1));
         $this->assertTableRowCount($this->table->getTableName(), 3);
         $this->assertEquals(2, $this->table->count(TableStub::TYPE1));
     }
@@ -227,24 +227,27 @@ class AbstractTableTest extends DbTestCase
 
     public function testAddColumnType()
     {
-        $this->table->addEndpointColumn('test', Types::BINARY);
-        $schema = $this->table->getTableSchema();
+        $table = new TableStub($this->getDbManager());
+        $table->addEndpointColumn('test', Types::BINARY);
+        $schema = $table->getTableSchema();
         $column = $schema->getColumn('test');
         $this->assertEquals(Types::BINARY, $column->getType()->getName());
     }
 
     public function testAddColumn()
     {
-        $this->table->addEndpointColumn('test', Types::DATETIME_IMMUTABLE);
-        $schema = $this->table->getTableSchema();
+        $table = new TableStub($this->getDbManager());
+        $table->addEndpointColumn('test', Types::DATETIME_IMMUTABLE);
+        $schema = $table->getTableSchema();
         $primaryKey = $schema->getPrimaryKey();
         $this->assertTrue(in_array('test', $primaryKey->getColumns()));
     }
 
     public function testAddColumnNotPrimary()
     {
-        $this->table->addEndpointColumn('test', Types::STRING, [], false);
-        $schema = $this->table->getTableSchema();
+        $table = new TableStub($this->getDbManager());
+        $table->addEndpointColumn('test', Types::STRING, [], false);
+        $schema = $table->getTableSchema();
         $this->assertTrue($schema->hasColumn('test'));
         $primaryKey = $schema->getPrimaryKey();
         $this->assertFalse(in_array('test', $primaryKey->getColumns()));

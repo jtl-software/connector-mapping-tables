@@ -56,18 +56,6 @@ abstract class AbstractTable extends AbstractDbcTable implements TableInterface
     }
 
     /**
-     * @return Table
-     * @throws DBALException
-     */
-    public function getTableSchema(): Table
-    {
-        $tableSchema = parent::getTableSchema();
-        $tableSchema->addColumn(self::HOST_ID, Types::INTEGER, ['notnull' => false]);
-        $tableSchema->addIndex([self::HOST_ID], $this->createIndexName(self::HOST_INDEX_NAME));
-        return $tableSchema;
-    }
-
-    /**
      * @param string $name
      * @return string
      */
@@ -97,6 +85,9 @@ abstract class AbstractTable extends AbstractDbcTable implements TableInterface
         foreach ($endpointColumns as $columnName => $endpointColumn) {
             $tableSchema->addColumn($endpointColumn->getName(), $endpointColumn->getType(), $endpointColumn->getOptions());
         }
+
+        $tableSchema->addColumn(self::HOST_ID, Types::INTEGER, ['notnull' => false]);
+        $tableSchema->addIndex([self::HOST_ID], $this->createIndexName(self::HOST_INDEX_NAME));
 
         $tableSchema->setPrimaryKey(array_keys($primaryColumns));
         if (count($primaryColumns) < count($endpointColumns)) {
@@ -178,7 +169,7 @@ abstract class AbstractTable extends AbstractDbcTable implements TableInterface
      * @throws DBALException
      * @throws RuntimeException
      */
-    public function delete(int $type, string $endpoint = null, int $hostId = null): int
+    public function remove(int $type, string $endpoint = null, int $hostId = null): int
     {
         $qb = $this->createQueryBuilder()
             ->delete($this->getTableName());

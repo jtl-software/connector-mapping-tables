@@ -65,7 +65,7 @@ class TableDummy implements TableInterface
      * @param integer|null $hostId
      * @return integer
      */
-    public function delete(int $type, string $endpoint = null, int $hostId = null): int
+    public function remove(int $type, string $endpoint = null, int $hostId = null): int
     {
         return 0;
     }

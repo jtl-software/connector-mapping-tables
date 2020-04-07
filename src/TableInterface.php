@@ -39,7 +39,7 @@ interface TableInterface
      * @param integer $hostId
      * @return integer
      */
-    public function delete(int $type, string $endpoint = null, int $hostId = null): int;
+    public function remove(int $type, string $endpoint = null, int $hostId = null): int;
 
     /**
      * @param integer|null $type
