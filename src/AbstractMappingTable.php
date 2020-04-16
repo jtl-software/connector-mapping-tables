@@ -43,18 +43,6 @@ abstract class AbstractMappingTable extends AbstractTable implements MappingTabl
     }
 
     /**
-     * @return Table
-     * @throws DBALException
-     */
-    public function getTableSchema(): Table
-    {
-        $tableSchema = parent::getTableSchema();
-        $tableSchema->addColumn(self::HOST_ID, Type::INTEGER, ['notnull' => false]);
-        $tableSchema->addIndex([self::HOST_ID], $this->createIndexName(self::HOST_INDEX_NAME));
-        return $tableSchema;
-    }
-
-    /**
      * @param string $name
      * @return string
      */
@@ -84,6 +72,9 @@ abstract class AbstractMappingTable extends AbstractTable implements MappingTabl
         foreach ($endpointColumns as $columnName => $columnData) {
             $tableSchema->addColumn($columnName, $columnData['type'], $columnData['options']);
         }
+
+        $tableSchema->addColumn(self::HOST_ID, Type::INTEGER, ['notnull' => false]);
+        $tableSchema->addIndex([self::HOST_ID], $this->createIndexName(self::HOST_INDEX_NAME));
 
         $tableSchema->setPrimaryKey(array_keys($primaryColumns));
         if (count($primaryColumns) < count($endpointColumns)) {

@@ -5,7 +5,7 @@
  */
 namespace Jtl\Connector\MappingTables;
 
-use Jtl\Connector\Dbc\TablesCollection;
+use Jtl\Connector\Dbc\TableCollection;
 
 class MappingTablesCollection
 {
@@ -20,7 +20,7 @@ class MappingTablesCollection
     protected $dummyTable;
 
     /**
-     * @var TablesCollection|AbstractMappingTable[]
+     * @var TableCollection|AbstractMappingTable[]
      */
     protected $collection;
 
@@ -31,7 +31,7 @@ class MappingTablesCollection
      */
     public function __construct(array $tables = [], bool $strictMode = true)
     {
-        $this->collection = new TablesCollection();
+        $this->collection = new TableCollection();
 
         foreach($tables as $table) {
             $this->set($table);

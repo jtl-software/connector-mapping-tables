@@ -161,24 +161,27 @@ class AbstractMappingTableTest extends DbTestCase
 
     public function testAddColumnType()
     {
-        $this->table->addEndpointColumn('test', Type::BINARY);
-        $schema = $this->table->getTableSchema();
+        $table = new MappingTableStub($this->getDbManager());
+        $table->addEndpointColumn('test', Type::BINARY);
+        $schema = $table->getTableSchema();
         $column = $schema->getColumn('test');
         $this->assertEquals(Type::BINARY, $column->getType()->getName());
     }
 
     public function testAddColumn()
     {
-        $this->table->addEndpointColumn('test', Type::DATETIME);
-        $schema = $this->table->getTableSchema();
+        $table = new MappingTableStub($this->getDbManager());
+        $table->addEndpointColumn('test', Type::DATETIME);
+        $schema = $table->getTableSchema();
         $primaryKey = $schema->getPrimaryKey();
         $this->assertTrue(in_array('test', $primaryKey->getColumns()));
     }
 
     public function testAddColumnNotPrimary()
     {
-        $this->table->addEndpointColumn('test', Type::STRING, [], false);
-        $schema = $this->table->getTableSchema();
+        $table = new MappingTableStub($this->getDbManager());
+        $table->addEndpointColumn('test', Type::STRING, [], false);
+        $schema = $table->getTableSchema();
         $this->assertTrue($schema->hasColumn('test'));
         $primaryKey = $schema->getPrimaryKey();
         $this->assertFalse(in_array('test', $primaryKey->getColumns()));
