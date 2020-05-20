@@ -3,100 +3,64 @@
  * @author Immanuel Klinkenberg <immanuel.klinkenberg@jtl-software.com>
  * @copyright 2010-2016 JTL-Software GmbH
  */
+
 namespace Jtl\Connector\MappingTables;
 
 use Doctrine\DBAL\DBALException;
 use Jtl\Connector\Dbc\DbManager;
 use Jtl\Connector\Dbc\DbManagerStub;
-use PHPUnit\DbUnit\DataSet\YamlDataSet;
-use PHPUnit\DbUnit\Database\DefaultConnection;
+use PHPUnit\Framework\TestCase;
 
-abstract class DbTestCase extends \PHPUnit\DbUnit\TestCase
+abstract class DbTestCase extends \Jtl\Connector\Dbc\DbTestCase
 {
-    const TABLES_PREFIX = 'pre_';
-    const SCHEMA = TESTROOT . '/tmp/db.sqlite';
-
-    /**
-     * @var PDO
-     */
-    protected $pdo;
-
-    /**
-     * @var DbManagerStub
-     */
-    protected $dbManager;
-
-    /**
-     * @var YamlDataSet
-     */
-    protected $yamlDataSet;
-
-    /**
-     * @var TableStub
-     */
-    protected $table;
-
-
     protected function setUp(): void
     {
         $this->table = new TableStub($this->getDbManager());
-        if ($this->getDbManager()->hasSchemaUpdate()) {
-            $this->getDbManager()->updateDatabaseSchema();
-        }
         parent::setUp();
-    }
-
-    /**
-     * @return PDO
-     */
-    protected function getPdo()
-    {
-        if (!$this->pdo instanceof \PDO) {
-            if (file_exists(self::SCHEMA)) {
-                unlink(self::SCHEMA);
-            }
-            $this->pdo = new \PDO('sqlite:' . self::SCHEMA);
+        foreach ($this->getTableFixtures() as $data) {
+            $this->table->insert($data);
         }
-        return $this->pdo;
     }
 
     /**
-     * @return DbManager|DbManagerStub
-     * @throws DBALException
+     * @return mixed[]
      */
-    protected function getDbManager()
+    protected function getTableFixtures(): array
     {
-        if (is_null($this->dbManager)) {
-            //$this->dbManager = DbManagerStub::createFromPDO($this->getConnection()->getConnection(), null, self::TABLES_PREFIX);
-            $this->dbManager = DbManager::createFromPDO($this->getConnection()->getConnection(), null, self::TABLES_PREFIX);
-        }
-        return $this->dbManager;
-    }
+        $data = [];
 
-    /**
-     * @return DefaultConnection;
-     */
-    protected function getConnection()
-    {
-        return $this->createDefaultDBConnection($this->getPdo(), self::SCHEMA);
-    }
+        $data[] = [
+            "id1" => 1,
+            "id2" => 1,
+            "strg" => "foo",
+            "identity_type" => 815,
+            "host_id" => 3,
+        ];
 
-    /**
-     * @return YamlDataSet
-     */
-    protected function getYamlDataSet()
-    {
-        if (!$this->yamlDataSet instanceof YamlDataSet) {
-            $this->yamlDataSet = new YamlDataSet(TESTROOT . '/files/table_stub.yaml');
-        }
-        return $this->yamlDataSet;
-    }
+        $data[] = [
+            "id1" => 1,
+            "id2" => 2,
+            "strg" => "bar",
+            "identity_type" => 7,
+            "host_id" => 2,
+        ];
 
-    /**
-     * @return YamlDataSet
-     */
-    protected function getDataSet()
-    {
-        return $this->getYamlDataSet();
+        $data[] = [
+            "id1" => 4,
+            "id2" => 2,
+            "strg" => "foobar",
+            "identity_type" => 815,
+            "host_id" => 5,
+        ];
+
+        $data[] = [
+            "id1" => 6,
+            "id2" => 8,
+            "strg" => "yolo",
+            "identity_type" => 815,
+            "host_id" => 5,
+        ];
+
+        return $data;
     }
 }

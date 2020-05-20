@@ -18,7 +18,7 @@ class TableCollectionTest extends DbTestCase
         $this->collection = new TableCollection($this->table);
     }
 
-    public function toArray()
+    public function testToArray()
     {
         $collection = new TableCollection($this->table);
         $tables = $collection->toArray();

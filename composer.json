@@ -17,8 +17,7 @@
     "friendsofphp/php-cs-fixer": "^2.16"
   },
   "require-dev": {
-    "phpunit/phpunit": "^7.0",
-    "phpunit/dbunit": "^4.0"
+    "phpunit/phpunit": "^9.1"
   },
   "autoload": {
     "psr-4": {
@@ -27,7 +26,8 @@
   },
   "autoload-dev": {
     "psr-4": {
-      "Jtl\\Connector\\MappingTables\\": "tests/src/"
+      "Jtl\\Connector\\MappingTables\\": "tests/src/",
+      "Jtl\\Connector\\Dbc\\": "vendor/jtl/connector-dbc/tests/src/"
     }
   }
 }

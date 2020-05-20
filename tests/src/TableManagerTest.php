@@ -95,20 +95,20 @@ class TableManagerTest extends DbTestCase
 
     public function testClear()
     {
-        $this->assertTableRowCount($this->table->getTableName(), 4);
+        $this->assertEquals(4, $this->countRows($this->table->getTableName()));
         $this->assertTrue($this->mtm->clear());
-        $this->assertTableRowCount($this->table->getTableName(), 0);
+        $this->assertEquals(0, $this->countRows($this->table->getTableName()));
     }
 
     public function testClearByType()
     {
-        $this->assertTableRowCount($this->table->getTableName(), 4);
+        $this->assertEquals(4, $this->countRows($this->table->getTableName()));
         $this->assertTrue($this->mtm->clear(TableStub::TYPE1));
-        $this->assertTableRowCount($this->table->getTableName(), 1);
+        $this->assertEquals(1, $this->countRows($this->table->getTableName()));
         $this->assertTrue($this->mtm->clear(TableStub::TYPE1));
-        $this->assertTableRowCount($this->table->getTableName(), 1);
+        $this->assertEquals(1, $this->countRows($this->table->getTableName()));
         $this->assertTrue($this->mtm->clear(TableStub::TYPE2));
-        $this->assertTableRowCount($this->table->getTableName(), 0);
+        $this->assertEquals(0, $this->countRows($this->table->getTableName()));
     }
 
     public function testCount()

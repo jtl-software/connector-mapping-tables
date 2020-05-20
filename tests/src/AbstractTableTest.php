@@ -75,14 +75,14 @@ class AbstractTableTest extends DbTestCase
     public function testSave()
     {
         $this->table->save(sprintf('1||45||yolo||%s', TableStub::TYPE1), 4);
-        $this->assertTableRowCount($this->table->getTableName(), 5);
+        $this->assertEquals(5, $this->countRows($this->table->getTableName()));
     }
 
     public function testDeleteByEndpointId()
     {
         $this->assertEquals(sprintf('1||1||foo||%s', TableStub::TYPE1), $this->table->getEndpoint(TableStub::TYPE1, 3));
         $this->table->remove(TableStub::TYPE1, sprintf('1||1||foo||%s', TableStub::TYPE1));
-        $this->assertTableRowCount($this->table->getTableName(), 3);
+        $this->assertEquals(3, $this->countRows($this->table->getTableName()));
         $this->assertEquals(null, $this->table->getEndpoint(TableStub::TYPE1, 3));
     }
 
@@ -90,31 +90,31 @@ class AbstractTableTest extends DbTestCase
     {
         $this->assertEquals(sprintf('1||1||foo||%s', TableStub::TYPE1), $this->table->getEndpoint(TableStub::TYPE1, 3));
         $this->table->remove(TableStub::TYPE1, null, 3);
-        $this->assertTableRowCount($this->table->getTableName(), 3);
+        $this->assertEquals(3, $this->countRows($this->table->getTableName()));
         $this->assertEquals(null, $this->table->getEndpoint(TableStub::TYPE1, 3));
     }
 
     public function testDeleteByHostIdMultipleEntries()
     {
-        $this->assertTableRowCount($this->table->getTableName(), 4);
+        $this->assertEquals(4, $this->countRows($this->table->getTableName()));
         $this->table->remove(TableStub::TYPE1, null, 5);
-        $this->assertTableRowCount($this->table->getTableName(), 2);
+        $this->assertEquals(2, $this->countRows($this->table->getTableName()));
         $this->assertEquals(null, $this->table->getEndpoint(TableStub::TYPE1, 5));
     }
 
     public function testClearDifferentTypes()
     {
         $this->table->clear(TableStub::TYPE1);
-        $this->assertTableRowCount($this->table->getTableName(), 1);
+        $this->assertEquals(1, $this->countRows($this->table->getTableName()));
         $this->table->clear(TableStub::TYPE2);
-        $this->assertTableRowCount($this->table->getTableName(), 0);
+        $this->assertEquals(0, $this->countRows($this->table->getTableName()));
     }
 
     public function testClearAll()
     {
-        $this->assertTableRowCount($this->table->getTableName(), 4);
+        $this->assertEquals(4, $this->countRows($this->table->getTableName()));
         $this->table->clear();
-        $this->assertTableRowCount($this->table->getTableName(), 0);
+        $this->assertEquals(0, $this->countRows($this->table->getTableName()));
     }
 
     public function testClearUnknownType()
@@ -126,11 +126,11 @@ class AbstractTableTest extends DbTestCase
 
     public function testCount()
     {
-        $this->assertTableRowCount($this->table->getTableName(), 4);
+        $this->assertEquals(4, $this->countRows($this->table->getTableName()));
         $this->assertEquals(3, $this->table->count(TableStub::TYPE1));
         $this->assertEquals(1, $this->table->count(TableStub::TYPE2));
         $this->table->remove(TableStub::TYPE1, sprintf('1||1||foo||%s', TableStub::TYPE1));
-        $this->assertTableRowCount($this->table->getTableName(), 3);
+        $this->assertEquals(3, $this->countRows($this->table->getTableName()));
         $this->assertEquals(2, $this->table->count(TableStub::TYPE1));
     }
 
@@ -257,7 +257,7 @@ class AbstractTableTest extends DbTestCase
     {
         $this->expectException(RuntimeException::class);
         $this->expectExceptionCode(RuntimeException::TYPES_ARRAY_EMPTY);
-        new class($this->dbManager) extends TableStub {
+        new class($this->getDBManager()) extends TableStub {
             public function getTypes(): array
             {
                 return [];
@@ -274,7 +274,7 @@ class AbstractTableTest extends DbTestCase
     {
         $this->expectException(RuntimeException::class);
         $this->expectExceptionCode(RuntimeException::TYPES_WRONG_DATA_TYPE);
-        new class($this->dbManager, $types) extends TableStub {
+        new class($this->getDBManager(), $types) extends TableStub {
             protected $types = [];
             public function __construct(DbManager $dbManager, array $types)
             {

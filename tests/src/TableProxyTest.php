@@ -108,10 +108,10 @@ class TableProxyTest extends DbTestCase
         $hostId = 999;
         $endpoint = sprintf('44||11||juhuu||%s', TableStub::TYPE1);
         $this->assertEquals(3, $this->proxy->count());
-        $this->assertTableRowCount($this->table->getTableName(), 4);
+        $this->assertEquals(4, $this->countRows($this->table->getTableName()));
         $this->proxy->save($endpoint, $hostId);
         $this->assertEquals(4, $this->proxy->count());
-        $this->assertTableRowCount($this->table->getTableName(), 5);
+        $this->assertEquals(5, $this->countRows($this->table->getTableName()));
     }
 
     public function testFindEndpoints()
