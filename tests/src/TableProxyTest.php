@@ -13,8 +13,10 @@ class TableProxyTest extends DbTestCase
 
     protected function setUp(): void
     {
-        parent::setUp();
+        $this->table = new TableStub($this->getDbManager());
         $this->proxy = new TableProxy(TableStub::TYPE1, $this->table);
+        parent::setUp();
+        $this->insertFixtures($this->table, self::getTableStubFixtures());
     }
 
     public function testGetHostId()

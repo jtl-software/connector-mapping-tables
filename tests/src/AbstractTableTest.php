@@ -12,6 +12,18 @@ use Jtl\Connector\Dbc\DbManager;
 
 class AbstractTableTest extends DbTestCase
 {
+    /**
+     * @var TableStub
+     */
+    protected $table;
+
+    protected function setUp(): void
+    {
+        $this->table = new TableStub($this->getDbManager());
+        parent::setUp();
+        $this->insertFixtures($this->table, self::getTableStubFixtures());
+    }
+
     public function testTableSchema()
     {
         $tableSchema = $this->table->getTableSchema();

@@ -481,7 +481,7 @@ abstract class AbstractTable extends AbstractDbcTable implements TableInterface
         if ($dataCount < count($columns)) {
             throw RuntimeException::columnDataMissing($columnNames[$dataCount]);
         }
-        return $this->mapRow(array_combine($columnNames, $data), $columnNames);
+        return $this->convertToPhpValues(array_combine($columnNames, $data), $columnNames);
     }
 
     /**
@@ -497,9 +497,6 @@ abstract class AbstractTable extends AbstractDbcTable implements TableInterface
         if ($this->hasEndpointColumn($name)) {
             throw RuntimeException::columnExists($name);
         }
-//        $this->endpointColumns[$name]['type'] = $type;
-//        $this->endpointColumns[$name]['options'] = $options;
-//        $this->endpointColumns[$name]['primary'] = $primary;
 
         $this->endpointColumns[$name] = EndpointColumn::create($name, $type, $options, $primary);
 

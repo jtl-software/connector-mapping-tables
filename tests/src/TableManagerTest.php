@@ -19,8 +19,10 @@ class TableManagerTest extends DbTestCase
 
     protected function setUp(): void
     {
-        parent::setUp();
+        $this->table = new TableStub($this->getDbManager());
         $this->mtm = new TableManager($this->table);
+        parent::setUp();
+        $this->insertFixtures($this->table, self::getTableStubFixtures());
     }
 
     public function testGetMappingTable()

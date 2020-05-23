@@ -8,14 +8,21 @@ namespace Jtl\Connector\MappingTables;
 class TableCollectionTest extends DbTestCase
 {
     /**
+     * @var TableStub
+     */
+    protected $table;
+
+    /**
      * @var TableCollection
      */
     protected $collection;
 
     protected function setUp(): void
     {
-        parent::setUp();
+        $this->table = new TableStub($this->getDbManager());
         $this->collection = new TableCollection($this->table);
+        parent::setUp();
+        $this->insertFixtures($this->table, self::getTableStubFixtures());
     }
 
     public function testToArray()

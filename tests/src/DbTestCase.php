@@ -13,19 +13,10 @@ use PHPUnit\Framework\TestCase;
 
 abstract class DbTestCase extends \Jtl\Connector\Dbc\DbTestCase
 {
-    protected function setUp(): void
-    {
-        $this->table = new TableStub($this->getDbManager());
-        parent::setUp();
-        foreach ($this->getTableFixtures() as $data) {
-            $this->table->insert($data);
-        }
-    }
-
     /**
      * @return mixed[]
      */
-    protected function getTableFixtures(): array
+    public static function getTableStubFixtures(): array
     {
         $data = [];
 
