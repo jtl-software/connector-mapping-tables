@@ -481,7 +481,7 @@ abstract class AbstractTable extends AbstractDbcTable implements TableInterface
         if ($dataCount < count($columns)) {
             throw RuntimeException::columnDataMissing($columnNames[$dataCount]);
         }
-        return $this->convertToPhpValues(array_combine($columnNames, $data), $columnNames);
+        return $this->convertToPhpValues(array_combine($columnNames, $data));
     }
 
     /**
