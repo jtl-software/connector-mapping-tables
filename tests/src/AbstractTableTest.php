@@ -193,6 +193,35 @@ class AbstractTableTest extends DbTestCase
         $this->assertEquals($notMappedExpected, $notMappedActual);
     }
 
+    public function testCreateEndpointData()
+    {
+        $endpointData = ['5', '7', 'foobar', TableStub::TYPE1];
+        $data = $this->invokeMethodFromObject($this->table, 'createEndpointData', $endpointData);
+        $this->assertCount(4, $data);
+        $this->assertArrayHasKey('id1', $data);
+        $this->assertIsInt($data['id1']);
+        $this->assertArrayHasKey('id2', $data);
+        $this->assertIsInt($data['id2']);
+        $this->assertArrayHasKey('strg', $data);
+        $this->assertIsString($data['strg']);
+    }
+
+    public function testCreateEndpointDataFailsTooMuchData()
+    {
+        $this->expectException(RuntimeException::class);
+        $this->expectExceptionCode(RuntimeException::WRONG_ENDPOINT_PARTS_AMOUNT);
+        $endpointData = ['foo', 'bar', '123', '21', '1.3'];
+        $this->invokeMethodFromObject($this->table, 'createEndpointData', $endpointData);
+    }
+
+    public function testCreateEndpointDataFailsNotEnoughData()
+    {
+        $this->expectException(RuntimeException::class);
+        $this->expectExceptionCode(RuntimeException::WRONG_ENDPOINT_PARTS_AMOUNT);
+        $endpointData = ['foo', 'bar'];
+        $this->invokeMethodFromObject($this->table, 'createEndpointData', $endpointData);
+    }
+
     public function testBuildEndpoint()
     {
         $data = ['f', 'u', 'c', 'k'];

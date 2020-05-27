@@ -475,12 +475,15 @@ abstract class AbstractTable extends AbstractDbcTable implements TableInterface
      */
     protected function createEndpointData(array $data): array
     {
-        $columns = $this->getEndpointColumns();
         $dataCount = count($data);
+        $columns = $this->getEndpointColumns();
+        $columnsCount = count($columns);
         $columnNames = array_keys($columns);
-        if ($dataCount < count($columns)) {
-            throw RuntimeException::columnDataMissing($columnNames[$dataCount]);
+
+        if($dataCount !== $columnsCount) {
+            throw RuntimeException::wrongEndpointPartsAmount($dataCount, $columnsCount);
         }
+
         return $this->convertToPhpValues(array_combine($columnNames, $data));
     }
 
