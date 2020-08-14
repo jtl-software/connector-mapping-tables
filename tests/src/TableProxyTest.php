@@ -2,9 +2,8 @@
 
 namespace Jtl\Connector\MappingTables;
 
-use PHPUnit\Framework\TestCase;
 
-class TableProxyTest extends DbTestCase
+class TableProxyTest extends TestCase
 {
     /**
      * @var TableProxy

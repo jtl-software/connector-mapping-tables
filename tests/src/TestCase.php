@@ -9,9 +9,8 @@ namespace Jtl\Connector\MappingTables;
 use Doctrine\DBAL\DBALException;
 use Jtl\Connector\Dbc\DbManager;
 use Jtl\Connector\Dbc\DbManagerStub;
-use PHPUnit\Framework\TestCase;
 
-abstract class DbTestCase extends \Jtl\Connector\Dbc\DbTestCase
+abstract class TestCase extends \Jtl\Connector\Dbc\TestCase
 {
     /**
      * @return mixed[]

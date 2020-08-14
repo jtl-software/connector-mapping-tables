@@ -5,7 +5,7 @@
  */
 namespace Jtl\Connector\MappingTables;
 
-class TableCollectionTest extends DbTestCase
+class TableCollectionTest extends TestCase
 {
     /**
      * @var TableStub

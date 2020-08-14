@@ -441,10 +441,10 @@ abstract class AbstractTable extends AbstractDbcTable implements TableInterface
         return $this->createQueryBuilder()
             ->select($columns)
             ->from($this->getTableName())
-            ->andWhere(sprintf('%s = :%s', self::HOST_ID, self::HOST_ID))
-            ->setParameter(self::HOST_ID, $hostId)
-            ->andWhere(sprintf('%s = :%s', self::IDENTITY_TYPE, self::IDENTITY_TYPE))
-            ->setParameter(self::IDENTITY_TYPE, $type);
+            ->andWhere(sprintf('%s = :hostId', self::HOST_ID))
+            ->setParameter('hostId', $hostId)
+            ->andWhere(sprintf('%s = :identityType', self::IDENTITY_TYPE))
+            ->setParameter('identityType', $type);
     }
 
     /**
