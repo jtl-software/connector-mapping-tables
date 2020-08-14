@@ -403,6 +403,21 @@ abstract class AbstractTable extends AbstractDbcTable implements TableInterface
     }
 
     /**
+     * @param string $field
+     * @param string $endpoint
+     * @return mixed|null
+     * @throws DBALException
+     */
+    public function extractValueFromEndpoint(string $field, string $endpoint)
+    {
+        if (empty($endpoint)) {
+            return null;
+        }
+        $extracted = $this->extractEndpoint($endpoint);
+        return $extracted[$field] ?? null;
+    }
+
+    /**
      * @param integer|null $type
      * @return TableProxy
      */

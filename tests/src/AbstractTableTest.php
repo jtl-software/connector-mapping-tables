@@ -6,6 +6,7 @@
 
 namespace Jtl\Connector\MappingTables;
 
+use Doctrine\DBAL\DBALException;
 use Doctrine\DBAL\Schema\Column;
 use Doctrine\DBAL\Types\Types;
 use Jtl\Connector\Dbc\DbManager;
@@ -307,9 +308,36 @@ class AbstractTableTest extends TestCase
     }
 
     /**
+     * @dataProvider extractValueFromEndpointProvider
+     *
+     * @param string $field
+     * @param string $endpoint
+     * @param int|string $expectedValue
+     * @throws DBALException
+     */
+    public function testExtractValueFromEndpoint(string $field, string $endpoint, $expectedValue)
+    {
+        $actualValue = $this->table->extractValueFromEndpoint($field, $endpoint);
+        $this->assertEquals($expectedValue, $actualValue);
+    }
+
+    /**
+     * @return array[]
+     */
+    public function extractValueFromEndpointProvider(): array
+    {
+        return [
+            [TableStub::COL_ID1, sprintf('%d||%d||%s||%d', 5, 42, 'strg', TableStub::TYPE1), 5],
+            [TableStub::COL_ID2, sprintf('%d||%d||%s||%d', 5, 42, 'strg', TableStub::TYPE2), 42],
+            [TableStub::COL_VAR, sprintf('%d||%d||%s||%d', 5, 42, 'strg', TableStub::TYPE1), 'strg'],
+        ];
+    }
+
+    /**
      * @dataProvider wrongTypesProvider
      *
      * @param mixed[] $types
+     * @throws DBALException
      */
     public function testWrongTypes(array $types)
     {
