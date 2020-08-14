@@ -2,7 +2,6 @@
 
 namespace Jtl\Connector\MappingTables;
 
-
 class TableProxyTest extends TestCase
 {
     /**

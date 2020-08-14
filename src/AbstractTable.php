@@ -480,7 +480,7 @@ abstract class AbstractTable extends AbstractDbcTable implements TableInterface
         $columnsCount = count($columns);
         $columnNames = array_keys($columns);
 
-        if($dataCount !== $columnsCount) {
+        if ($dataCount !== $columnsCount) {
             throw RuntimeException::wrongEndpointPartsAmount($dataCount, $columnsCount);
         }
 
