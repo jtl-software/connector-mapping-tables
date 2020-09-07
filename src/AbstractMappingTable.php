@@ -172,8 +172,9 @@ abstract class AbstractMappingTable extends AbstractTable implements MappingTabl
                 ->setParameter(self::HOST_ID, $hostId);
         }
 
-        $rows = $qb->execute() > 0;
-        return is_int($rows) ? $rows > 0 : false;
+        $qb->execute();
+
+        return true;
     }
 
     /**
@@ -181,11 +182,11 @@ abstract class AbstractMappingTable extends AbstractTable implements MappingTabl
      */
     public function clear(): bool
     {
-        $rows = $this->createQueryBuilder()
+        $this->createQueryBuilder()
             ->delete($this->getTableName())
             ->execute();
 
-        return is_int($rows) ? $rows > 0 : false;
+        return true;
     }
 
     /**
@@ -202,8 +203,7 @@ abstract class AbstractMappingTable extends AbstractTable implements MappingTabl
         return $this->createFindQuery($where, $parameters, $orderBy, $limit, $offset)
             ->select($this->getDbManager()->getConnection()->getDatabasePlatform()->getCountExpression('*'))
             ->execute()
-            ->fetchColumn(0)
-        ;
+            ->fetchColumn(0);
     }
 
     /**
@@ -219,8 +219,7 @@ abstract class AbstractMappingTable extends AbstractTable implements MappingTabl
     {
         $stmt = $this->createFindQuery($where, $parameters, $orderBy, $limit, $offset)
             ->select(array_keys($this->getEndpointColumns()))
-            ->execute()
-        ;
+            ->execute();
 
         return array_map(function (array $data) {
             return $this->buildEndpoint($data);
@@ -239,8 +238,7 @@ abstract class AbstractMappingTable extends AbstractTable implements MappingTabl
     public function createFindQuery(array $where = [], array $parameters = [], array $orderBy = [], int $limit = null, int $offset = null): QueryBuilder
     {
         $qb = $this->createQueryBuilder()
-            ->from($this->getTableName())
-        ;
+            ->from($this->getTableName());
 
         foreach ($where as $condition) {
             $qb->andWhere($condition);
