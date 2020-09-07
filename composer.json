@@ -11,7 +11,7 @@
   ],
   "require": {
     "doctrine/dbal": "^2.5",
-    "jtl/connector-dbc": "^1.3",
+    "jtl/connector-dbc": "^2.0",
     "jtl/connector": "^3.0"
   },
   "autoload": {

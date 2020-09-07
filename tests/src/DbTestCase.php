@@ -38,7 +38,7 @@ abstract class DbTestCase extends \PHPUnit\DbUnit\TestCase
     protected function setUp(): void
     {
         $this->table = new MappingTableStub($this->getDbManager());
-        if($this->getDbManager()->hasSchemaUpdate()){
+        if($this->getDbManager()->hasSchemaUpdates()){
             $this->getDbManager()->updateDatabaseSchema();
         }
         parent::setUp();

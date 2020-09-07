@@ -371,7 +371,7 @@ abstract class AbstractMappingTable extends AbstractTable implements MappingTabl
      * @param string $endpointId
      * @return mixed[]
      */
-    protected function explodeEndpoint($endpointId): array
+    protected function explodeEndpoint(string $endpointId): array
     {
         return explode($this->endpointDelimiter, $endpointId);
     }
@@ -398,7 +398,7 @@ abstract class AbstractMappingTable extends AbstractTable implements MappingTabl
         if ($dataCount < count($columns)) {
             throw RuntimeException::columnDataMissing($columnNames[$dataCount]);
         }
-        return $this->mapRow(array_combine($columnNames, $data), $columnNames);
+        return $this->convertToPhpValues(array_combine($columnNames, $data));
     }
 
     /**
