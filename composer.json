@@ -13,7 +13,7 @@
     "php": ">=7.1",
     "doctrine/dbal": "^2.5",
     "jtl/connector-dbc": "^2.0",
-    "jtl/connector": "dev-develop",
+    "jtl/connector": "^4.0",
     "friendsofphp/php-cs-fixer": "^2.16"
   },
   "require-dev": {
