@@ -8,6 +8,7 @@ namespace Jtl\Connector\MappingTables;
 
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\DBALException;
+use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use Doctrine\DBAL\Schema\Table;
 use Doctrine\DBAL\Types\Types;
 use Jtl\Connector\Dbc\AbstractTable as AbstractDbcTable;
@@ -107,10 +108,10 @@ abstract class AbstractTable extends AbstractDbcTable implements TableInterface
             ->select(self::HOST_ID)
             ->from($this->getTableName());
 
-        $primaryColumns = array_keys($this->getPrimaryColumns());
+        $primaryColumnNames = array_keys($this->getPrimaryColumns());
 
         foreach ($this->extractEndpoint($endpoint) as $column => $value) {
-            if (in_array($column, $primaryColumns)) {
+            if (in_array($column, $primaryColumnNames, true)) {
                 $qb->andWhere($column . ' = :' . $column)
                     ->setParameter($column, $value, $this->endpointColumns[$column]->getType());
             }
@@ -154,11 +155,20 @@ abstract class AbstractTable extends AbstractDbcTable implements TableInterface
         $data = $this->extractEndpoint($endpoint);
         $data[self::HOST_ID] = $hostId;
 
-        $types = array_map(function (EndpointColumn $column) {
-            return $column->getType();
-        }, $this->getEndpointColumns());
+        try {
+            return $this->insert($data);
+        } catch (UniqueConstraintViolationException $ex) {
+            $primaryColumnNames = array_keys($this->getPrimaryColumns());
 
-        return $this->getConnection()->insert($this->getTableName(), $data, $types);
+            $identifier = [];
+            foreach ($data as $column => $value) {
+                if (in_array($column, $primaryColumnNames, true)) {
+                    $identifier[$column] = $value;
+                }
+            }
+
+            return $this->update($data, $identifier);
+        }
     }
 
     /**
@@ -174,11 +184,11 @@ abstract class AbstractTable extends AbstractDbcTable implements TableInterface
         $qb = $this->createQueryBuilder()
             ->delete($this->getTableName());
 
-        $primaryColumns = array_keys($this->getPrimaryColumns());
+        $primaryColumnNames = array_keys($this->getPrimaryColumns());
 
         if ($endpoint !== null) {
             foreach ($this->extractEndpoint($endpoint) as $column => $value) {
-                if (in_array($column, $primaryColumns)) {
+                if (in_array($column, $primaryColumnNames)) {
                     $qb->andWhere($column . ' = :' . $column)
                         ->setParameter($column, $value);
                 }
@@ -234,10 +244,12 @@ abstract class AbstractTable extends AbstractDbcTable implements TableInterface
      */
     public function count(int $type = null, array $where = [], array $parameters = [], array $orderBy = [], int $limit = null, int $offset = null): int
     {
-        return $this->createFindQuery($type, $where, $parameters, $orderBy, $limit, $offset)
+        $result = $this->createFindQuery($type, $where, $parameters, $orderBy, $limit, $offset)
             ->select($this->getDbManager()->getConnection()->getDatabasePlatform()->getCountExpression('*'))
             ->execute()
             ->fetchColumn(0);
+
+        return $result;
     }
 
     /**
@@ -275,8 +287,7 @@ abstract class AbstractTable extends AbstractDbcTable implements TableInterface
      */
     public function createFindQuery(int $type = null, array $where = [], array $parameters = [], array $orderBy = [], int $limit = null, int $offset = null): QueryBuilder
     {
-        $qb = $this->createQueryBuilder()
-            ->from($this->getTableName());
+        $qb = $this->createQueryBuilder();
 
         if (!is_null($type)) {
             if (!$this->isResponsible($type)) {
@@ -531,7 +542,7 @@ abstract class AbstractTable extends AbstractDbcTable implements TableInterface
     }
 
     /**
-     * @return EndpointColumn[]
+     * @return array<EndpointColumn>
      */
     protected function getEndpointColumns(): array
     {
@@ -539,7 +550,7 @@ abstract class AbstractTable extends AbstractDbcTable implements TableInterface
     }
 
     /**
-     * @return string[]
+     * @return array<EndpointColumn>
      */
     protected function getPrimaryColumns(): array
     {
