@@ -50,7 +50,7 @@ class TableManager implements PrimaryKeyMapperInterface
      */
     public function getEndpointId(int $type, int $hostId): ?string
     {
-        return $this->collection->get($type)->getEndpoint($type, $hostId);
+        return $this->collection->get($type)->getEndpoint($hostId, $type);
     }
 
     /**
@@ -72,7 +72,7 @@ class TableManager implements PrimaryKeyMapperInterface
      */
     public function delete(int $type, string $endpointId = null, int $hostId = null): bool
     {
-        return is_int($this->collection->get($type)->remove($type, $endpointId, $hostId));
+        return is_int($this->collection->get($type)->remove($endpointId, $hostId, $type));
     }
 
     /**
@@ -81,7 +81,7 @@ class TableManager implements PrimaryKeyMapperInterface
      */
     public function findAllEndpointIds($type): array
     {
-        return $this->collection->get($type)->findEndpoints($type);
+        return $this->collection->get($type)->findEndpoints([], [], [], null, null, $type);
     }
 
     /**
@@ -101,7 +101,7 @@ class TableManager implements PrimaryKeyMapperInterface
     public function count(int $type = null): int
     {
         if (!is_null($type)) {
-            return $this->collection->get($type)->count($type);
+            return $this->collection->get($type)->count([], [], [], null, null, $type);
         }
 
         $count = 0;

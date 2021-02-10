@@ -40,11 +40,11 @@ class TableDummy implements TableInterface
     }
 
     /**
-     * @param integer $type
      * @param integer $hostId
+     * @param integer|null $type
      * @return string
      */
-    public function getEndpoint(int $type, int $hostId): ?string
+    public function getEndpoint(int $hostId, int $type = null): ?string
     {
         return null;
     }
@@ -60,12 +60,12 @@ class TableDummy implements TableInterface
     }
 
     /**
-     * @param integer $type
      * @param string|null $endpoint
      * @param integer|null $hostId
+     * @param integer|null $type
      * @return integer
      */
-    public function remove(int $type, string $endpoint = null, int $hostId = null): int
+    public function remove(string $endpoint = null, int $hostId = null, int $type = null): int
     {
         return 0;
     }
@@ -80,29 +80,29 @@ class TableDummy implements TableInterface
     }
 
     /**
-     * @param integer|null $type
      * @param array $where
      * @param array $parameters
      * @param array $orderBy
      * @param integer|null $limit
      * @param integer|null $offset
+     * @param integer|null $type
      * @return integer
      */
-    public function count(int $type = null, array $where = [], array $parameters = [], array $orderBy = [], int $limit = null, int $offset = null): int
+    public function count(array $where = [], array $parameters = [], array $orderBy = [], int $limit = null, int $offset = null, int $type = null): int
     {
         return 0;
     }
 
     /**
-     * @param integer|null $type
      * @param array $where
      * @param array $parameters
      * @param array $orderBy
      * @param integer|null $limit
      * @param integer|null $offset
+     * @param integer|null $type
      * @return array
      */
-    public function findEndpoints(int $type = null, array $where = [], array $parameters = [], array $orderBy = [], int $limit = null, int $offset = null): array
+    public function findEndpoints(array $where = [], array $parameters = [], array $orderBy = [], int $limit = null, int $offset = null, int $type = null): array
     {
         return [];
     }

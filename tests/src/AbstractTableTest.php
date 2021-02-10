@@ -80,9 +80,9 @@ class AbstractTableTest extends TestCase
 
     public function testGetEndpointId()
     {
-        $this->assertEquals(sprintf('1||1||foo||%s', TableStub::TYPE1), $this->table->getEndpoint(TableStub::TYPE1, 3));
-        $this->assertEquals(sprintf('1||2||bar||%s', TableStub::TYPE2), $this->table->getEndpoint(TableStub::TYPE2, 2));
-        $this->assertEquals(sprintf('4||2||foobar||%s', TableStub::TYPE1), $this->table->getEndpoint(TableStub::TYPE1, 5));
+        $this->assertEquals(sprintf('1||1||foo||%s', TableStub::TYPE1), $this->table->getEndpoint(3, TableStub::TYPE1));
+        $this->assertEquals(sprintf('1||2||bar||%s', TableStub::TYPE2), $this->table->getEndpoint(2, TableStub::TYPE2));
+        $this->assertEquals(sprintf('4||2||foobar||%s', TableStub::TYPE1), $this->table->getEndpoint(5, TableStub::TYPE1));
     }
 
     public function testSave()
@@ -93,26 +93,26 @@ class AbstractTableTest extends TestCase
 
     public function testDeleteByEndpointId()
     {
-        $this->assertEquals(sprintf('1||1||foo||%s', TableStub::TYPE1), $this->table->getEndpoint(TableStub::TYPE1, 3));
-        $this->table->remove(TableStub::TYPE1, sprintf('1||1||foo||%s', TableStub::TYPE1));
+        $this->assertEquals(sprintf('1||1||foo||%s', TableStub::TYPE1), $this->table->getEndpoint(3, TableStub::TYPE1));
+        $this->table->remove(sprintf('1||1||foo||%s', TableStub::TYPE1), null, TableStub::TYPE1);
         $this->assertEquals(3, $this->countRows($this->table->getTableName()));
-        $this->assertEquals(null, $this->table->getEndpoint(TableStub::TYPE1, 3));
+        $this->assertEquals(null, $this->table->getEndpoint(3, TableStub::TYPE1));
     }
 
     public function testDeleteByHostId()
     {
-        $this->assertEquals(sprintf('1||1||foo||%s', TableStub::TYPE1), $this->table->getEndpoint(TableStub::TYPE1, 3));
-        $this->table->remove(TableStub::TYPE1, null, 3);
+        $this->assertEquals(sprintf('1||1||foo||%s', TableStub::TYPE1), $this->table->getEndpoint(3, TableStub::TYPE1));
+        $this->table->remove( null, 3, TableStub::TYPE1);
         $this->assertEquals(3, $this->countRows($this->table->getTableName()));
-        $this->assertEquals(null, $this->table->getEndpoint(TableStub::TYPE1, 3));
+        $this->assertEquals(null, $this->table->getEndpoint(3, TableStub::TYPE1));
     }
 
     public function testDeleteByHostIdMultipleEntries()
     {
         $this->assertEquals(4, $this->countRows($this->table->getTableName()));
-        $this->table->remove(TableStub::TYPE1, null, 5);
+        $this->table->remove( null, 5, TableStub::TYPE1);
         $this->assertEquals(2, $this->countRows($this->table->getTableName()));
-        $this->assertEquals(null, $this->table->getEndpoint(TableStub::TYPE1, 5));
+        $this->assertEquals(null, $this->table->getEndpoint(5, TableStub::TYPE1));
     }
 
     public function testClearDifferentTypes()
@@ -140,28 +140,28 @@ class AbstractTableTest extends TestCase
     public function testCount()
     {
         $this->assertEquals(4, $this->countRows($this->table->getTableName()));
-        $this->assertEquals(3, $this->table->count(TableStub::TYPE1));
-        $this->assertEquals(1, $this->table->count(TableStub::TYPE2));
-        $this->table->remove(TableStub::TYPE1, sprintf('1||1||foo||%s', TableStub::TYPE1));
+        $this->assertEquals(3, $this->table->count([], [], [], null, null, TableStub::TYPE1));
+        $this->assertEquals(1, $this->table->count([], [], [], null, null, TableStub::TYPE2));
+        $this->table->remove(sprintf('1||1||foo||%s', TableStub::TYPE1), null, TableStub::TYPE1);
         $this->assertEquals(3, $this->countRows($this->table->getTableName()));
-        $this->assertEquals(2, $this->table->count(TableStub::TYPE1));
+        $this->assertEquals(2, $this->table->count([], [], [], null, null, TableStub::TYPE1));
     }
 
     public function testCountWithWhereCondition()
     {
         $where = [TableStub::COL_ID2 . ' = :' . TableStub::COL_ID2];
-        $this->assertEquals(0, $this->table->count(TableStub::TYPE1, $where, [TableStub::COL_ID2 => 63]));
-        $this->assertEquals(1, $this->table->count(TableStub::TYPE1, $where, [TableStub::COL_ID2 => 1]));
-        $this->assertEquals(1, $this->table->count(TableStub::TYPE1, $where, [TableStub::COL_ID2 => 2]));
+        $this->assertEquals(0, $this->table->count($where, [TableStub::COL_ID2 => 63], [], null, null, TableStub::TYPE1));
+        $this->assertEquals(1, $this->table->count($where, [TableStub::COL_ID2 => 1], [], null, null, TableStub::TYPE1));
+        $this->assertEquals(1, $this->table->count($where, [TableStub::COL_ID2 => 2], [], null, null, TableStub::TYPE1));
     }
 
     public function testFindEndpointsByType()
     {
-        $endpoints = $this->table->findEndpoints(TableStub::TYPE1);
+        $endpoints = $this->table->findEndpoints([], [], [], null, null,TableStub::TYPE1);
         $this->assertCount(3, $endpoints);
         $this->assertEquals(sprintf('1||1||foo||%s', TableStub::TYPE1), $endpoints[0]);
         $this->assertEquals(sprintf('4||2||foobar||%s', TableStub::TYPE1), $endpoints[1]);
-        $endpoints = $this->table->findEndpoints(TableStub::TYPE2);
+        $endpoints = $this->table->findEndpoints([], [], [], null, null,TableStub::TYPE2);
         $this->assertCount(1, $endpoints);
         $this->assertEquals(sprintf('1||2||bar||%s', TableStub::TYPE2), $endpoints[0]);
     }
@@ -169,7 +169,7 @@ class AbstractTableTest extends TestCase
     public function testFindAllEndpointsWithNoData()
     {
         $this->table->clear(TableStub::TYPE1);
-        $endpoints = $this->table->findEndpoints(TableStub::TYPE1);
+        $endpoints = $this->table->findEndpoints([], [], [], null, null,TableStub::TYPE1);
         $this->assertTrue(is_array($endpoints));
         $this->assertEmpty($endpoints);
     }

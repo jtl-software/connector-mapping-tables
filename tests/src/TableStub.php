@@ -7,6 +7,7 @@ namespace Jtl\Connector\MappingTables;
 
 use Doctrine\DBAL\Schema\Table;
 use Doctrine\DBAL\Types\Types;
+use Jtl\Connector\Dbc\DbManager;
 
 class TableStub extends AbstractTable
 {
@@ -17,6 +18,11 @@ class TableStub extends AbstractTable
     const TYPE1 = 815;
     const TYPE2 = 7;
     const TABLE_NAME = 'mapping_table';
+
+    public function __construct(DbManager $dbManager)
+    {
+        parent::__construct($dbManager, false);
+    }
 
     /**
      * @return string

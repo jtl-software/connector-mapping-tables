@@ -8,6 +8,7 @@ namespace Jtl\Connector\MappingTables;
 
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\DBALException;
+use Doctrine\DBAL\Exception;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use Doctrine\DBAL\Schema\Table;
 use Doctrine\DBAL\Types\Types;
@@ -19,10 +20,11 @@ use Jtl\Connector\MappingTables\Schema\EndpointColumn;
 
 abstract class AbstractTable extends AbstractDbcTable implements TableInterface
 {
-    const ENDPOINT_INDEX_NAME = 'endpoint_idx';
-    const HOST_INDEX_NAME = 'host_idx';
-    const HOST_ID = 'host_id';
-    const IDENTITY_TYPE = 'identity_type';
+    public const
+        ENDPOINT_INDEX_NAME = 'endpoint_idx',
+        HOST_INDEX_NAME = 'host_idx',
+        HOST_ID = 'host_id',
+        IDENTITY_TYPE = 'identity_type';
 
     /**
      * @var string
@@ -35,11 +37,17 @@ abstract class AbstractTable extends AbstractDbcTable implements TableInterface
     protected $endpointColumns = [];
 
     /**
-     * AbstractMappingTable constructor.
+     * @var boolean
+     */
+    protected $singleIdentity;
+
+    /**
+     * AbstractTable constructor.
      * @param DbManager $dbManager
+     * @param bool $isSingleIdentity
      * @throws \Exception
      */
-    public function __construct(DbManager $dbManager)
+    public function __construct(DbManager $dbManager, bool $isSingleIdentity = true)
     {
         if (count($this->getTypes()) === 0) {
             throw RuntimeException::typesEmpty();
@@ -51,9 +59,13 @@ abstract class AbstractTable extends AbstractDbcTable implements TableInterface
             }
         }
 
+        $this->singleIdentity = $isSingleIdentity;
         parent::__construct($dbManager);
         $this->defineEndpoint();
-        $this->addEndpointColumn(self::IDENTITY_TYPE, Types::INTEGER);
+
+        if (!$this->singleIdentity) {
+            $this->addEndpointColumn(self::IDENTITY_TYPE, Types::INTEGER);
+        }
     }
 
     /**
@@ -87,7 +99,9 @@ abstract class AbstractTable extends AbstractDbcTable implements TableInterface
             $tableSchema->addColumn($endpointColumn->getName(), $endpointColumn->getType(), $endpointColumn->getOptions());
         }
 
-        $tableSchema->addColumn(self::HOST_ID, Types::INTEGER, ['notnull' => false]);
+        $tableSchema->addColumn(self::HOST_ID, Types::INTEGER)
+            ->setNotnull(false);
+        
         $tableSchema->addIndex([self::HOST_ID], $this->createIndexName(self::HOST_INDEX_NAME));
 
         $tableSchema->setPrimaryKey(array_keys($primaryColumns));
@@ -126,13 +140,14 @@ abstract class AbstractTable extends AbstractDbcTable implements TableInterface
     }
 
     /**
-     * @param integer $type
-     * @param integer $hostId
-     * @return null|string
+     * @param int $hostId
+     * @param int|null $type
+     * @return string|null
+     * @throws Exception
      */
-    public function getEndpoint(int $type, int $hostId): ?string
+    public function getEndpoint(int $hostId, int $type = null): ?string
     {
-        $endpointData = $this->createEndpointIdQuery($type, $hostId)
+        $endpointData = $this->createEndpointIdQuery($hostId, $type)
             ->execute()
             ->fetch();
 
@@ -172,14 +187,14 @@ abstract class AbstractTable extends AbstractDbcTable implements TableInterface
     }
 
     /**
-     * @param integer $type
      * @param string|null $endpoint
      * @param integer|null $hostId
+     * @param integer|null $type
      * @return integer
      * @throws DBALException
      * @throws RuntimeException
      */
-    public function remove(int $type, string $endpoint = null, int $hostId = null): int
+    public function remove(string $endpoint = null, int $hostId = null, int $type = null): int
     {
         $qb = $this->createQueryBuilder()
             ->delete($this->getTableName());
@@ -198,8 +213,10 @@ abstract class AbstractTable extends AbstractDbcTable implements TableInterface
                 throw RuntimeException::unknownType($type);
             }
 
-            $qb->andWhere(sprintf('%s = :%s', self::IDENTITY_TYPE, self::IDENTITY_TYPE))
-                ->setParameter(self::IDENTITY_TYPE, $type);
+            if (!$this->singleIdentity) {
+                $qb->andWhere(sprintf('%s = :%s', self::IDENTITY_TYPE, self::IDENTITY_TYPE))
+                    ->setParameter(self::IDENTITY_TYPE, $type);
+            }
         }
 
         if ($hostId !== null) {
@@ -211,9 +228,9 @@ abstract class AbstractTable extends AbstractDbcTable implements TableInterface
     }
 
     /**
-     * @param integer $type
+     * @param integer|null $type
      * @return integer
-     * @throws RuntimeException
+     * @throws RuntimeException|Exception
      */
     public function clear(int $type = null): int
     {
@@ -225,26 +242,28 @@ abstract class AbstractTable extends AbstractDbcTable implements TableInterface
                 throw RuntimeException::unknownType($type);
             }
 
-            $qb->andWhere(sprintf('%s = :%s', self::IDENTITY_TYPE, self::IDENTITY_TYPE))
-                ->setParameter(self::IDENTITY_TYPE, $type);
+            if (!$this->singleIdentity) {
+                $qb->andWhere(sprintf('%s = :%s', self::IDENTITY_TYPE, self::IDENTITY_TYPE))
+                    ->setParameter(self::IDENTITY_TYPE, $type);
+            }
         }
 
         return $qb->execute();
     }
 
     /**
-     * @param integer $type
      * @param string[] $where
      * @param mixed[] $parameters
      * @param string[] $orderBy
      * @param integer|null $limit
      * @param integer|null $offset
+     * @param integer|null $type
      * @return integer
      * @throws DBALException
      */
-    public function count(int $type = null, array $where = [], array $parameters = [], array $orderBy = [], int $limit = null, int $offset = null): int
+    public function count(array $where = [], array $parameters = [], array $orderBy = [], int $limit = null, int $offset = null, int $type = null): int
     {
-        $result = $this->createFindQuery($type, $where, $parameters, $orderBy, $limit, $offset)
+        $result = $this->createFindQuery($where, $parameters, $orderBy, $limit, $offset, $type)
             ->select($this->getDbManager()->getConnection()->getDatabasePlatform()->getCountExpression('*'))
             ->execute()
             ->fetchColumn(0);
@@ -253,19 +272,19 @@ abstract class AbstractTable extends AbstractDbcTable implements TableInterface
     }
 
     /**
-     * @param integer|null $type
      * @param string[] $where
      * @param mixed[] $parameters
      * @param string[] $orderBy
      * @param integer|null $limit
      * @param integer|null $offset
+     * @param integer|null $type
      * @return string[]
      * @throws DBALException
      * @throws RuntimeException
      */
-    public function findEndpoints(int $type = null, array $where = [], array $parameters = [], array $orderBy = [], int $limit = null, int $offset = null): array
+    public function findEndpoints(array $where = [], array $parameters = [], array $orderBy = [], int $limit = null, int $offset = null, int $type = null): array
     {
-        $stmt = $this->createFindQuery($type, $where, $parameters, $orderBy, $limit, $offset)
+        $stmt = $this->createFindQuery($where, $parameters, $orderBy, $limit, $offset, $type)
             ->select(array_keys($this->getEndpointColumns()))
             ->execute();
 
@@ -275,17 +294,17 @@ abstract class AbstractTable extends AbstractDbcTable implements TableInterface
     }
 
     /**
-     * @param integer|null $type
      * @param array $where
      * @param array $parameters
      * @param array $orderBy
      * @param integer|null $limit
      * @param integer|null $offset
+     * @param integer|null $type
      * @return QueryBuilder
      * @throws DBALException
      * @throws RuntimeException
      */
-    public function createFindQuery(int $type = null, array $where = [], array $parameters = [], array $orderBy = [], int $limit = null, int $offset = null): QueryBuilder
+    public function createFindQuery(array $where = [], array $parameters = [], array $orderBy = [], int $limit = null, int $offset = null, int $type = null): QueryBuilder
     {
         $qb = $this->createQueryBuilder();
 
@@ -294,8 +313,10 @@ abstract class AbstractTable extends AbstractDbcTable implements TableInterface
                 throw RuntimeException::unknownType($type);
             }
 
-            $qb->andWhere(sprintf('%s = :%s', self::IDENTITY_TYPE, self::IDENTITY_TYPE))
-                ->setParameter(self::IDENTITY_TYPE, $type);
+            if (!$this->singleIdentity) {
+                $qb->andWhere(sprintf('%s = :%s', self::IDENTITY_TYPE, self::IDENTITY_TYPE))
+                    ->setParameter(self::IDENTITY_TYPE, $type);
+            }
         }
 
         foreach ($where as $condition) {
@@ -319,6 +340,7 @@ abstract class AbstractTable extends AbstractDbcTable implements TableInterface
             if (!in_array($column, $allColumns)) {
                 throw RuntimeException::columnNotFound($column);
             }
+
             $qb->addOrderBy($column, $direction);
         }
 
@@ -366,8 +388,10 @@ abstract class AbstractTable extends AbstractDbcTable implements TableInterface
                     unset($preparedEndpoints[$prepared]);
                 }
             }
+
             return array_values($preparedEndpoints);
         }
+
         return $endpoints;
     }
 
@@ -406,10 +430,13 @@ abstract class AbstractTable extends AbstractDbcTable implements TableInterface
     public function extractEndpoint(string $endpointId): array
     {
         $data = $this->createEndpointData($this->explodeEndpoint($endpointId));
-        $type = $data[self::IDENTITY_TYPE];
-        if (!$this->isResponsible($type)) {
-            throw RuntimeException::unknownType($type);
+        if (!$this->singleIdentity) {
+            $type = $data[self::IDENTITY_TYPE];
+            if (!$this->isResponsible($type)) {
+                throw RuntimeException::unknownType($type);
+            }
         }
+
         return $data;
     }
 
@@ -443,34 +470,48 @@ abstract class AbstractTable extends AbstractDbcTable implements TableInterface
     }
 
     /**
-     * @param integer $type
+     * @param integer|null $type
      * @return boolean
      */
-    public function isResponsible(int $type): bool
+    public function isResponsible(?int $type): bool
     {
-        return in_array($type, $this->getTypes());
+        return $this->singleIdentity || in_array($type, $this->getTypes(), true);
     }
 
     /**
-     * @param integer $type
+     * @return bool
+     */
+    public function isSingleIdentity(): bool
+    {
+        return $this->singleIdentity;
+    }
+
+    /**
      * @param integer $hostId
+     * @param integer|null $type
      * @return QueryBuilder
      * @throws RuntimeException
      */
-    protected function createEndpointIdQuery(int $type, int $hostId): QueryBuilder
+    protected function createEndpointIdQuery(int $hostId, int $type = null): QueryBuilder
     {
         if (!$this->isResponsible($type)) {
             throw RuntimeException::unknownType($type);
         }
 
         $columns = array_keys($this->getEndpointColumns());
-        return $this->createQueryBuilder()
+
+        $qb = $this->createQueryBuilder()
             ->select($columns)
             ->from($this->getTableName())
             ->andWhere(sprintf('%s = :hostId', self::HOST_ID))
-            ->setParameter('hostId', $hostId)
-            ->andWhere(sprintf('%s = :identityType', self::IDENTITY_TYPE))
-            ->setParameter('identityType', $type);
+            ->setParameter('hostId', $hostId);
+
+        if (!$this->singleIdentity) {
+            $qb->andWhere(sprintf('%s = :identityType', self::IDENTITY_TYPE))
+                ->setParameter('identityType', $type);
+        }
+
+        return $qb;
     }
 
     /**
@@ -482,6 +523,7 @@ abstract class AbstractTable extends AbstractDbcTable implements TableInterface
         if (empty($endpointId)) {
             throw RuntimeException::emptyEndpointId();
         }
+
         return explode($this->endpointDelimiter, $endpointId);
     }
 
@@ -516,7 +558,7 @@ abstract class AbstractTable extends AbstractDbcTable implements TableInterface
     /**
      * @param string $name
      * @param string $type
-     * @param mixed $options
+     * @param array<mixed> $options
      * @param boolean $primary
      * @return AbstractTable
      * @throws RuntimeException

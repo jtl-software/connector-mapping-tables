@@ -3,6 +3,7 @@
 namespace Jtl\Connector\MappingTables;
 
 use Doctrine\DBAL\DBALException;
+use Doctrine\DBAL\Exception;
 
 class TableProxy
 {
@@ -29,6 +30,7 @@ class TableProxy
 
     /**
      * @return integer
+     * @throws Exception
      */
     public function clear(): int
     {
@@ -39,13 +41,14 @@ class TableProxy
      * @param array $where
      * @param array $parameters
      * @param array $orderBy
-     * @param integer|null $limit
-     * @param integer|null $offset
-     * @return integer
+     * @param int|null $limit
+     * @param int|null $offset
+     * @return int
+     * @throws DBALException
      */
     public function count(array $where = [], array $parameters = [], array $orderBy = [], int $limit = null, int $offset = null): int
     {
-        return $this->table->count($this->type, $where, $parameters, $orderBy, $limit, $offset);
+        return $this->table->count($where, $parameters, $orderBy, $limit, $offset, $this->type);
     }
 
     /**
@@ -54,17 +57,22 @@ class TableProxy
      */
     public function createEndpoint(...$parts): string
     {
-        return $this->table->buildEndpoint(array_merge($parts, [$this->type]));
+        if(!$this->table->isSingleIdentity()) {
+            $parts[] = $this->type;
+        }
+
+        return $this->table->buildEndpoint($parts);
     }
 
     /**
      * @param string|null $endpoint
-     * @param integer|null $hostId
-     * @return integer
+     * @param int|null $hostId
+     * @return int
+     * @throws DBALException
      */
     public function delete(string $endpoint = null, int $hostId = null): int
     {
-        return $this->table->remove($this->type, $endpoint, $hostId);
+        return $this->table->remove($endpoint, $hostId, $this->type);
     }
 
     /**
@@ -77,7 +85,7 @@ class TableProxy
      */
     public function findEndpoints(array $where = [], array $parameters = [], array $orderBy = [], int $limit = null, int $offset = null): array
     {
-        return $this->table->findEndpoints($this->type, $where, $parameters, $orderBy, $limit, $offset);
+        return $this->table->findEndpoints($where, $parameters, $orderBy, $limit, $offset, $this->type);
     }
 
     /**
@@ -90,17 +98,19 @@ class TableProxy
     }
 
     /**
-     * @param integer $hostId
+     * @param int $hostId
      * @return string|null
+     * @throws Exception
      */
     public function getEndpoint(int $hostId): ?string
     {
-        return $this->table->getEndpoint($this->type, $hostId);
+        return $this->table->getEndpoint($hostId, $this->type);
     }
 
     /**
      * @param string $endpoint
-     * @return integer|null
+     * @return int|null
+     * @throws DBALException
      */
     public function getHostId(string $endpoint): ?int
     {
@@ -125,8 +135,9 @@ class TableProxy
 
     /**
      * @param string $endpoint
-     * @param integer $hostId
-     * @return integer
+     * @param int $hostId
+     * @return int
+     * @throws DBALException
      */
     public function save(string $endpoint, int $hostId): int
     {

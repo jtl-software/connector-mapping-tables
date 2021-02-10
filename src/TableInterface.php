@@ -20,11 +20,11 @@ interface TableInterface
     public function getHostId(string $endpoint): ?int;
 
     /**
-     * @param integer $type
      * @param integer $hostId
+     * @param integer|null $type
      * @return string|null
      */
-    public function getEndpoint(int $type, int $hostId): ?string;
+    public function getEndpoint(int $hostId, int $type = null): ?string;
 
     /**
      * @param string $endpoint
@@ -34,12 +34,12 @@ interface TableInterface
     public function save(string $endpoint, int $hostId): int;
 
     /**
-     * @param integer $type
-     * @param string $endpoint
-     * @param integer $hostId
+     * @param string|null $endpoint
+     * @param int|null $hostId
+     * @param integer|null $type
      * @return integer
      */
-    public function remove(int $type, string $endpoint = null, int $hostId = null): int;
+    public function remove(string $endpoint = null, int $hostId = null, int $type = null): int;
 
     /**
      * @param integer|null $type
@@ -48,26 +48,26 @@ interface TableInterface
     public function clear(int $type = null): int;
 
     /**
-     * @param integer|null $type
      * @param string[] $where
      * @param mixed[] $parameters
      * @param string[] $orderBy
      * @param int|null $limit
      * @param int|null $offset
+     * @param integer|null $type
      * @return integer
      */
-    public function count(int $type = null, array $where = [], array $parameters = [], array $orderBy = [], int $limit = null, int $offset = null): int;
+    public function count(array $where = [], array $parameters = [], array $orderBy = [], int $limit = null, int $offset = null, int $type = null): int;
 
     /**
-     * @param integer|null $type
      * @param string[] $where
      * @param mixed[] $parameters
      * @param string[] $orderBy
      * @param int|null $limit
      * @param int|null $offset
+     * @param integer|null $type
      * @return string[]
      */
-    public function findEndpoints(int $type = null, array $where = [], array $parameters = [], array $orderBy = [], int $limit = null, int $offset = null): array;
+    public function findEndpoints(array $where = [], array $parameters = [], array $orderBy = [], int $limit = null, int $offset = null, int $type = null): array;
 
     /**
      * @param string[] $endpoints
