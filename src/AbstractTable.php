@@ -39,7 +39,7 @@ abstract class AbstractTable extends AbstractDbcTable implements TableInterface
     /**
      * @var boolean
      */
-    protected $singleIdentity;
+    protected $singleIdentity = true;
 
     /**
      * AbstractTable constructor.
