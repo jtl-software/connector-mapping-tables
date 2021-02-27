@@ -365,9 +365,9 @@ abstract class AbstractTable extends AbstractDbcTable implements TableInterface
         $primaryColumnNames = $this->getEndpointColumnNames(true);
 
         $concatArray = [];
-        foreach ($primaryColumnNames as $column) {
+        foreach ($primaryColumnNames as $i => $column) {
             $concatArray[] = $column;
-            if ($column !== end($primaryColumnNames)) {
+            if (isset($primaryColumnNames[$i + 1])) {
                 $concatArray[] = $this->getConnection()->quote($this->endpointDelimiter);
             }
         }
