@@ -18,7 +18,8 @@
   },
   "require-dev": {
     "phpunit/phpunit": "^9.1",
-    "jtl/unit-test": "^0.1.0"
+    "jtl/unit-test": "^0.1.0",
+    "phpstan/phpstan": "^0.12.79"
   },
   "autoload": {
     "psr-4": {

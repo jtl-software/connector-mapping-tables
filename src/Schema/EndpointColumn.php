@@ -2,22 +2,14 @@
 
 namespace Jtl\Connector\MappingTables\Schema;
 
+use Doctrine\DBAL\Schema\Column;
+
 class EndpointColumn
 {
     /**
-     * @var string
+     * @var Column
      */
-    protected $name;
-
-    /**
-     * @var string
-     */
-    protected $type;
-
-    /**
-     * @var mixed[]
-     */
-    protected $options;
+    protected $column;
 
     /**
      * @var boolean
@@ -26,41 +18,21 @@ class EndpointColumn
 
     /**
      * EndpointColumn constructor.
-     * @param string $name
-     * @param string $type
-     * @param mixed[] $options
-     * @param bool $isPrimary
+     * @param Column $column
+     * @param bool $primary
      */
-    public function __construct(string $name, string $type, array $options, bool $isPrimary = true)
+    public function __construct(Column $column, bool $primary = true)
     {
-        $this->name = $name;
-        $this->type = $type;
-        $this->options = $options;
-        $this->isPrimary = $isPrimary;
+        $this->column = $column;
+        $this->isPrimary = $primary;
     }
 
     /**
-     * @return string
+     * @return Column
      */
-    public function getName(): string
+    public function getColumn(): Column
     {
-        return $this->name;
-    }
-
-    /**
-     * @return string
-     */
-    public function getType(): string
-    {
-        return $this->type;
-    }
-
-    /**
-     * @return mixed[]
-     */
-    public function getOptions(): array
-    {
-        return $this->options;
+        return $this->column;
     }
 
     /**
@@ -72,14 +44,12 @@ class EndpointColumn
     }
 
     /**
-     * @param string $name
-     * @param string $type
-     * @param array $options
-     * @param boolean $isPrimary
+     * @param Column $column
+     * @param bool $primary
      * @return EndpointColumn
      */
-    public static function create(string $name, string $type, array $options, bool $isPrimary = true): EndpointColumn
+    public static function create(Column $column, bool $primary = true): EndpointColumn
     {
-        return new static($name, $type, $options, $isPrimary);
+        return new self($column, $primary);
     }
 }

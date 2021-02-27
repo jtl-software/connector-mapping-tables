@@ -5,7 +5,9 @@
  */
 namespace Jtl\Connector\MappingTables;
 
+use Doctrine\DBAL\Schema\Column;
 use Doctrine\DBAL\Schema\Table;
+use Doctrine\DBAL\Types\Type;
 use Doctrine\DBAL\Types\Types;
 use Jtl\Connector\Dbc\DbManager;
 
@@ -35,9 +37,9 @@ class TableStub extends AbstractTable
     public function defineEndpoint(): void
     {
         $this
-            ->addEndpointColumn(self::COL_ID1, Types::INTEGER)
-            ->addEndpointColumn(self::COL_ID2, Types::INTEGER)
-            ->addEndpointColumn(self::COL_VAR, Types::STRING, [], false)
+            ->addEndpointColumn(new Column(self::COL_ID1, Type::getType(Types::INTEGER)))
+            ->addEndpointColumn(new Column(self::COL_ID2, Type::getType(Types::INTEGER)))
+            ->addEndpointColumn(new Column(self::COL_VAR, Type::getType(Types::STRING)), false)
         ;
     }
 
@@ -69,9 +71,9 @@ class TableStub extends AbstractTable
         return parent::createEndpointData($data);
     }
 
-    public function addEndpointColumn($name, $type, array $options = [], $primary = true): AbstractTable
+    public function addEndpointColumn(Column $column, $primary = true): AbstractTable
     {
-        return parent::addEndpointColumn($name, $type, $options, $primary);
+        return parent::addEndpointColumn($column, $primary);
     }
 
     public function hasEndpointColumn($name): bool
@@ -79,8 +81,8 @@ class TableStub extends AbstractTable
         return parent::hasEndpointColumn($name);
     }
 
-    public function getEndpointColumns(): array
+    public function getEndpointColumns(bool $onlyPrimaryColumns = false): array
     {
-        return parent::getEndpointColumns();
+        return parent::getEndpointColumns($onlyPrimaryColumns);
     }
 }

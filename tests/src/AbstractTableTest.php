@@ -8,6 +8,7 @@ namespace Jtl\Connector\MappingTables;
 
 use Doctrine\DBAL\DBALException;
 use Doctrine\DBAL\Schema\Column;
+use Doctrine\DBAL\Types\Type;
 use Doctrine\DBAL\Types\Types;
 use Jtl\Connector\Dbc\DbManager;
 
@@ -270,7 +271,7 @@ class AbstractTableTest extends TestCase
     public function testAddColumnType()
     {
         $table = new TableStub($this->getDbManager());
-        $table->addEndpointColumn('test', Types::BINARY);
+        $table->addEndpointColumn(new Column('test', Type::getType(Types::BINARY)));
         $schema = $table->getTableSchema();
         $column = $schema->getColumn('test');
         $this->assertEquals(Types::BINARY, $column->getType()->getName());
@@ -279,7 +280,7 @@ class AbstractTableTest extends TestCase
     public function testAddColumn()
     {
         $table = new TableStub($this->getDbManager());
-        $table->addEndpointColumn('test', Types::DATETIME_IMMUTABLE);
+        $table->addEndpointColumn(new Column('test', Type::getType(Types::DATETIME_IMMUTABLE)));
         $schema = $table->getTableSchema();
         $primaryKey = $schema->getPrimaryKey();
         $this->assertTrue(in_array('test', $primaryKey->getColumns()));
@@ -288,7 +289,7 @@ class AbstractTableTest extends TestCase
     public function testAddColumnNotPrimary()
     {
         $table = new TableStub($this->getDbManager());
-        $table->addEndpointColumn('test', Types::STRING, [], false);
+        $table->addEndpointColumn(new Column('test', Type::getType(Types::STRING)), false);
         $schema = $table->getTableSchema();
         $this->assertTrue($schema->hasColumn('test'));
         $primaryKey = $schema->getPrimaryKey();

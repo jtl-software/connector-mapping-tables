@@ -10,7 +10,9 @@ use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\DBALException;
 use Doctrine\DBAL\Exception;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
+use Doctrine\DBAL\Schema\Column;
 use Doctrine\DBAL\Schema\Table;
+use Doctrine\DBAL\Types\Type;
 use Doctrine\DBAL\Types\Types;
 use Jtl\Connector\Dbc\AbstractTable as AbstractDbcTable;
 use Jtl\Connector\Dbc\DbManager;
@@ -32,14 +34,14 @@ abstract class AbstractTable extends AbstractDbcTable implements TableInterface
     protected $endpointDelimiter = '||';
 
     /**
-     * @var EndpointColumn[]
-     */
-    protected $endpointColumns = [];
-
-    /**
      * @var boolean
      */
     protected $singleIdentity = true;
+
+    /**
+     * @var EndpointColumn[]
+     */
+    private $endpointColumns = [];
 
     /**
      * AbstractTable constructor.
@@ -64,7 +66,7 @@ abstract class AbstractTable extends AbstractDbcTable implements TableInterface
         $this->defineEndpoint();
 
         if (!$this->singleIdentity) {
-            $this->addEndpointColumn(self::IDENTITY_TYPE, Types::INTEGER);
+            $this->addEndpointColumn(new Column(self::IDENTITY_TYPE, Type::getType(Types::INTEGER)));
         }
     }
 
@@ -75,6 +77,15 @@ abstract class AbstractTable extends AbstractDbcTable implements TableInterface
     public function createIndexName(string $name): string
     {
         return sprintf('%s_%s', $this->getTableName(), $name);
+    }
+
+    /**
+     * @return Table
+     * @throws Exception
+     */
+    protected function createSchemaTable(): Table
+    {
+        return new Table($this->getTableName(), $this->getEndpointColumns());
     }
 
     /**
@@ -89,14 +100,10 @@ abstract class AbstractTable extends AbstractDbcTable implements TableInterface
      */
     protected function createTableSchema(Table $tableSchema): void
     {
-        $endpointColumns = $this->getEndpointColumns();
-        $primaryColumns = $this->getPrimaryColumns();
-        if (count($endpointColumns) === 0) {
+        $endpointColumnNames = $this->getEndpointColumnNames();
+        $primaryColumnNames = $this->getEndpointColumnNames(true);
+        if (count($endpointColumnNames) === 0) {
             throw RuntimeException::endpointColumnsNotDefined();
-        }
-
-        foreach ($endpointColumns as $columnName => $endpointColumn) {
-            $tableSchema->addColumn($endpointColumn->getName(), $endpointColumn->getType(), $endpointColumn->getOptions());
         }
 
         $tableSchema->addColumn(self::HOST_ID, Types::INTEGER)
@@ -104,9 +111,9 @@ abstract class AbstractTable extends AbstractDbcTable implements TableInterface
         
         $tableSchema->addIndex([self::HOST_ID], $this->createIndexName(self::HOST_INDEX_NAME));
 
-        $tableSchema->setPrimaryKey(array_keys($primaryColumns));
-        if (count($primaryColumns) < count($endpointColumns)) {
-            $tableSchema->addIndex(array_keys($endpointColumns), $this->createIndexName(self::ENDPOINT_INDEX_NAME));
+        $tableSchema->setPrimaryKey($primaryColumnNames);
+        if (count($primaryColumnNames) < count($endpointColumnNames)) {
+            $tableSchema->addIndex($endpointColumnNames, $this->createIndexName(self::ENDPOINT_INDEX_NAME));
         }
     }
 
@@ -122,12 +129,12 @@ abstract class AbstractTable extends AbstractDbcTable implements TableInterface
             ->select(self::HOST_ID)
             ->from($this->getTableName());
 
-        $primaryColumnNames = array_keys($this->getPrimaryColumns());
+        $primaryColumnNames = $this->getEndpointColumnNames(true);
 
         foreach ($this->extractEndpoint($endpoint) as $column => $value) {
             if (in_array($column, $primaryColumnNames, true)) {
                 $qb->andWhere($column . ' = :' . $column)
-                    ->setParameter($column, $value, $this->endpointColumns[$column]->getType());
+                    ->setParameter($column, $value, $this->endpointColumns[$column]->getColumn()->getType()->getName());
             }
         }
 
@@ -173,7 +180,7 @@ abstract class AbstractTable extends AbstractDbcTable implements TableInterface
         try {
             return $this->insert($data);
         } catch (UniqueConstraintViolationException $ex) {
-            $primaryColumnNames = array_keys($this->getPrimaryColumns());
+            $primaryColumnNames = $this->getEndpointColumnNames(true);
 
             $identifier = [];
             foreach ($data as $column => $value) {
@@ -199,7 +206,7 @@ abstract class AbstractTable extends AbstractDbcTable implements TableInterface
         $qb = $this->createQueryBuilder()
             ->delete($this->getTableName());
 
-        $primaryColumnNames = array_keys($this->getPrimaryColumns());
+        $primaryColumnNames = $this->getEndpointColumnNames(true);
 
         if ($endpoint !== null) {
             foreach ($this->extractEndpoint($endpoint) as $column => $value) {
@@ -285,7 +292,7 @@ abstract class AbstractTable extends AbstractDbcTable implements TableInterface
     public function findEndpoints(array $where = [], array $parameters = [], array $orderBy = [], int $limit = null, int $offset = null, int $type = null): array
     {
         $stmt = $this->createFindQuery($where, $parameters, $orderBy, $limit, $offset, $type)
-            ->select(array_keys($this->getEndpointColumns()))
+            ->select($this->getEndpointColumnNames())
             ->execute();
 
         return array_map(function (array $data) {
@@ -355,20 +362,20 @@ abstract class AbstractTable extends AbstractDbcTable implements TableInterface
     public function filterMappedEndpoints(array $endpoints): array
     {
         $platform = $this->getConnection()->getDatabasePlatform();
-        $primaryColumns = array_keys($this->getPrimaryColumns());
+        $primaryColumnNames = $this->getEndpointColumnNames(true);
 
         $concatArray = [];
-        foreach ($primaryColumns as $column) {
+        foreach ($primaryColumnNames as $column) {
             $concatArray[] = $column;
-            if ($column !== end($primaryColumns)) {
+            if ($column !== end($primaryColumnNames)) {
                 $concatArray[] = $this->getConnection()->quote($this->endpointDelimiter);
             }
         }
 
         $preparedEndpoints = [];
         foreach ($endpoints as $endpoint) {
-            $extracted = array_filter($this->extractEndpoint($endpoint), function ($key) use ($primaryColumns) {
-                return in_array($key, $primaryColumns);
+            $extracted = array_filter($this->extractEndpoint($endpoint), function ($key) use ($primaryColumnNames) {
+                return in_array($key, $primaryColumnNames);
             }, \ARRAY_FILTER_USE_KEY);
 
             $preparedEndpoints[implode($this->endpointDelimiter, $extracted)] = $endpoint;
@@ -498,10 +505,10 @@ abstract class AbstractTable extends AbstractDbcTable implements TableInterface
             throw RuntimeException::unknownType($type);
         }
 
-        $columns = array_keys($this->getEndpointColumns());
+        $columnNames = $this->getEndpointColumnNames();
 
         $qb = $this->createQueryBuilder()
-            ->select($columns)
+            ->select($columnNames)
             ->from($this->getTableName())
             ->andWhere(sprintf('%s = :hostId', self::HOST_ID))
             ->setParameter('hostId', $hostId);
@@ -544,9 +551,8 @@ abstract class AbstractTable extends AbstractDbcTable implements TableInterface
     protected function createEndpointData(array $data): array
     {
         $dataCount = count($data);
-        $columns = $this->getEndpointColumns();
-        $columnsCount = count($columns);
-        $columnNames = array_keys($columns);
+        $columnNames = $this->getEndpointColumnNames();
+        $columnsCount = count($columnNames);
 
         if ($dataCount !== $columnsCount) {
             throw RuntimeException::wrongEndpointPartsAmount($dataCount, $columnsCount);
@@ -556,20 +562,17 @@ abstract class AbstractTable extends AbstractDbcTable implements TableInterface
     }
 
     /**
-     * @param string $name
-     * @param string $type
-     * @param array<mixed> $options
-     * @param boolean $primary
+     * @param Column $column
+     * @param bool $primary
      * @return AbstractTable
-     * @throws RuntimeException
      */
-    protected function addEndpointColumn(string $name, string $type, array $options = [], bool $primary = true): AbstractTable
+    protected function addEndpointColumn(Column $column, bool $primary = true): self
     {
-        if ($this->hasEndpointColumn($name)) {
-            throw RuntimeException::columnExists($name);
+        if ($this->hasEndpointColumn($column->getName())) {
+            throw RuntimeException::columnExists($column->getName());
         }
 
-        $this->endpointColumns[$name] = EndpointColumn::create($name, $type, $options, $primary);
+        $this->endpointColumns[$column->getName()] = EndpointColumn::create($column, $primary);
 
         return $this;
     }
@@ -584,20 +587,28 @@ abstract class AbstractTable extends AbstractDbcTable implements TableInterface
     }
 
     /**
-     * @return array<EndpointColumn>
+     * @param boolean $onlyPrimaryColumns
+     * @return array<Column>
      */
-    protected function getEndpointColumns(): array
+    protected function getEndpointColumns(bool $onlyPrimaryColumns = false): array
     {
-        return $this->endpointColumns;
+        $endpointColumns = array_filter($this->endpointColumns, function (EndpointColumn $endpointColumn) use ($onlyPrimaryColumns) {
+            return in_array($endpointColumn->isPrimary(), [true, $onlyPrimaryColumns], true);
+        });
+
+        return array_values(array_map(function(EndpointColumn $endpointColumn) {
+            return $endpointColumn->getColumn();
+        }, $endpointColumns));
     }
 
     /**
-     * @return array<EndpointColumn>
+     * @param boolean $onlyPrimaryColumns
+     * @return array<string>
      */
-    protected function getPrimaryColumns(): array
+    protected function getEndpointColumnNames(bool $onlyPrimaryColumns = false): array
     {
-        return array_filter($this->endpointColumns, function (EndpointColumn $column) {
-            return $column->isPrimary();
-        });
+        return array_map(function(Column $column) {
+            return $column->getName();
+        }, $this->getEndpointColumns($onlyPrimaryColumns));
     }
 }

@@ -27,7 +27,7 @@ class RuntimeException extends \RuntimeException
      */
     public static function tableTypeNotFound(int $type): self
     {
-        return new static('MappingTable for type ' . $type . ' not found', self::TABLE_TYPE_NOT_FOUND);
+        return new self('MappingTable for type ' . $type . ' not found', self::TABLE_TYPE_NOT_FOUND);
     }
 
     /**
@@ -36,7 +36,7 @@ class RuntimeException extends \RuntimeException
      */
     public static function columnDataMissing(string ...$columnNames): self
     {
-        return new static(sprintf('Data for column%s "%s" is missing', count($columnNames) > 1 ? 's' : '', implode('","', $columnNames)), self::COLUMN_DATA_MISSING);
+        return new self(sprintf('Data for column%s "%s" is missing', count($columnNames) > 1 ? 's' : '', implode('","', $columnNames)), self::COLUMN_DATA_MISSING);
     }
 
     /**
@@ -46,7 +46,7 @@ class RuntimeException extends \RuntimeException
      */
     public static function wrongEndpointPartsAmount(string $actualLength, string $expectedLength): self
     {
-        return new static(sprintf('Given endpoint parts (%d) do not match the expected amount (%d)', $actualLength, $expectedLength), self::WRONG_ENDPOINT_PARTS_AMOUNT);
+        return new self(sprintf('Given endpoint parts (%d) do not match the expected amount (%d)', $actualLength, $expectedLength), self::WRONG_ENDPOINT_PARTS_AMOUNT);
     }
 
     /**
@@ -55,7 +55,7 @@ class RuntimeException extends \RuntimeException
      */
     public static function columnExists(string $columnName): self
     {
-        return new static('Endpoint column with name ' . $columnName . ' exists', self::ENDPOINT_COLUMN_EXISTS);
+        return new self('Endpoint column with name ' . $columnName . ' exists', self::ENDPOINT_COLUMN_EXISTS);
     }
 
     /**
@@ -64,7 +64,7 @@ class RuntimeException extends \RuntimeException
      */
     public static function columnNotFound(string $columnName): self
     {
-        return new static('Endpoint column with name ' . $columnName . ' is not defined', self::ENDPOINT_COLUMN_NOT_FOUND);
+        return new self('Endpoint column with name ' . $columnName . ' is not defined', self::ENDPOINT_COLUMN_NOT_FOUND);
     }
 
     /**
@@ -72,7 +72,7 @@ class RuntimeException extends \RuntimeException
      */
     public static function endpointColumnsNotDefined(): self
     {
-        return new static('No endpoint columns are defined! There need to be at least one endpoint column', self::ENDPOINT_COLUMNS_MISSING);
+        return new self('No endpoint columns are defined! There need to be at least one endpoint column', self::ENDPOINT_COLUMNS_MISSING);
     }
 
     /**
@@ -81,7 +81,7 @@ class RuntimeException extends \RuntimeException
      */
     public static function typeNotFound(int $type): self
     {
-        return new static(sprintf('Table is not responsible for type %s', $type), self::TYPE_NOT_FOUND);
+        return new self(sprintf('Table is not responsible for type %s', $type), self::TYPE_NOT_FOUND);
     }
 
     /**
@@ -89,7 +89,7 @@ class RuntimeException extends \RuntimeException
      */
     public static function typesEmpty(): self
     {
-        return new static('getTypes() must return an array which contains at least one integer value', self::TYPES_ARRAY_EMPTY);
+        return new self('getTypes() must return an array which contains at least one integer value', self::TYPES_ARRAY_EMPTY);
     }
 
     /**
@@ -97,7 +97,7 @@ class RuntimeException extends \RuntimeException
      */
     public static function wrongTypes(): self
     {
-        return new static('getTypes() must return an array with integer values only', self::TYPES_WRONG_DATA_TYPE);
+        return new self('getTypes() must return an array with integer values only', self::TYPES_WRONG_DATA_TYPE);
     }
 
     /**
@@ -107,7 +107,7 @@ class RuntimeException extends \RuntimeException
     public static function unknownType(int $type): self
     {
         $msg = sprintf('Table is not responsible for this type (%s)', $type);
-        return new static($msg, self::UNKNOWN_TYPE);
+        return new self($msg, self::UNKNOWN_TYPE);
     }
 
     /**
@@ -115,6 +115,6 @@ class RuntimeException extends \RuntimeException
      */
     public static function emptyEndpointId(): self
     {
-        return new static('Endpoint id is empty', static::EMPTY_ENDPOINT_ID);
+        return new self('Endpoint id is empty', static::EMPTY_ENDPOINT_ID);
     }
 }
