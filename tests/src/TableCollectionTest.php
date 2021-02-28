@@ -3,6 +3,7 @@
  * @author Immanuel Klinkenberg <immanuel.klinkenberg@jtl-software.com>
  * @copyright 2010-2017 JTL-Software GmbH
  */
+
 namespace Jtl\Connector\MappingTables;
 
 class TableCollectionTest extends TestCase
@@ -57,18 +58,28 @@ class TableCollectionTest extends TestCase
 
     public function testRemoveByType()
     {
-        $collection = new TableCollection($this->table);
-        $this->assertEquals($this->table, $collection->get(TableStub::TYPE1));
-        $collection->removeByType(TableStub::TYPE1);
-        $this->assertCount(0, $collection->toArray());
+        $table1 = $this->createStub(TableInterface::class);
+        $table1->method('getTypes')->willReturn([1, 2, 3]);
+
+        $table2 = $this->createStub(TableInterface::class);
+        $table2->method('getTypes')->willReturn([4]);
+
+        $collection = new TableCollection($table1, $table2);
+        $collection->removeByType(4);
+        $this->assertCount(1, $collection->toArray());
+
+        $this->assertTrue($table1 === $collection->toArray()[0]);
     }
 
     public function testRemoveByInstance()
     {
-        $collection = new TableCollection($this->table);
-        $this->assertEquals($this->table, $collection->get(TableStub::TYPE1));
-        $collection->removeByInstance($this->table);
-        $this->assertCount(0, $collection->toArray());
+        $table = $this->createStub(TableInterface::class);
+        $table->method('getTypes')->willReturn([1, 2, 3, 4, 5, 6, 7, 8, 9]);
+
+        $collection = new TableCollection($table);
+        $this->assertEquals($table, $collection->get(mt_rand(1, 9)));
+        $collection->removeByInstance($table);
+        $this->assertFalse($collection->has(mt_rand(1, 9)));
     }
 
     public function testGetNotExistingTableWithStrictModeEnabled()

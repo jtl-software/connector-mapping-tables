@@ -52,7 +52,7 @@ class MappingTablesException extends \Exception
      * @param string $columnName
      * @return MappingTablesException
      */
-    public static function columnExists(string $columnName): self
+    public static function endpointColumnExists(string $columnName): self
     {
         return new self(sprintf('Endpoint column with name %s already exists', $columnName), self::ENDPOINT_COLUMN_EXISTS);
     }
@@ -61,7 +61,7 @@ class MappingTablesException extends \Exception
      * @param string $columnName
      * @return MappingTablesException
      */
-    public static function columnNotFound(string $columnName): self
+    public static function endpointColumnNotFound(string $columnName): self
     {
         return new self(sprintf('Endpoint column with name %s is not defined', $columnName), self::ENDPOINT_COLUMN_NOT_FOUND);
     }

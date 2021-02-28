@@ -27,6 +27,7 @@ class TableManager implements PrimaryKeyMapperInterface
     /**
      * @param integer $type
      * @return TableInterface
+     * @throws MappingTablesException
      */
     public function getTableByType(int $type): TableInterface
     {
@@ -37,6 +38,7 @@ class TableManager implements PrimaryKeyMapperInterface
      * @param integer $type
      * @param string $endpointId
      * @return integer|null
+     * @throws MappingTablesException
      */
     public function getHostId(int $type, string $endpointId): ?int
     {
@@ -47,6 +49,7 @@ class TableManager implements PrimaryKeyMapperInterface
      * @param integer $type
      * @param integer $hostId
      * @return string
+     * @throws MappingTablesException
      */
     public function getEndpointId(int $type, int $hostId): ?string
     {
@@ -58,6 +61,7 @@ class TableManager implements PrimaryKeyMapperInterface
      * @param int $hostId
      * @param int $type
      * @return boolean
+     * @throws MappingTablesException
      */
     public function save(int $type, string $endpointId, int $hostId): bool
     {
@@ -69,6 +73,7 @@ class TableManager implements PrimaryKeyMapperInterface
      * @param string|null $endpointId
      * @param integer|null $hostId
      * @return boolean
+     * @throws MappingTablesException
      */
     public function delete(int $type, string $endpointId = null, int $hostId = null): bool
     {
@@ -78,6 +83,7 @@ class TableManager implements PrimaryKeyMapperInterface
     /**
      * @param integer $type
      * @return string[]
+     * @throws MappingTablesException
      */
     public function findAllEndpointIds($type): array
     {
@@ -88,6 +94,7 @@ class TableManager implements PrimaryKeyMapperInterface
      * @param int $type
      * @param string[] $endpoints
      * @return string[]
+     * @throws MappingTablesException
      */
     public function filterMappedEndpointIds(int $type, array $endpoints): array
     {
@@ -95,8 +102,9 @@ class TableManager implements PrimaryKeyMapperInterface
     }
 
     /**
-     * @param integer $type
+     * @param integer|null $type
      * @return integer
+     * @throws MappingTablesException
      */
     public function count(int $type = null): int
     {
@@ -114,6 +122,7 @@ class TableManager implements PrimaryKeyMapperInterface
     /**
      * @param integer|null $type
      * @return boolean
+     * @throws MappingTablesException
      */
     public function clear(int $type = null): bool
     {

@@ -345,7 +345,7 @@ abstract class AbstractTable extends AbstractDbcTable implements TableInterface
         $allColumns = $this->getColumnNames();
         foreach ($orderBy as $column => $direction) {
             if (!in_array($column, $allColumns)) {
-                throw MappingTablesException::columnNotFound($column);
+                throw MappingTablesException::endpointColumnNotFound($column);
             }
 
             $qb->addOrderBy($column, $direction);
@@ -572,7 +572,7 @@ abstract class AbstractTable extends AbstractDbcTable implements TableInterface
     protected function addEndpointColumn(Column $column, bool $primary = true): self
     {
         if ($this->hasEndpointColumn($column->getName())) {
-            throw MappingTablesException::columnExists($column->getName());
+            throw MappingTablesException::endpointColumnExists($column->getName());
         }
 
         $this->endpointColumns[$column->getName()] = EndpointColumn::create($column, $primary);
