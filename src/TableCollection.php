@@ -20,12 +20,12 @@ class TableCollection
     protected $tableDummy;
 
     /**
-     * @var DbcTableCollection|AbstractTable[]
+     * @var DbcTableCollection
      */
     protected $collection;
 
     /**
-     * MappingTableCollection constructor.
+     * TableCollection constructor.
      * @param TableInterface ...$tables
      */
     public function __construct(TableInterface ...$tables)
@@ -49,7 +49,7 @@ class TableCollection
 
     /**
      * @param TableInterface $table
-     * @return boolean
+     * @return bool
      * @throws \Exception
      */
     public function removeByInstance(TableInterface $table): bool
@@ -65,8 +65,7 @@ class TableCollection
     public function removeByType(int $type): bool
     {
         if ($this->has($type)) {
-            $table = $this->findByType($type);
-            return $this->collection->removeByInstance($table);
+            return $this->collection->removeByInstance($this->findByType($type));
         }
         return false;
     }
@@ -81,9 +80,9 @@ class TableCollection
     }
 
     /**
-     * @param integer $type
+     * @param int $type
      * @return TableInterface
-     * @throws RuntimeException
+     * @throws MappingTablesException
      */
     public function get(int $type): TableInterface
     {
@@ -95,11 +94,11 @@ class TableCollection
             return $this->getTableDummy($type);
         }
 
-        throw RuntimeException::tableTypeNotFound($type);
+        throw MappingTablesException::tableForTypeNotFound($type);
     }
 
     /**
-     * @return TableInterface[]
+     * @return array<AbstractTable>
      */
     public function toArray(): array
     {
@@ -133,17 +132,19 @@ class TableCollection
         if (!$this->tableDummy instanceof TableDummy) {
             $this->tableDummy = new TableDummy();
         }
+
         $this->tableDummy->setType($type);
+
         return $this->tableDummy;
     }
 
     /**
-     * @param integer $type
-     * @return TableInterface|null
+     * @param int $type
+     * @return AbstractTable|null
      */
-    protected function findByType(int $type): ?TableInterface
+    protected function findByType(int $type): ?AbstractTable
     {
-        $result = array_values(array_filter($this->collection->toArray(), function (TableInterface $table) use ($type) {
+        $result = array_values(array_filter($this->collection->toArray(), function (AbstractTable $table) use ($type) {
             return in_array($type, $table->getTypes(), true);
         }));
 

@@ -98,8 +98,8 @@ class TableProxyTest extends TestCase
 
     public function testSetWrongType()
     {
-        $this->expectException(RuntimeException::class);
-        $this->expectExceptionCode(RuntimeException::TYPE_NOT_FOUND);
+        $this->expectException(MappingTablesException::class);
+        $this->expectExceptionCode(MappingTablesException::TABLE_NOT_RESPONSIBLE_FOR_TYPE);
         $this->proxy->setType(99999);
     }
 

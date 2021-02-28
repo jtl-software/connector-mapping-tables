@@ -128,8 +128,8 @@ class TableManagerTest extends TestCase
 
     public function testGetNotExistingTableWithStrictModeEnabled()
     {
-        $this->expectException(RuntimeException::class);
-        $this->expectExceptionCode(RuntimeException::TABLE_TYPE_NOT_FOUND);
+        $this->expectException(MappingTablesException::class);
+        $this->expectExceptionCode(MappingTablesException::TABLE_FOR_TYPE_NOT_FOUND);
         $this->mtm->setStrictMode(true);
         $this->mtm->getTableByType(7217641241);
     }

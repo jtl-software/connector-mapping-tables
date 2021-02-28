@@ -21,6 +21,7 @@ class TableProxy
      * TableProxy constructor.
      * @param int $type
      * @param AbstractTable $table
+     * @throws MappingTablesException
      */
     public function __construct(int $type, AbstractTable $table)
     {
@@ -30,7 +31,7 @@ class TableProxy
 
     /**
      * @return integer
-     * @throws Exception
+     * @throws Exception|MappingTablesException
      */
     public function clear(): int
     {
@@ -57,7 +58,7 @@ class TableProxy
      */
     public function createEndpoint(...$parts): string
     {
-        if(!$this->table->isSingleIdentity()) {
+        if (!$this->table->isSingleIdentity()) {
             $parts[] = $this->type;
         }
 
@@ -68,7 +69,7 @@ class TableProxy
      * @param string|null $endpoint
      * @param int|null $hostId
      * @return int
-     * @throws DBALException
+     * @throws DBALException|MappingTablesException
      */
     public function delete(string $endpoint = null, int $hostId = null): int
     {
@@ -82,6 +83,8 @@ class TableProxy
      * @param integer|null $limit
      * @param integer|null $offset
      * @return array
+     * @throws DBALException
+     * @throws MappingTablesException
      */
     public function findEndpoints(array $where = [], array $parameters = [], array $orderBy = [], int $limit = null, int $offset = null): array
     {
@@ -91,6 +94,7 @@ class TableProxy
     /**
      * @param array $endpoints
      * @return array
+     * @throws DBALException
      */
     public function filterMappedEndpoints(array $endpoints): array
     {
@@ -110,7 +114,7 @@ class TableProxy
     /**
      * @param string $endpoint
      * @return int|null
-     * @throws DBALException
+     * @throws DBALException|MappingTablesException
      */
     public function getHostId(string $endpoint): ?int
     {
@@ -137,7 +141,7 @@ class TableProxy
      * @param string $endpoint
      * @param int $hostId
      * @return int
-     * @throws DBALException
+     * @throws DBALException|MappingTablesException
      */
     public function save(string $endpoint, int $hostId): int
     {
@@ -147,11 +151,12 @@ class TableProxy
     /**
      * @param integer $type
      * @return TableProxy
+     * @throws MappingTablesException
      */
     public function setType(int $type): TableProxy
     {
         if (!in_array($type, $this->table->getTypes(), true)) {
-            throw RuntimeException::typeNotFound($type);
+            throw MappingTablesException::tableNotResponsibleForType($type);
         }
 
         $this->type = $type;

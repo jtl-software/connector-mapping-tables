@@ -103,7 +103,7 @@ class AbstractTableTest extends TestCase
     public function testDeleteByHostId()
     {
         $this->assertEquals(sprintf('1||1||foo||%s', TableStub::TYPE1), $this->table->getEndpoint(3, TableStub::TYPE1));
-        $this->table->remove( null, 3, TableStub::TYPE1);
+        $this->table->remove(null, 3, TableStub::TYPE1);
         $this->assertEquals(3, $this->countRows($this->table->getTableName()));
         $this->assertEquals(null, $this->table->getEndpoint(3, TableStub::TYPE1));
     }
@@ -111,7 +111,7 @@ class AbstractTableTest extends TestCase
     public function testDeleteByHostIdMultipleEntries()
     {
         $this->assertEquals(4, $this->countRows($this->table->getTableName()));
-        $this->table->remove( null, 5, TableStub::TYPE1);
+        $this->table->remove(null, 5, TableStub::TYPE1);
         $this->assertEquals(2, $this->countRows($this->table->getTableName()));
         $this->assertEquals(null, $this->table->getEndpoint(5, TableStub::TYPE1));
     }
@@ -133,8 +133,8 @@ class AbstractTableTest extends TestCase
 
     public function testClearUnknownType()
     {
-        $this->expectException(RuntimeException::class);
-        $this->expectExceptionCode(RuntimeException::UNKNOWN_TYPE);
+        $this->expectException(MappingTablesException::class);
+        $this->expectExceptionCode(MappingTablesException::TABLE_NOT_RESPONSIBLE_FOR_TYPE);
         $this->table->clear(44232);
     }
 
@@ -158,11 +158,11 @@ class AbstractTableTest extends TestCase
 
     public function testFindEndpointsByType()
     {
-        $endpoints = $this->table->findEndpoints([], [], [], null, null,TableStub::TYPE1);
+        $endpoints = $this->table->findEndpoints([], [], [], null, null, TableStub::TYPE1);
         $this->assertCount(3, $endpoints);
         $this->assertEquals(sprintf('1||1||foo||%s', TableStub::TYPE1), $endpoints[0]);
         $this->assertEquals(sprintf('4||2||foobar||%s', TableStub::TYPE1), $endpoints[1]);
-        $endpoints = $this->table->findEndpoints([], [], [], null, null,TableStub::TYPE2);
+        $endpoints = $this->table->findEndpoints([], [], [], null, null, TableStub::TYPE2);
         $this->assertCount(1, $endpoints);
         $this->assertEquals(sprintf('1||2||bar||%s', TableStub::TYPE2), $endpoints[0]);
     }
@@ -170,7 +170,7 @@ class AbstractTableTest extends TestCase
     public function testFindAllEndpointsWithNoData()
     {
         $this->table->clear(TableStub::TYPE1);
-        $endpoints = $this->table->findEndpoints([], [], [], null, null,TableStub::TYPE1);
+        $endpoints = $this->table->findEndpoints([], [], [], null, null, TableStub::TYPE1);
         $this->assertTrue(is_array($endpoints));
         $this->assertEmpty($endpoints);
     }
@@ -210,16 +210,16 @@ class AbstractTableTest extends TestCase
 
     public function testCreateEndpointDataFailsTooMuchData()
     {
-        $this->expectException(RuntimeException::class);
-        $this->expectExceptionCode(RuntimeException::WRONG_ENDPOINT_PARTS_AMOUNT);
+        $this->expectException(MappingTablesException::class);
+        $this->expectExceptionCode(MappingTablesException::WRONG_ENDPOINT_PARTS_AMOUNT);
         $endpointData = ['foo', 'bar', '123', '21', '1.3'];
         $this->invokeMethodFromObject($this->table, 'createEndpointData', $endpointData);
     }
 
     public function testCreateEndpointDataFailsNotEnoughData()
     {
-        $this->expectException(RuntimeException::class);
-        $this->expectExceptionCode(RuntimeException::WRONG_ENDPOINT_PARTS_AMOUNT);
+        $this->expectException(MappingTablesException::class);
+        $this->expectExceptionCode(MappingTablesException::WRONG_ENDPOINT_PARTS_AMOUNT);
         $endpointData = ['foo', 'bar'];
         $this->invokeMethodFromObject($this->table, 'createEndpointData', $endpointData);
     }
@@ -255,15 +255,15 @@ class AbstractTableTest extends TestCase
 
     public function testExplodeEndpointWithEmptyString()
     {
-        $this->expectException(RuntimeException::class);
-        $this->expectExceptionCode(RuntimeException::EMPTY_ENDPOINT_ID);
+        $this->expectException(MappingTablesException::class);
+        $this->expectExceptionCode(MappingTablesException::EMPTY_ENDPOINT_ID);
         $this->table->explodeEndpoint('');
     }
 
     public function testExtractEndpointUnknownType()
     {
-        $this->expectException(RuntimeException::class);
-        $this->expectExceptionCode(RuntimeException::UNKNOWN_TYPE);
+        $this->expectException(MappingTablesException::class);
+        $this->expectExceptionCode(MappingTablesException::TABLE_NOT_RESPONSIBLE_FOR_TYPE);
         $endpoint = sprintf('3||5||bar||%s', 3244);
         $this->table->extractEndpoint($endpoint);
     }
@@ -298,8 +298,8 @@ class AbstractTableTest extends TestCase
 
     public function testEmptyTypes()
     {
-        $this->expectException(RuntimeException::class);
-        $this->expectExceptionCode(RuntimeException::TYPES_ARRAY_EMPTY);
+        $this->expectException(MappingTablesException::class);
+        $this->expectExceptionCode(MappingTablesException::TYPES_ARRAY_EMPTY);
         new class($this->getDBManager()) extends TableStub {
             public function getTypes(): array
             {
@@ -342,8 +342,8 @@ class AbstractTableTest extends TestCase
      */
     public function testWrongTypes(array $types)
     {
-        $this->expectException(RuntimeException::class);
-        $this->expectExceptionCode(RuntimeException::TYPES_WRONG_DATA_TYPE);
+        $this->expectException(MappingTablesException::class);
+        $this->expectExceptionCode(MappingTablesException::TYPES_WRONG_DATA_TYPE);
         new class($this->getDBManager(), $types) extends TableStub {
             protected $types = [];
             public function __construct(DbManager $dbManager, array $types)

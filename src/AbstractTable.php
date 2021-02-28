@@ -52,12 +52,12 @@ abstract class AbstractTable extends AbstractDbcTable implements TableInterface
     public function __construct(DbManager $dbManager, bool $isSingleIdentity = true)
     {
         if (count($this->getTypes()) === 0) {
-            throw RuntimeException::typesEmpty();
+            throw MappingTablesException::typesEmpty();
         }
 
         foreach ($this->getTypes() as $type) {
             if (!is_int($type)) {
-                throw RuntimeException::wrongTypes();
+                throw MappingTablesException::typeNotInteger();
             }
         }
 
@@ -80,6 +80,11 @@ abstract class AbstractTable extends AbstractDbcTable implements TableInterface
     }
 
     /**
+     * @return void
+     */
+    abstract protected function defineEndpoint(): void;
+
+    /**
      * @return Table
      * @throws Exception
      */
@@ -89,21 +94,16 @@ abstract class AbstractTable extends AbstractDbcTable implements TableInterface
     }
 
     /**
-     * @return void
-     */
-    abstract protected function defineEndpoint(): void;
-
-    /**
      * @param Table $tableSchema
      * @return void
-     * @throws RuntimeException
+     * @throws MappingTablesException
      */
     protected function createTableSchema(Table $tableSchema): void
     {
         $endpointColumnNames = $this->getEndpointColumnNames();
         $primaryColumnNames = $this->getEndpointColumnNames(true);
         if (count($endpointColumnNames) === 0) {
-            throw RuntimeException::endpointColumnsNotDefined();
+            throw MappingTablesException::endpointColumnsNotDefined();
         }
 
         $tableSchema->addColumn(self::HOST_ID, Types::INTEGER)
@@ -121,7 +121,7 @@ abstract class AbstractTable extends AbstractDbcTable implements TableInterface
      * @param string $endpoint
      * @return integer|null
      * @throws DBALException
-     * @throws RuntimeException
+     * @throws MappingTablesException
      */
     public function getHostId(string $endpoint): ?int
     {
@@ -150,7 +150,7 @@ abstract class AbstractTable extends AbstractDbcTable implements TableInterface
      * @param int $hostId
      * @param int|null $type
      * @return string|null
-     * @throws Exception
+     * @throws Exception|MappingTablesException
      */
     public function getEndpoint(int $hostId, int $type = null): ?string
     {
@@ -170,7 +170,7 @@ abstract class AbstractTable extends AbstractDbcTable implements TableInterface
      * @param integer $hostId
      * @return integer
      * @throws DBALException
-     * @throws RuntimeException
+     * @throws MappingTablesException
      */
     public function save(string $endpoint, int $hostId): int
     {
@@ -199,7 +199,7 @@ abstract class AbstractTable extends AbstractDbcTable implements TableInterface
      * @param integer|null $type
      * @return integer
      * @throws DBALException
-     * @throws RuntimeException
+     * @throws MappingTablesException
      */
     public function remove(string $endpoint = null, int $hostId = null, int $type = null): int
     {
@@ -217,7 +217,7 @@ abstract class AbstractTable extends AbstractDbcTable implements TableInterface
             }
         } else {
             if (!$this->isResponsible($type)) {
-                throw RuntimeException::unknownType($type);
+                throw MappingTablesException::tableNotResponsibleForType($type);
             }
 
             if (!$this->singleIdentity) {
@@ -237,7 +237,7 @@ abstract class AbstractTable extends AbstractDbcTable implements TableInterface
     /**
      * @param integer|null $type
      * @return integer
-     * @throws RuntimeException|Exception
+     * @throws MappingTablesException|Exception
      */
     public function clear(int $type = null): int
     {
@@ -246,7 +246,7 @@ abstract class AbstractTable extends AbstractDbcTable implements TableInterface
 
         if (!is_null($type)) {
             if (!$this->isResponsible($type)) {
-                throw RuntimeException::unknownType($type);
+                throw MappingTablesException::tableNotResponsibleForType($type);
             }
 
             if (!$this->singleIdentity) {
@@ -266,7 +266,7 @@ abstract class AbstractTable extends AbstractDbcTable implements TableInterface
      * @param integer|null $offset
      * @param integer|null $type
      * @return integer
-     * @throws DBALException
+     * @throws DBALException|MappingTablesException
      */
     public function count(array $where = [], array $parameters = [], array $orderBy = [], int $limit = null, int $offset = null, int $type = null): int
     {
@@ -287,7 +287,7 @@ abstract class AbstractTable extends AbstractDbcTable implements TableInterface
      * @param integer|null $type
      * @return string[]
      * @throws DBALException
-     * @throws RuntimeException
+     * @throws MappingTablesException
      */
     public function findEndpoints(array $where = [], array $parameters = [], array $orderBy = [], int $limit = null, int $offset = null, int $type = null): array
     {
@@ -309,7 +309,7 @@ abstract class AbstractTable extends AbstractDbcTable implements TableInterface
      * @param integer|null $type
      * @return QueryBuilder
      * @throws DBALException
-     * @throws RuntimeException
+     * @throws MappingTablesException
      */
     public function createFindQuery(array $where = [], array $parameters = [], array $orderBy = [], int $limit = null, int $offset = null, int $type = null): QueryBuilder
     {
@@ -317,7 +317,7 @@ abstract class AbstractTable extends AbstractDbcTable implements TableInterface
 
         if (!is_null($type)) {
             if (!$this->isResponsible($type)) {
-                throw RuntimeException::unknownType($type);
+                throw MappingTablesException::tableNotResponsibleForType($type);
             }
 
             if (!$this->singleIdentity) {
@@ -345,7 +345,7 @@ abstract class AbstractTable extends AbstractDbcTable implements TableInterface
         $allColumns = $this->getColumnNames();
         foreach ($orderBy as $column => $direction) {
             if (!in_array($column, $allColumns)) {
-                throw RuntimeException::columnNotFound($column);
+                throw MappingTablesException::columnNotFound($column);
             }
 
             $qb->addOrderBy($column, $direction);
@@ -357,7 +357,7 @@ abstract class AbstractTable extends AbstractDbcTable implements TableInterface
     /**
      * @param array $endpoints
      * @return array|string[]
-     * @throws DBALException
+     * @throws DBALException|MappingTablesException
      */
     public function filterMappedEndpoints(array $endpoints): array
     {
@@ -432,7 +432,7 @@ abstract class AbstractTable extends AbstractDbcTable implements TableInterface
     /**
      * @param string $endpointId
      * @return mixed[]
-     * @throws DBALException
+     * @throws DBALException|MappingTablesException
      */
     public function extractEndpoint(string $endpointId): array
     {
@@ -440,7 +440,7 @@ abstract class AbstractTable extends AbstractDbcTable implements TableInterface
         if (!$this->singleIdentity) {
             $type = $data[self::IDENTITY_TYPE];
             if (!$this->isResponsible($type)) {
-                throw RuntimeException::unknownType($type);
+                throw MappingTablesException::tableNotResponsibleForType($type);
             }
         }
 
@@ -465,6 +465,7 @@ abstract class AbstractTable extends AbstractDbcTable implements TableInterface
     /**
      * @param integer|null $type
      * @return TableProxy
+     * @throws MappingTablesException
      */
     public function createProxy(int $type = null): TableProxy
     {
@@ -497,12 +498,12 @@ abstract class AbstractTable extends AbstractDbcTable implements TableInterface
      * @param integer $hostId
      * @param integer|null $type
      * @return QueryBuilder
-     * @throws RuntimeException
+     * @throws MappingTablesException
      */
     protected function createEndpointIdQuery(int $hostId, int $type = null): QueryBuilder
     {
         if (!$this->isResponsible($type)) {
-            throw RuntimeException::unknownType($type);
+            throw MappingTablesException::tableNotResponsibleForType($type);
         }
 
         $columnNames = $this->getEndpointColumnNames();
@@ -524,11 +525,12 @@ abstract class AbstractTable extends AbstractDbcTable implements TableInterface
     /**
      * @param string $endpointId
      * @return array
+     * @throws MappingTablesException
      */
     protected function explodeEndpoint(string $endpointId): array
     {
         if (empty($endpointId)) {
-            throw RuntimeException::emptyEndpointId();
+            throw MappingTablesException::emptyEndpointId();
         }
 
         return explode($this->endpointDelimiter, $endpointId);
@@ -546,7 +548,7 @@ abstract class AbstractTable extends AbstractDbcTable implements TableInterface
     /**
      * @param mixed[] $data
      * @return mixed[]
-     * @throws DBALException
+     * @throws DBALException|MappingTablesException
      */
     protected function createEndpointData(array $data): array
     {
@@ -555,7 +557,7 @@ abstract class AbstractTable extends AbstractDbcTable implements TableInterface
         $columnsCount = count($columnNames);
 
         if ($dataCount !== $columnsCount) {
-            throw RuntimeException::wrongEndpointPartsAmount($dataCount, $columnsCount);
+            throw MappingTablesException::wrongEndpointPartsAmount($dataCount, $columnsCount);
         }
 
         return $this->convertToPhpValues(array_combine($columnNames, $data));
@@ -565,11 +567,12 @@ abstract class AbstractTable extends AbstractDbcTable implements TableInterface
      * @param Column $column
      * @param bool $primary
      * @return AbstractTable
+     * @throws MappingTablesException
      */
     protected function addEndpointColumn(Column $column, bool $primary = true): self
     {
         if ($this->hasEndpointColumn($column->getName())) {
-            throw RuntimeException::columnExists($column->getName());
+            throw MappingTablesException::columnExists($column->getName());
         }
 
         $this->endpointColumns[$column->getName()] = EndpointColumn::create($column, $primary);
@@ -593,10 +596,10 @@ abstract class AbstractTable extends AbstractDbcTable implements TableInterface
     protected function getEndpointColumns(bool $onlyPrimaryColumns = false): array
     {
         $endpointColumns = array_filter($this->endpointColumns, function (EndpointColumn $endpointColumn) use ($onlyPrimaryColumns) {
-            return in_array($endpointColumn->isPrimary(), [true, $onlyPrimaryColumns], true);
+            return in_array($endpointColumn->primary(), [true, $onlyPrimaryColumns], true);
         });
 
-        return array_values(array_map(function(EndpointColumn $endpointColumn) {
+        return array_values(array_map(function (EndpointColumn $endpointColumn) {
             return $endpointColumn->getColumn();
         }, $endpointColumns));
     }
@@ -607,7 +610,7 @@ abstract class AbstractTable extends AbstractDbcTable implements TableInterface
      */
     protected function getEndpointColumnNames(bool $onlyPrimaryColumns = false): array
     {
-        return array_map(function(Column $column) {
+        return array_map(function (Column $column) {
             return $column->getName();
         }, $this->getEndpointColumns($onlyPrimaryColumns));
     }

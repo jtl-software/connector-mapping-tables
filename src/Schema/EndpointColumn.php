@@ -14,7 +14,7 @@ class EndpointColumn
     /**
      * @var boolean
      */
-    protected $isPrimary = true;
+    protected $primary = true;
 
     /**
      * EndpointColumn constructor.
@@ -24,7 +24,7 @@ class EndpointColumn
     public function __construct(Column $column, bool $primary = true)
     {
         $this->column = $column;
-        $this->isPrimary = $primary;
+        $this->primary = $primary;
     }
 
     /**
@@ -38,9 +38,9 @@ class EndpointColumn
     /**
      * @return boolean
      */
-    public function isPrimary(): bool
+    public function primary(): bool
     {
-        return $this->isPrimary;
+        return $this->primary;
     }
 
     /**

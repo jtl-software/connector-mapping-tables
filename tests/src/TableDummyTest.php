@@ -43,8 +43,8 @@ class TableDummyTest extends TestCase
     public function testRemove()
     {
         $this->assertEquals(0, $this->table->remove(null, null, 9999));
-        $this->assertEquals(0, $this->table->remove( 'irgendwas', null, 421));
-        $this->assertEquals(0, $this->table->remove( null, 1234, 007));
+        $this->assertEquals(0, $this->table->remove('irgendwas', null, 421));
+        $this->assertEquals(0, $this->table->remove(null, 1234, 007));
     }
 
     public function testGetHostId()
@@ -62,7 +62,7 @@ class TableDummyTest extends TestCase
     public function testGetEndpointId()
     {
         $this->assertEquals('', $this->table->getEndpoint(12321, 5));
-        $this->assertEquals('', $this->table->getEndpoint( 3333, 9));
+        $this->assertEquals('', $this->table->getEndpoint(3333, 9));
         $this->assertEquals('', $this->table->getEndpoint(0, 1222));
     }
 

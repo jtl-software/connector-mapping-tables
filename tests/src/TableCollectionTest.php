@@ -73,8 +73,8 @@ class TableCollectionTest extends TestCase
 
     public function testGetNotExistingTableWithStrictModeEnabled()
     {
-        $this->expectException(RuntimeException::class);
-        $this->expectExceptionCode(RuntimeException::TABLE_TYPE_NOT_FOUND);
+        $this->expectException(MappingTablesException::class);
+        $this->expectExceptionCode(MappingTablesException::TABLE_FOR_TYPE_NOT_FOUND);
         $collection = new TableCollection($this->table);
         $collection->setStrictMode(true);
         $collection->get(12434);
