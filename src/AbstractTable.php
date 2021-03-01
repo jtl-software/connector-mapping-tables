@@ -66,7 +66,7 @@ abstract class AbstractTable extends AbstractDbcTable implements TableInterface
         $this->defineEndpoint();
 
         if (!$this->singleIdentity) {
-            $this->addEndpointColumn(new Column(self::IDENTITY_TYPE, Type::getType(Types::INTEGER)));
+            $this->setEndpointColumn(self::IDENTITY_TYPE, Types::INTEGER);
         }
     }
 
@@ -564,20 +564,23 @@ abstract class AbstractTable extends AbstractDbcTable implements TableInterface
     }
 
     /**
-     * @param Column $column
+     * @param string $columnName
+     * @param string $columnType
      * @param bool $primary
-     * @return AbstractTable
+     * @return Column
+     * @throws Exception
      * @throws MappingTablesException
      */
-    protected function addEndpointColumn(Column $column, bool $primary = true): self
+    protected function setEndpointColumn(string $columnName, string $columnType, bool $primary = true): Column
     {
-        if ($this->hasEndpointColumn($column->getName())) {
-            throw MappingTablesException::endpointColumnExists($column->getName());
+        $column = new Column($columnName, Type::getType($columnType));
+        if ($this->hasEndpointColumn($columnName)) {
+            throw MappingTablesException::endpointColumnExists($columnName);
         }
 
         $this->endpointColumns[$column->getName()] = EndpointColumn::create($column, $primary);
 
-        return $this;
+        return $column;
     }
 
     /**

@@ -271,7 +271,7 @@ class AbstractTableTest extends TestCase
     public function testAddColumnType()
     {
         $table = new TableStub($this->getDbManager());
-        $table->addEndpointColumn(new Column('test', Type::getType(Types::BINARY)));
+        $table->setEndpointColumn('test', Types::BINARY);
         $schema = $table->getTableSchema();
         $column = $schema->getColumn('test');
         $this->assertEquals(Types::BINARY, $column->getType()->getName());
@@ -280,7 +280,7 @@ class AbstractTableTest extends TestCase
     public function testAddColumn()
     {
         $table = new TableStub($this->getDbManager());
-        $table->addEndpointColumn(new Column('test', Type::getType(Types::DATETIME_IMMUTABLE)));
+        $table->setEndpointColumn('test', Types::DATETIME_IMMUTABLE);
         $schema = $table->getTableSchema();
         $primaryKey = $schema->getPrimaryKey();
         $this->assertTrue(in_array('test', $primaryKey->getColumns()));
@@ -289,7 +289,7 @@ class AbstractTableTest extends TestCase
     public function testAddColumnNotPrimary()
     {
         $table = new TableStub($this->getDbManager());
-        $table->addEndpointColumn(new Column('test', Type::getType(Types::STRING)), false);
+        $table->setEndpointColumn('test', Types::STRING, false);
         $schema = $table->getTableSchema();
         $this->assertTrue($schema->hasColumn('test'));
         $primaryKey = $schema->getPrimaryKey();

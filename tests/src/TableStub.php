@@ -36,11 +36,9 @@ class TableStub extends AbstractTable
 
     public function defineEndpoint(): void
     {
-        $this
-            ->addEndpointColumn(new Column(self::COL_ID1, Type::getType(Types::INTEGER)))
-            ->addEndpointColumn(new Column(self::COL_ID2, Type::getType(Types::INTEGER)))
-            ->addEndpointColumn(new Column(self::COL_VAR, Type::getType(Types::STRING)), false)
-        ;
+        $this->setEndpointColumn(self::COL_ID1, Types::INTEGER);
+        $this->setEndpointColumn(self::COL_ID2, Types::INTEGER);
+        $this->setEndpointColumn(self::COL_VAR, Types::STRING, false);
     }
 
     /**
@@ -71,10 +69,11 @@ class TableStub extends AbstractTable
         return parent::createEndpointData($data);
     }
 
-    public function addEndpointColumn(Column $column, $primary = true): AbstractTable
+    public function setEndpointColumn(string $columnName, string $columnType, bool $primary = true): Column
     {
-        return parent::addEndpointColumn($column, $primary);
+        return parent::setEndpointColumn($columnName, $columnType, $primary);
     }
+
 
     public function hasEndpointColumn($name): bool
     {
