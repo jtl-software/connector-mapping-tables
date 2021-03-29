@@ -10,6 +10,7 @@ use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\DBALException;
 use Doctrine\DBAL\Exception;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
+use Doctrine\DBAL\Platforms\MySqlPlatform;
 use Doctrine\DBAL\Schema\Column;
 use Doctrine\DBAL\Schema\Table;
 use Doctrine\DBAL\Types\Type;
@@ -18,6 +19,7 @@ use Jtl\Connector\Dbc\AbstractTable as AbstractDbcTable;
 use Jtl\Connector\Dbc\DbManager;
 use Jtl\Connector\Dbc\Query\QueryBuilder;
 use Jtl\Connector\Dbc\TableException;
+use Jtl\Connector\Dbc\Types\Uuid4Type;
 use Jtl\Connector\MappingTables\Schema\EndpointColumn;
 
 abstract class AbstractTable extends AbstractDbcTable implements TableInterface
@@ -362,12 +364,18 @@ abstract class AbstractTable extends AbstractDbcTable implements TableInterface
     public function filterMappedEndpoints(array $endpoints): array
     {
         $platform = $this->getConnection()->getDatabasePlatform();
+        $primaryColumns = $this->getEndpointColumns(true);
         $primaryColumnNames = $this->getEndpointColumnNames(true);
 
         $concatArray = [];
-        foreach ($primaryColumnNames as $i => $column) {
-            $concatArray[] = $column;
-            if (isset($primaryColumnNames[$i + 1])) {
+        foreach ($primaryColumns as $i => $primaryColumn) {
+            $columnExpression = $primaryColumn->getName();
+            if ($primaryColumn->getType() instanceof Uuid4Type && $platform instanceof MySqlPlatform) {
+                $columnExpression = $platform->getLowerExpression(sprintf('HEX(%s)', $primaryColumn->getName()));
+            }
+
+            $concatArray[] = $columnExpression;
+            if (isset($primaryColumns[$i + 1])) {
                 $concatArray[] = $this->getConnection()->quote($this->endpointDelimiter);
             }
         }
@@ -381,7 +389,7 @@ abstract class AbstractTable extends AbstractDbcTable implements TableInterface
             $preparedEndpoints[implode($this->endpointDelimiter, $extracted)] = $endpoint;
         }
 
-        $concatExpression = call_user_func_array([$platform, 'getConcatExpression'], $concatArray);
+        $concatExpression = $platform->getConcatExpression(...$concatArray);
         $qb = $this->createQueryBuilder()
             ->select($concatExpression)
             ->from($this->getTableName())
