@@ -110,7 +110,7 @@ abstract class AbstractTable extends AbstractDbcTable implements TableInterface
 
         $tableSchema->addColumn(self::HOST_ID, Types::INTEGER)
             ->setNotnull(false);
-        
+
         $tableSchema->addIndex([self::HOST_ID], $this->createIndexName(self::HOST_INDEX_NAME));
 
         $tableSchema->setPrimaryKey($primaryColumnNames);
@@ -208,13 +208,15 @@ abstract class AbstractTable extends AbstractDbcTable implements TableInterface
         $qb = $this->createQueryBuilder()
             ->delete($this->getTableName());
 
+        $primaryColumns = $this->getEndpointColumns(true);
         $primaryColumnNames = $this->getEndpointColumnNames(true);
 
         if ($endpoint !== null) {
             foreach ($this->extractEndpoint($endpoint) as $column => $value) {
                 if (in_array($column, $primaryColumnNames)) {
-                    $qb->andWhere($column . ' = :' . $column)
-                        ->setParameter($column, $value);
+                    $qb
+                        ->andWhere($column . ' = :' . $column)
+                        ->setParameter($column, $value, $primaryColumns[array_search($column, $primaryColumnNames)]->getType()->getName());
                 }
             }
         } else {
@@ -224,13 +226,13 @@ abstract class AbstractTable extends AbstractDbcTable implements TableInterface
 
             if (!$this->singleIdentity) {
                 $qb->andWhere(sprintf('%s = :%s', self::IDENTITY_TYPE, self::IDENTITY_TYPE))
-                    ->setParameter(self::IDENTITY_TYPE, $type);
+                    ->setParameter(self::IDENTITY_TYPE, $type, Types::INTEGER);
             }
         }
 
         if ($hostId !== null) {
             $qb->andWhere(self::HOST_ID . ' = :' . self::HOST_ID)
-                ->setParameter(self::HOST_ID, $hostId);
+                ->setParameter(self::HOST_ID, $hostId, Types::INTEGER);
         }
 
         return $qb->execute();
@@ -294,7 +296,7 @@ abstract class AbstractTable extends AbstractDbcTable implements TableInterface
     public function findEndpoints(array $where = [], array $parameters = [], array $orderBy = [], int $limit = null, int $offset = null, int $type = null): array
     {
         $stmt = $this->createFindQuery($where, $parameters, $orderBy, $limit, $offset, $type)
-            ->select($this->getEndpointColumnNames())
+            ->select($this->getEndpointColumnExpressions())
             ->execute();
 
         return array_map(function (array $data) {
@@ -364,18 +366,13 @@ abstract class AbstractTable extends AbstractDbcTable implements TableInterface
     public function filterMappedEndpoints(array $endpoints): array
     {
         $platform = $this->getConnection()->getDatabasePlatform();
-        $primaryColumns = $this->getEndpointColumns(true);
+        $primaryColumnExpressions = $this->getEndpointColumnExpressions(true);
         $primaryColumnNames = $this->getEndpointColumnNames(true);
 
         $concatArray = [];
-        foreach ($primaryColumns as $i => $primaryColumn) {
-            $columnExpression = $primaryColumn->getName();
-            if ($primaryColumn->getType() instanceof Uuid4Type && $platform instanceof MySqlPlatform) {
-                $columnExpression = $platform->getLowerExpression(sprintf('HEX(%s)', $primaryColumn->getName()));
-            }
-
+        foreach ($primaryColumnExpressions as $i => $columnExpression) {
             $concatArray[] = $columnExpression;
-            if (isset($primaryColumns[$i + 1])) {
+            if (isset($primaryColumnExpressions[$i + 1])) {
                 $concatArray[] = $this->getConnection()->quote($this->endpointDelimiter);
             }
         }
@@ -514,10 +511,10 @@ abstract class AbstractTable extends AbstractDbcTable implements TableInterface
             throw MappingTablesException::tableNotResponsibleForType($type);
         }
 
-        $columnNames = $this->getEndpointColumnNames();
+        $columnExpressions = $this->getEndpointColumnExpressions();
 
         $qb = $this->createQueryBuilder()
-            ->select($columnNames)
+            ->select($columnExpressions)
             ->from($this->getTableName())
             ->andWhere(sprintf('%s = :hostId', self::HOST_ID))
             ->setParameter('hostId', $hostId);
@@ -623,6 +620,18 @@ abstract class AbstractTable extends AbstractDbcTable implements TableInterface
     {
         return array_map(function (Column $column) {
             return $column->getName();
+        }, $this->getEndpointColumns($onlyPrimaryColumns));
+    }
+
+    /**
+     * @param boolean $onlyPrimaryColumns
+     * @return array<string>
+     * @throws Exception
+     */
+    protected function getEndpointColumnExpressions(bool $onlyPrimaryColumns = false): array
+    {
+        return array_map(function(Column $column) {
+            return $column->getType()->convertToPHPValueSQL($column->getName(), $this->getConnection()->getDatabasePlatform());
         }, $this->getEndpointColumns($onlyPrimaryColumns));
     }
 }
