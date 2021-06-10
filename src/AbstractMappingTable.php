@@ -8,6 +8,7 @@ namespace Jtl\Connector\MappingTables;
 
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\DBALException;
+use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use Doctrine\DBAL\Schema\Table;
 use Doctrine\DBAL\Types\Type;
 use Jtl\Connector\Dbc\AbstractTable;
@@ -138,11 +139,27 @@ abstract class AbstractMappingTable extends AbstractTable implements MappingTabl
         $data = $this->extractEndpoint($endpoint);
         $data[self::HOST_ID] = $hostId;
 
-        $types = array_map(function (array $column) {
-            return $column['type'];
-        }, $this->getEndpointColumns());
+        try {
+            $this->insert($data);
 
-        return $this->getConnection()->insert($this->getTableName(), $data, $types) > 0;
+            return true;
+        } catch (UniqueConstraintViolationException $ex) {
+            $primaryColumns = $this->getPrimaryColumns();
+            $primaryColumnNames = array_keys($primaryColumns);
+
+            $identifier = [];
+            foreach ($data as $column => $value) {
+                if (in_array($column, $primaryColumnNames, true)) {
+                    $identifier[$column] = $value;
+                }
+            }
+
+            $this->update($data, $identifier);
+
+            return true;
+        }
+
+        return false;
     }
 
     /**

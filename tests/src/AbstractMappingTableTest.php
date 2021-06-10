@@ -72,8 +72,15 @@ class AbstractMappingTableTest extends DbTestCase
 
     public function testSave()
     {
+        //Insert
         $this->table->save('1||45||yolo', 4);
-        $this->assertTableRowCount($this->table->getTableName(), 4);
+
+        //Update
+        $this->table->save('1||45||foo', 4);
+
+        //Insert
+        $this->table->save('2||45||bar', 4);
+        $this->assertTableRowCount($this->table->getTableName(), 5);
     }
 
     public function testRemoveByEndpointId()
