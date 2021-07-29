@@ -232,6 +232,37 @@ class AbstractTableTest extends TestCase
         $this->assertEquals($expected, $endpoint);
     }
 
+    /**
+     * @dataProvider endpointWithColumnKeysProvider
+     *
+     * @param array $endpointData
+     * @param array $endpointColumnNames
+     * @param string $expectedEndpoint
+     */
+    public function testBuildEndpointWithColumnKeys(array $endpointData, array $endpointColumnNames, string $expectedEndpoint)
+    {
+        $tableMock = $this->createPartialMock(TableStub::class, ['getEndpointColumnNames']);
+
+        $tableMock
+            ->expects($this->once())
+            ->method('getEndpointColumnNames')
+            ->willReturn($endpointColumnNames);
+
+        $givenEndpoint = $tableMock->buildEndpoint($endpointData);
+
+        $this->assertEquals($expectedEndpoint, $givenEndpoint);
+    }
+
+    /**
+     * @return array
+     */
+    public function endpointWithColumnKeysProvider(): array
+    {
+        return [
+            [['foo' => 'bar', 'everything' => 'nothing', 'yes' => 'no', 'yo' => 'lo'], ['everything', 'yo', 'foo', 'yes'], 'nothing||lo||bar||no']
+        ];
+    }
+
     public function testExtractEndpoint()
     {
         $endpoint = sprintf('3||5||bar||%s', TableStub::TYPE1);

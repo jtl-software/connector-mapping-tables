@@ -3,3 +3,4 @@ vendor
 composer.lock
 tests/tmp/*
 .phpunit.result.cache
+phpunit.xml

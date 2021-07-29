@@ -431,6 +431,26 @@ abstract class AbstractTable extends AbstractDbcTable implements TableInterface
      */
     public function buildEndpoint(array $data): string
     {
+        $columnNames = $this->getEndpointColumnNames();
+
+        $allColumnNamesExist = true;
+        foreach ($data as $columnName => $value) {
+            if (!in_array($columnName, $columnNames, true)) {
+                $allColumnNamesExist = false;
+                break;
+            }
+        }
+
+        if ($allColumnNamesExist) {
+            $tData = $data;
+            $data = [];
+            foreach ($tData as $columnName => $value) {
+                $data[array_search($columnName, $columnNames)] = $value;
+            }
+
+            ksort($data, \SORT_NUMERIC);
+        }
+
         return $this->implodeEndpoint($data);
     }
 
@@ -630,7 +650,7 @@ abstract class AbstractTable extends AbstractDbcTable implements TableInterface
      */
     protected function getEndpointColumnExpressions(bool $onlyPrimaryColumns = false): array
     {
-        return array_map(function(Column $column) {
+        return array_map(function (Column $column) {
             return $column->getType()->convertToPHPValueSQL($column->getName(), $this->getConnection()->getDatabasePlatform());
         }, $this->getEndpointColumns($onlyPrimaryColumns));
     }
