@@ -67,7 +67,7 @@ abstract class AbstractTable extends AbstractDbcTable implements TableInterface
         parent::__construct($dbManager);
         $this->defineEndpoint();
 
-        if (!$this->singleIdentity) {
+        if (!$this->singleIdentity && !$this->hasEndpointColumn(self::IDENTITY_TYPE)) {
             $this->setEndpointColumn(self::IDENTITY_TYPE, Types::INTEGER);
         }
     }
