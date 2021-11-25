@@ -110,7 +110,7 @@ class AbstractTableTest extends TestCase
     }
 
     /**
-     * @dataProvider deleteByHostIdMultiplentriesProvider
+     * @dataProvider deleteByHostIdMultipleEntriesProvider
      *
      * @param string|null $endpoint
      * @throws DBALException
@@ -119,16 +119,21 @@ class AbstractTableTest extends TestCase
      */
     public function testDeleteByHostIdMultipleEntries(?string $endpoint)
     {
-        $this->assertEquals(4, $this->countRows($this->table->getTableName()));
-        $this->table->remove($endpoint, 5, TableStub::TYPE1);
+        $relatedHostId = 5;
+        $anotherEndpoint = sprintf('5||7||wat||%s', TableStub::TYPE1);
+        $this->table->save($anotherEndpoint, $relatedHostId);
+        $this->assertEquals(5, $this->countRows($this->table->getTableName()));
+        $this->assertEquals($relatedHostId, $this->table->getHostId($anotherEndpoint));
+        $this->table->remove($endpoint, $relatedHostId, TableStub::TYPE1);
         $this->assertEquals(2, $this->countRows($this->table->getTableName()));
-        $this->assertEquals(null, $this->table->getEndpoint(5, TableStub::TYPE1));
+        $this->assertNull($this->table->getEndpoint($relatedHostId, TableStub::TYPE1));
+        $this->assertNull($this->table->getHostId($anotherEndpoint));
     }
 
     /**
      * @return array
      */
-    public function deleteByHostIdMultiplentriesProvider(): array
+    public function deleteByHostIdMultipleEntriesProvider(): array
     {
         return [
             [null],
