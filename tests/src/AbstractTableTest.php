@@ -7,6 +7,7 @@
 namespace Jtl\Connector\MappingTables;
 
 use Doctrine\DBAL\DBALException;
+use Doctrine\DBAL\Exception;
 use Doctrine\DBAL\Schema\Column;
 use Doctrine\DBAL\Types\Type;
 use Doctrine\DBAL\Types\Types;
@@ -108,12 +109,31 @@ class AbstractTableTest extends TestCase
         $this->assertEquals(null, $this->table->getEndpoint(3, TableStub::TYPE1));
     }
 
-    public function testDeleteByHostIdMultipleEntries()
+    /**
+     * @dataProvider deleteByHostIdMultiplentriesProvider
+     *
+     * @param string|null $endpoint
+     * @throws DBALException
+     * @throws MappingTablesException
+     * @throws Exception
+     */
+    public function testDeleteByHostIdMultipleEntries(?string $endpoint)
     {
         $this->assertEquals(4, $this->countRows($this->table->getTableName()));
-        $this->table->remove(null, 5, TableStub::TYPE1);
+        $this->table->remove($endpoint, 5, TableStub::TYPE1);
         $this->assertEquals(2, $this->countRows($this->table->getTableName()));
         $this->assertEquals(null, $this->table->getEndpoint(5, TableStub::TYPE1));
+    }
+
+    /**
+     * @return array
+     */
+    public function deleteByHostIdMultiplentriesProvider(): array
+    {
+        return [
+            [null],
+            [sprintf('1||1||foo||%s', TableStub::TYPE1)],
+        ];
     }
 
     public function testClearDifferentTypes()

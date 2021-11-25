@@ -210,8 +210,12 @@ abstract class AbstractTable extends AbstractDbcTable implements TableInterface
 
         $primaryColumns = $this->getEndpointColumns(true);
         $primaryColumnNames = $this->getEndpointColumnNames(true);
+        $useHostId = !in_array($hostId, [null, 0], true);
 
-        if ($endpoint !== null) {
+        if ($useHostId) {
+            $qb->andWhere(self::HOST_ID . ' = :' . self::HOST_ID)
+                ->setParameter(self::HOST_ID, $hostId, Types::INTEGER);
+        } elseif ($endpoint !== null) {
             foreach ($this->extractEndpoint($endpoint) as $column => $value) {
                 if (in_array($column, $primaryColumnNames)) {
                     $qb
@@ -219,20 +223,15 @@ abstract class AbstractTable extends AbstractDbcTable implements TableInterface
                         ->setParameter($column, $value, $primaryColumns[array_search($column, $primaryColumnNames)]->getType()->getName());
                 }
             }
-        } else {
+        }
+
+        if (!$this->singleIdentity && ($useHostId || $endpoint === null && $hostId === null)) {
             if (!$this->isResponsible($type)) {
                 throw MappingTablesException::tableNotResponsibleForType($type);
             }
 
-            if (!$this->singleIdentity) {
-                $qb->andWhere(sprintf('%s = :%s', self::IDENTITY_TYPE, self::IDENTITY_TYPE))
-                    ->setParameter(self::IDENTITY_TYPE, $type, Types::INTEGER);
-            }
-        }
-
-        if ($hostId !== null) {
-            $qb->andWhere(self::HOST_ID . ' = :' . self::HOST_ID)
-                ->setParameter(self::HOST_ID, $hostId, Types::INTEGER);
+            $qb->andWhere(sprintf('%s = :%s', self::IDENTITY_TYPE, self::IDENTITY_TYPE))
+                ->setParameter(self::IDENTITY_TYPE, $type, Types::INTEGER);
         }
 
         return $qb->execute();
