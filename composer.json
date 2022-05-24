@@ -10,10 +10,10 @@
     }
   ],
   "require": {
-    "php": ">=7.1",
+    "php": ">=7.2",
     "doctrine/dbal": "^2.5",
-    "jtl/connector-dbc": "^2.1.8",
-    "jtl/connector": ">=4.0"
+    "jtl/connector-dbc": "dev-feature/php_8.1",
+    "jtl/connector": "dev-feature/php_8.1"
   },
   "require-dev": {
     "phpunit/phpunit": "^9.1",
