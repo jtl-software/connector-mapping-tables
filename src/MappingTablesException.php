@@ -1,6 +1,6 @@
 <?php
 /**
- * @author Immanuel Klinkenberg <immanuel.klinkenberg@jtl-software.com>
+ * @author    Immanuel Klinkenberg <immanuel.klinkenberg@jtl-software.com>
  * @copyright 2010-2017 JTL-Software GmbH
  */
 
@@ -22,6 +22,7 @@ class MappingTablesException extends \Exception
 
     /**
      * @param int $type
+     *
      * @return MappingTablesException
      */
     public static function tableForTypeNotFound(int $type): self
@@ -31,6 +32,7 @@ class MappingTablesException extends \Exception
 
     /**
      * @param string ...$columnNames
+     *
      * @return MappingTablesException
      */
     public static function columnDataMissing(string ...$columnNames): self
@@ -41,6 +43,7 @@ class MappingTablesException extends \Exception
     /**
      * @param integer $actualLength
      * @param integer $expectedLength
+     *
      * @return MappingTablesException
      */
     public static function wrongEndpointPartsAmount(int $actualLength, int $expectedLength): self
@@ -50,6 +53,7 @@ class MappingTablesException extends \Exception
 
     /**
      * @param string $columnName
+     *
      * @return MappingTablesException
      */
     public static function endpointColumnExists(string $columnName): self
@@ -59,6 +63,7 @@ class MappingTablesException extends \Exception
 
     /**
      * @param string $columnName
+     *
      * @return MappingTablesException
      */
     public static function endpointColumnNotFound(string $columnName): self
@@ -92,6 +97,7 @@ class MappingTablesException extends \Exception
 
     /**
      * @param integer $type
+     *
      * @return MappingTablesException
      */
     public static function tableNotResponsibleForType(int $type): self
@@ -105,6 +111,11 @@ class MappingTablesException extends \Exception
      */
     public static function emptyEndpointId(): self
     {
-        return new self('Endpoint id is empty', static::EMPTY_ENDPOINT_ID);
+        return new self(
+            'There is a problem with the Id\'s. 
+            Please try to resent whole Product incl. master product and all childs. 
+            If this doesn\'t help, please contact the support. (Endpoint id is empty)',
+            static::EMPTY_ENDPOINT_ID
+        );
     }
 }
