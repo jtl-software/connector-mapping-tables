@@ -114,6 +114,7 @@ abstract class AbstractTable extends AbstractDbcTable implements TableInterface
      * @throws DBALException
      * @throws MappingTablesException
      * @throws \RuntimeException
+     * @throws \Doctrine\DBAL\Driver\Exception
      */
     public function getHostId(string $endpoint): ?int
     {
@@ -131,12 +132,8 @@ abstract class AbstractTable extends AbstractDbcTable implements TableInterface
         }
 
         $hostId = $qb->execute();
-        if (!($hostId instanceof Result::class)) {
-            throw new \RuntimeException('excecute() must return a Result object.');
-        }
-        $hostId->fetchColumn(0);
-        if ($hostId !== false) {
-            return (int)$hostId;
+        if ($hostId instanceof Result) {
+            return (int)$hostId->fetchOne();
         }
 
         return null;
@@ -149,7 +146,7 @@ abstract class AbstractTable extends AbstractDbcTable implements TableInterface
      */
     protected function getEndpointColumnNames(bool $onlyPrimaryColumns = false): array
     {
-        return \array_map(function (Column $column) {
+        return \array_map(static function (Column $column) {
             return $column->getName();
         }, $this->getEndpointColumns($onlyPrimaryColumns));
     }
