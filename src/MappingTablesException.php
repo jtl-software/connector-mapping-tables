@@ -27,7 +27,10 @@ class MappingTablesException extends \Exception
      */
     public static function tableForTypeNotFound(int $type): self
     {
-        return new self(sprintf('No registered table is responsible for type %s', $type), self::TABLE_FOR_TYPE_NOT_FOUND);
+        return new self(
+            \sprintf('No registered table is responsible for type %s', $type),
+            self::TABLE_FOR_TYPE_NOT_FOUND
+        );
     }
 
     /**
@@ -37,7 +40,14 @@ class MappingTablesException extends \Exception
      */
     public static function columnDataMissing(string ...$columnNames): self
     {
-        return new self(sprintf('Data for column%s "%s" missing', count($columnNames) > 1 ? 's' : '', implode('","', $columnNames)), self::COLUMN_DATA_MISSING);
+        return new self(
+            \sprintf(
+                'Data for column%s "%s" missing',
+                count($columnNames) > 1 ? 's' : '',
+                implode('","', $columnNames)
+            ),
+            self::COLUMN_DATA_MISSING
+        );
     }
 
     /**
@@ -48,7 +58,14 @@ class MappingTablesException extends \Exception
      */
     public static function wrongEndpointPartsAmount(int $actualLength, int $expectedLength): self
     {
-        return new self(sprintf('Given endpoint parts (%d) do not match the expected amount (%d)', $actualLength, $expectedLength), self::WRONG_ENDPOINT_PARTS_AMOUNT);
+        return new self(
+            \sprintf(
+                'Given endpoint parts (%d) do not match the expected amount (%d)',
+                $actualLength,
+                $expectedLength
+            ),
+            self::WRONG_ENDPOINT_PARTS_AMOUNT
+        );
     }
 
     /**
@@ -58,7 +75,9 @@ class MappingTablesException extends \Exception
      */
     public static function endpointColumnExists(string $columnName): self
     {
-        return new self(sprintf('Endpoint column with name %s already exists', $columnName), self::ENDPOINT_COLUMN_EXISTS);
+        return new self(
+            \sprintf('Endpoint column with name %s already exists', $columnName), self::ENDPOINT_COLUMN_EXISTS
+        );
     }
 
     /**
@@ -68,7 +87,8 @@ class MappingTablesException extends \Exception
      */
     public static function endpointColumnNotFound(string $columnName): self
     {
-        return new self(sprintf('Endpoint column with name %s is not defined', $columnName), self::ENDPOINT_COLUMN_NOT_FOUND);
+        return new self(
+            \sprintf('Endpoint column with name %s is not defined', $columnName), self::ENDPOINT_COLUMN_NOT_FOUND);
     }
 
     /**
@@ -84,7 +104,10 @@ class MappingTablesException extends \Exception
      */
     public static function typesEmpty(): self
     {
-        return new self('getTypes() method must return an array of integer values with one or more fields', self::TYPES_ARRAY_EMPTY);
+        return new self(
+            'getTypes() method must return an array of integer values with one or more fields',
+            self::TYPES_ARRAY_EMPTY
+        );
     }
 
     /**
@@ -102,20 +125,25 @@ class MappingTablesException extends \Exception
      */
     public static function tableNotResponsibleForType(int $type): self
     {
-        $msg = sprintf('Table is not responsible for type %s', $type);
+        $msg = \sprintf('Table is not responsible for type %s', $type);
         return new self($msg, self::TABLE_NOT_RESPONSIBLE_FOR_TYPE);
     }
 
     /**
+     * @param AbstractTable|null $mappingTable
+     *
      * @return MappingTablesException
      */
-    public static function emptyEndpointId(): self
+    public static function emptyEndpointId(?AbstractTable $mappingTable = null): self
     {
-        return new self(
-            'There is a problem with the Id\'s. 
-            Please try to resent whole Product incl. master product and all childs. 
-            If this doesn\'t help, please contact the support. (Endpoint id is empty)',
-            static::EMPTY_ENDPOINT_ID
-        );
+        $message = 'There is a problem with the linking - Id\'s (Endpoint id is empty). If the problem is caused by
+         a product or a category, try to resend the product (if it\'s a variant, send master and all children) or
+         category. Perhaps try to do a fullexport.';
+
+        if ($mappingTable !== null) {
+            $message .= \sprintf(' The problem was caused by "%s".', \get_class($mappingTable));
+        }
+
+        return new self($message, static::EMPTY_ENDPOINT_ID);
     }
 }
