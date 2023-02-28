@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Jtl\Connector\MappingTables;
 
 class TableProxyTest extends TestCase
@@ -20,24 +22,24 @@ class TableProxyTest extends TestCase
     public function testGetHostId()
     {
         $expected = 5;
-        $endpoint = sprintf('4||2||foobar||%s', TableStub::TYPE1);
-        $actual = $this->proxy->getHostId($endpoint);
+        $endpoint = \sprintf('4||2||foobar||%s', TableStub::TYPE1);
+        $actual   = $this->proxy->getHostId($endpoint);
         $this->assertEquals($expected, $actual);
     }
 
     public function testGetHostIdFromNotSelectedType()
     {
         $expected = 2;
-        $endpoint = sprintf('1||2||bar||%s', TableStub::TYPE2);
-        $actual = $this->proxy->getHostId($endpoint);
+        $endpoint = \sprintf('1||2||bar||%s', TableStub::TYPE2);
+        $actual   = $this->proxy->getHostId($endpoint);
         $this->assertEquals($expected, $actual);
     }
 
     public function testGetHostIdWhichNotExists()
     {
         $expected = null;
-        $endpoint = sprintf('1||4||3344||%s', TableStub::TYPE1);
-        $actual = $this->proxy->getHostId($endpoint);
+        $endpoint = \sprintf('1||4||3344||%s', TableStub::TYPE1);
+        $actual   = $this->proxy->getHostId($endpoint);
         $this->assertEquals($expected, $actual);
     }
 
@@ -50,9 +52,9 @@ class TableProxyTest extends TestCase
 
     public function testGetEndpoint()
     {
-        $expected = sprintf('4||2||foobar||%s', TableStub::TYPE1);
-        $hostId = 5;
-        $actual = $this->proxy->getEndpoint($hostId);
+        $expected = \sprintf('4||2||foobar||%s', TableStub::TYPE1);
+        $hostId   = 5;
+        $actual   = $this->proxy->getEndpoint($hostId);
         $this->assertEquals($expected, $actual);
     }
 
@@ -60,8 +62,8 @@ class TableProxyTest extends TestCase
     {
         //$expected = sprintf('1||2||bar||%s', TableStub::TYPE2);
         $expected = null;
-        $hostId = 2;
-        $actual = $this->proxy->getEndpoint($hostId);
+        $hostId   = 2;
+        $actual   = $this->proxy->getEndpoint($hostId);
         $this->assertEquals($expected, $actual);
     }
 
@@ -84,7 +86,7 @@ class TableProxyTest extends TestCase
     public function testDeleteByEndpointId()
     {
         $this->assertEquals(3, $this->proxy->count());
-        $endpoint = sprintf('1||1||foo||%s', TableStub::TYPE1);
+        $endpoint = \sprintf('1||1||foo||%s', TableStub::TYPE1);
         $this->proxy->delete($endpoint);
         $this->assertEquals(2, $this->proxy->count());
     }
@@ -105,8 +107,8 @@ class TableProxyTest extends TestCase
 
     public function testSave()
     {
-        $hostId = 999;
-        $endpoint = sprintf('44||11||juhuu||%s', TableStub::TYPE1);
+        $hostId   = 999;
+        $endpoint = \sprintf('44||11||juhuu||%s', TableStub::TYPE1);
         $this->assertEquals(3, $this->proxy->count());
         $this->assertEquals(4, $this->countRows($this->table->getTableName()));
         $this->proxy->save($endpoint, $hostId);

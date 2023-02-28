@@ -1,8 +1,6 @@
 <?php
-/**
- * @author Immanuel Klinkenberg <immanuel.klinkenberg@jtl-software.com>
- * @copyright 2010-2017 JTL-Software GmbH
- */
+
+declare(strict_types=1);
 
 namespace Jtl\Connector\MappingTables;
 
@@ -18,18 +16,10 @@ class TableCollectionTest extends TestCase
      */
     protected $collection;
 
-    protected function setUp(): void
-    {
-        $this->table = new TableStub($this->getDbManager());
-        $this->collection = new TableCollection($this->table);
-        parent::setUp();
-        $this->insertFixtures($this->table, self::getTableStubFixtures());
-    }
-
     public function testToArray()
     {
         $collection = new TableCollection($this->table);
-        $tables = $collection->toArray();
+        $tables     = $collection->toArray();
         $this->assertCount(1, $tables);
         $this->assertEquals($this->table, $tables[0]);
     }
@@ -77,9 +67,9 @@ class TableCollectionTest extends TestCase
         $table->method('getTypes')->willReturn([1, 2, 3, 4, 5, 6, 7, 8, 9]);
 
         $collection = new TableCollection($table);
-        $this->assertEquals($table, $collection->get(mt_rand(1, 9)));
+        $this->assertEquals($table, $collection->get(\mt_rand(1, 9)));
         $collection->removeByInstance($table);
-        $this->assertFalse($collection->has(mt_rand(1, 9)));
+        $this->assertFalse($collection->has(\mt_rand(1, 9)));
     }
 
     public function testGetNotExistingTableWithStrictModeEnabled()
@@ -93,11 +83,19 @@ class TableCollectionTest extends TestCase
 
     public function testGetNotExistingTableWithStrictModeDisabled()
     {
-        $type = 73443534;
+        $type       = 73443534;
         $collection = new TableCollection($this->table);
         $collection->setStrictMode(false);
         $this->assertFalse($collection->has($type));
         $table = $collection->get($type);
         $this->assertInstanceOf(TableDummy::class, $table);
+    }
+
+    protected function setUp(): void
+    {
+        $this->table      = new TableStub($this->getDbManager());
+        $this->collection = new TableCollection($this->table);
+        parent::setUp();
+        $this->insertFixtures($this->table, self::getTableStubFixtures());
     }
 }

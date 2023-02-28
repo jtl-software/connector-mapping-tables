@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Jtl\Connector\MappingTables;
 
 use Doctrine\DBAL\DBALException;
@@ -19,8 +21,10 @@ class TableProxy
 
     /**
      * TableProxy constructor.
-     * @param int $type
+     *
+     * @param int           $type
      * @param AbstractTable $table
+     *
      * @throws MappingTablesException
      */
     public function __construct(int $type, AbstractTable $table)
@@ -39,21 +43,28 @@ class TableProxy
     }
 
     /**
-     * @param array $where
-     * @param array $parameters
-     * @param array $orderBy
+     * @param array    $where
+     * @param array    $parameters
+     * @param array    $orderBy
      * @param int|null $limit
      * @param int|null $offset
+     *
      * @return int
      * @throws DBALException
      */
-    public function count(array $where = [], array $parameters = [], array $orderBy = [], int $limit = null, int $offset = null): int
-    {
+    public function count(
+        array $where = [],
+        array $parameters = [],
+        array $orderBy = [],
+        int   $limit = null,
+        int   $offset = null
+    ): int {
         return $this->table->count($where, $parameters, $orderBy, $limit, $offset, $this->type);
     }
 
     /**
      * @param mixed ...$parts
+     *
      * @return string
      */
     public function createEndpoint(...$parts): string
@@ -67,7 +78,8 @@ class TableProxy
 
     /**
      * @param string|null $endpoint
-     * @param int|null $hostId
+     * @param int|null    $hostId
+     *
      * @return int
      * @throws DBALException|MappingTablesException
      */
@@ -77,22 +89,29 @@ class TableProxy
     }
 
     /**
-     * @param array $where
-     * @param array $parameters
-     * @param array $orderBy
+     * @param array        $where
+     * @param array        $parameters
+     * @param array        $orderBy
      * @param integer|null $limit
      * @param integer|null $offset
+     *
      * @return array
      * @throws DBALException
      * @throws MappingTablesException
      */
-    public function findEndpoints(array $where = [], array $parameters = [], array $orderBy = [], int $limit = null, int $offset = null): array
-    {
+    public function findEndpoints(
+        array $where = [],
+        array $parameters = [],
+        array $orderBy = [],
+        int   $limit = null,
+        int   $offset = null
+    ): array {
         return $this->table->findEndpoints($where, $parameters, $orderBy, $limit, $offset, $this->type);
     }
 
     /**
      * @param array $endpoints
+     *
      * @return array
      * @throws DBALException
      */
@@ -103,6 +122,7 @@ class TableProxy
 
     /**
      * @param int $hostId
+     *
      * @return string|null
      * @throws Exception
      */
@@ -113,6 +133,7 @@ class TableProxy
 
     /**
      * @param string $endpoint
+     *
      * @return int|null
      * @throws DBALException|MappingTablesException
      */
@@ -138,28 +159,30 @@ class TableProxy
     }
 
     /**
+     * @param integer $type
+     *
+     * @return TableProxy
+     * @throws MappingTablesException
+     */
+    public function setType(int $type): TableProxy
+    {
+        if (!\in_array($type, $this->table->getTypes(), true)) {
+            throw MappingTablesException::tableNotResponsibleForType($type);
+        }
+
+        $this->type = $type;
+        return $this;
+    }
+
+    /**
      * @param string $endpoint
-     * @param int $hostId
+     * @param int    $hostId
+     *
      * @return int
      * @throws DBALException|MappingTablesException
      */
     public function save(string $endpoint, int $hostId): int
     {
         return $this->table->save($endpoint, $hostId);
-    }
-
-    /**
-     * @param integer $type
-     * @return TableProxy
-     * @throws MappingTablesException
-     */
-    public function setType(int $type): TableProxy
-    {
-        if (!in_array($type, $this->table->getTypes(), true)) {
-            throw MappingTablesException::tableNotResponsibleForType($type);
-        }
-
-        $this->type = $type;
-        return $this;
     }
 }

@@ -1,8 +1,6 @@
 <?php
-/**
- * @author Immanuel Klinkenberg <immanuel.klinkenberg@jtl-software.com>
- * @copyright 2010-2016 JTL-Software GmbH
- */
+
+declare(strict_types=1);
 
 namespace Jtl\Connector\MappingTables;
 
@@ -52,7 +50,7 @@ class TableCollection
      */
     public function removeByInstance(TableInterface $table): void
     {
-        $this->tables = array_filter($this->tables, function (TableInterface $collectedTable) use ($table) {
+        $this->tables = \array_filter($this->tables, function (TableInterface $collectedTable) use ($table) {
             return $collectedTable !== $table;
         });
     }
@@ -101,7 +99,7 @@ class TableCollection
     {
         $tables = [];
         foreach ($this->tables as $table) {
-            if (!in_array($table, $tables, true)) {
+            if (!\in_array($table, $tables, true)) {
                 $tables[] = $table;
             }
         }

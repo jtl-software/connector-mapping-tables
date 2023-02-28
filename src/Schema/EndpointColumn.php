@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Jtl\Connector\MappingTables\Schema;
 
 use Doctrine\DBAL\Schema\Column;
@@ -23,7 +25,7 @@ class EndpointColumn
      */
     public function __construct(Column $column, bool $primary = true)
     {
-        $this->column = $column;
+        $this->column  = $column;
         $this->primary = $primary;
     }
 

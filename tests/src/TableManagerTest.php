@@ -1,8 +1,7 @@
 <?php
-/**
- * @author Immanuel Klinkenberg <immanuel.klinkenberg@jtl-software.com>
- * @copyright 2010-2017 JTL-Software GmbH
- */
+
+declare(strict_types=1);
+
 namespace Jtl\Connector\MappingTables;
 
 class TableManagerTest extends TestCase
@@ -17,14 +16,6 @@ class TableManagerTest extends TestCase
      */
     protected $mtm;
 
-    protected function setUp(): void
-    {
-        $this->table = new TableStub($this->getDbManager());
-        $this->mtm = new TableManager($this->table);
-        parent::setUp();
-        $this->insertFixtures($this->table, self::getTableStubFixtures());
-    }
-
     public function testGetMappingTable()
     {
         $this->assertInstanceOf(TableStub::class, $this->mtm->getTableByType(TableStub::TYPE1));
@@ -34,22 +25,22 @@ class TableManagerTest extends TestCase
     public function testGetHostId()
     {
         $expected = 5;
-        $endpoint = sprintf('4||2||foobar||%s', TableStub::TYPE1);
-        $actual = $this->mtm->getHostId(TableStub::TYPE1, $endpoint);
+        $endpoint = \sprintf('4||2||foobar||%s', TableStub::TYPE1);
+        $actual   = $this->mtm->getHostId(TableStub::TYPE1, $endpoint);
         $this->assertEquals($expected, $actual);
     }
 
     public function testGetEndpointId()
     {
-        $expected = sprintf('1||2||bar||%s', TableStub::TYPE2);
-        $actual = $this->mtm->getEndpointId(TableStub::TYPE2, 2);
+        $expected = \sprintf('1||2||bar||%s', TableStub::TYPE2);
+        $actual   = $this->mtm->getEndpointId(TableStub::TYPE2, 2);
         $this->assertEquals($expected, $actual);
     }
 
     public function testSave()
     {
-        $endpoint = sprintf('1||8||asdf||%s', TableStub::TYPE1);
-        $hostId = 9;
+        $endpoint = \sprintf('1||8||asdf||%s', TableStub::TYPE1);
+        $hostId   = 9;
         $this->mtm->save(TableStub::TYPE1, $endpoint, $hostId);
         $this->assertEquals($hostId, $this->mtm->getHostId(TableStub::TYPE1, $endpoint));
         $this->assertEquals($endpoint, $this->mtm->getEndpointId(TableStub::TYPE1, $hostId));
@@ -57,7 +48,7 @@ class TableManagerTest extends TestCase
 
     public function testDeleteByEndpointId()
     {
-        $endpoint = sprintf('1||2||bar||%s', TableStub::TYPE2);
+        $endpoint = \sprintf('1||2||bar||%s', TableStub::TYPE2);
         $this->mtm->delete(TableStub::TYPE2, $endpoint);
         $this->assertNull($this->mtm->getHostId(TableStub::TYPE2, $endpoint));
     }
@@ -78,17 +69,17 @@ class TableManagerTest extends TestCase
     public function testFindNotFetchedEndpoints()
     {
         $fetched = [
-            sprintf('1||1||foo||%s', TableStub::TYPE1),
-            sprintf('1||2||bar||%s', TableStub::TYPE2),
+            \sprintf('1||1||foo||%s', TableStub::TYPE1),
+            \sprintf('1||2||bar||%s', TableStub::TYPE2),
         ];
 
         $notFetchedExpected = [
-            sprintf('2||1||yo||%s', TableStub::TYPE1),
-            sprintf('2||2||lo||%s', TableStub::TYPE1),
-            sprintf('2||3||so||%s', TableStub::TYPE1),
+            \sprintf('2||1||yo||%s', TableStub::TYPE1),
+            \sprintf('2||2||lo||%s', TableStub::TYPE1),
+            \sprintf('2||3||so||%s', TableStub::TYPE1),
         ];
 
-        $endpoints = array_merge($fetched, $notFetchedExpected);
+        $endpoints = \array_merge($fetched, $notFetchedExpected);
 
         $notFetchedActual = $this->mtm->filterMappedEndpointIds(TableStub::TYPE1, $endpoints);
         $this->assertCount(3, $notFetchedActual);
@@ -121,7 +112,7 @@ class TableManagerTest extends TestCase
     public function testGetNotExistingTableWithStrictModeDisabled()
     {
         $this->mtm->setStrictMode(false);
-        $type = 234234236;
+        $type  = 234234236;
         $table = $this->mtm->getTableByType($type);
         $this->assertInstanceOf(TableDummy::class, $table);
     }
@@ -132,5 +123,13 @@ class TableManagerTest extends TestCase
         $this->expectExceptionCode(MappingTablesException::TABLE_FOR_TYPE_NOT_FOUND);
         $this->mtm->setStrictMode(true);
         $this->mtm->getTableByType(7217641241);
+    }
+
+    protected function setUp(): void
+    {
+        $this->table = new TableStub($this->getDbManager());
+        $this->mtm   = new TableManager($this->table);
+        parent::setUp();
+        $this->insertFixtures($this->table, self::getTableStubFixtures());
     }
 }

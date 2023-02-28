@@ -1,8 +1,6 @@
 <?php
-/**
- * @author Immanuel Klinkenberg <immanuel.klinkenberg@jtl-software.com>
- * @copyright 2010-2018 JTL-Software GmbH
- */
+
+declare(strict_types=1);
 
 namespace Jtl\Connector\MappingTables;
 
@@ -15,16 +13,10 @@ class TableDummyTest extends TestCase
      */
     protected $table;
 
-    protected function setUp(): void
-    {
-        parent::setUp();
-        $this->table = new TableDummy();
-    }
-
     public function testClear()
     {
         $expected = 0;
-        $actual = $this->table->clear(12);
+        $actual   = $this->table->clear(12);
         $this->assertEquals($expected, $actual);
     }
 
@@ -92,5 +84,11 @@ class TableDummyTest extends TestCase
         $this->table->save('b', 9714);
         $notFetched = $this->table->filterMappedEndpoints($endpoints);
         $this->assertEquals($endpoints, $notFetched);
+    }
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+        $this->table = new TableDummy();
     }
 }
