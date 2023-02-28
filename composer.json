@@ -10,7 +10,7 @@
     }
   ],
   "require": {
-    "php": ">=7.3",
+    "php": ">=8.0",
     "doctrine/dbal": "^2.5",
     "jtl/connector-dbc": "^2.1.8",
     "jtl/connector": ">=4.0"
