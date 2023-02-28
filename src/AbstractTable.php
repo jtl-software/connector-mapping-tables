@@ -132,8 +132,8 @@ abstract class AbstractTable extends AbstractDbcTable implements TableInterface
         }
 
         $hostId = $qb->execute();
-        if ($hostId instanceof Result) {
-            return (int)$hostId->fetchOne();
+        if (($hostId instanceof Result) && ($hostId = $hostId->fetchOne()) !== false) {
+            return (int)$hostId;
         }
 
         return null;
@@ -446,7 +446,8 @@ abstract class AbstractTable extends AbstractDbcTable implements TableInterface
      * @param integer|null $type
      *
      * @return integer
-     * @throws DBALException|MappingTablesException
+     * @throws DBALException|MappingTablesException|\RuntimeException
+     * @throws \Doctrine\DBAL\Driver\Exception
      */
     public function count(
         array $where = [],
@@ -456,12 +457,16 @@ abstract class AbstractTable extends AbstractDbcTable implements TableInterface
         int   $offset = null,
         int   $type = null
     ): int {
-        $result = $this->createFindQuery($where, $parameters, $orderBy, $limit, $offset, $type)
-                       ->select($this->getDbManager()->getConnection()->getDatabasePlatform()->getCountExpression('*'))
-                       ->execute()
-                       ->fetchColumn(0);
+        if (($dbPlatform = $this->getDbManager()->getConnection()->getDatabasePlatform()) === null) {
+            throw new \RuntimeException('$dbPlatform must not be null.');
+        }
 
-        return $result;
+        $result = $this->createFindQuery($where, $parameters, $orderBy, $limit, $offset, $type)
+                       ->select($dbPlatform->getCountExpression('*'))
+                       ->execute()
+                       ->fetchOne();
+
+        return \is_numeric($result) ? (int)$result : 0;
     }
 
     /**

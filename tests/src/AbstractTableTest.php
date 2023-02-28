@@ -170,7 +170,11 @@ class AbstractTableTest extends TestCase
         $this->table->clear(44232);
     }
 
-    public function testCount()
+    /**
+     * @throws DBALException
+     * @throws MappingTablesException
+     */
+    public function testCount(): void
     {
         $this->assertEquals(4, $this->countRows($this->table->getTableName()));
         $this->assertEquals(3, $this->table->count([], [], [], null, null, TableStub::TYPE1));
@@ -180,7 +184,11 @@ class AbstractTableTest extends TestCase
         $this->assertEquals(2, $this->table->count([], [], [], null, null, TableStub::TYPE1));
     }
 
-    public function testCountWithWhereCondition()
+    /**
+     * @throws MappingTablesException
+     * @throws DBALException
+     */
+    public function testCountWithWhereCondition(): void
     {
         $where = [TableStub::COL_ID2 . ' = :' . TableStub::COL_ID2];
         $this->assertEquals(
