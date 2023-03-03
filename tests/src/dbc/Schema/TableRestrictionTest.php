@@ -1,8 +1,12 @@
 <?php
+
+declare(strict_types=1);
+
 /**
  * @author Immanuel Klinkenberg <immanuel.klinkenberg@jtl-software.com>
  * @copyright 2010-2017 JTL-Software GmbH
  */
+
 namespace Jtl\Connector\Dbc\Schema;
 
 use Doctrine\DBAL\DBALException;
@@ -22,8 +26,8 @@ class TableRestrictionTest extends TestCase
     public function testInitializationSuccessful()
     {
         $tableSchema = $this->table->getTableSchema();
-        $column = TableStub::B;
-        $value = 'a string';
+        $column      = TableStub::B;
+        $value       = 'a string';
         $restriction = new TableRestriction($tableSchema, $column, $value);
         $this->assertEquals($tableSchema, $restriction->getTable());
         $this->assertEquals($column, $restriction->getColumnName());
@@ -45,8 +49,8 @@ class TableRestrictionTest extends TestCase
     public function testCreate()
     {
         $tableSchema = $this->table->getTableSchema();
-        $column = TableStub::C;
-        $value = new \DateTimeImmutable('2007-08-31T16:47+00:00');
+        $column      = TableStub::C;
+        $value       = new \DateTimeImmutable('2007-08-31T16:47+00:00');
         $restriction = TableRestriction::create($tableSchema, $column, $value);
         $this->assertEquals($tableSchema, $restriction->getTable());
         $this->assertEquals($column, $restriction->getColumnName());

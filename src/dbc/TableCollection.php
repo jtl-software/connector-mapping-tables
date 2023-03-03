@@ -1,4 +1,7 @@
 <?php
+
+declare(strict_types=1);
+
 /**
  * @author Immanuel Klinkenberg <immanuel.klinkenberg@jtl-software.com>
  * @copyright 2010-2017 JTL-Software GmbH
@@ -99,7 +102,7 @@ class TableCollection
     public function filterOneByInstanceClass(string $className): ?AbstractTable
     {
         $tables = $this->filterArrayByInstanceClass($className);
-        return count($tables) > 0 ? reset($tables) : null;
+        return \count($tables) > 0 ? \reset($tables) : null;
     }
 
     /**
@@ -107,7 +110,7 @@ class TableCollection
      */
     public function toArray(): array
     {
-        return array_values($this->tables);
+        return \array_values($this->tables);
     }
 
     /**
@@ -116,15 +119,15 @@ class TableCollection
      */
     protected function filterArrayByInstanceClass(string $className): array
     {
-        if (!class_exists($className)) {
+        if (!\class_exists($className)) {
             throw RuntimeException::classNotFound($className);
         }
 
-        if (!is_a($className, AbstractTable::class, true)) {
+        if (!\is_a($className, AbstractTable::class, true)) {
             throw RuntimeException::classNotChildOfTable($className);
         }
 
-        return array_filter($this->toArray(), function (AbstractTable $table) use ($className) {
+        return \array_filter($this->toArray(), function (AbstractTable $table) use ($className) {
             return $table instanceof $className;
         });
     }

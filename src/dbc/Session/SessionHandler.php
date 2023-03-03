@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Jtl\Connector\Dbc\Session;
 
 use DateTimeImmutable;
@@ -19,9 +21,9 @@ use SessionUpdateTimestampHandlerInterface;
 class SessionHandler extends AbstractTable implements SessionHandlerInterface, SessionUpdateTimestampHandlerInterface
 {
     public const
-        SESSION_ID = 'session_id',
+        SESSION_ID   = 'session_id',
         SESSION_DATA = 'session_data',
-        EXPIRES_AT = 'expires_at';
+        EXPIRES_AT   = 'expires_at';
 
     /**
      * @var string
@@ -41,8 +43,8 @@ class SessionHandler extends AbstractTable implements SessionHandlerInterface, S
      */
     public function __construct(DbManager $dbManager, string $tableName = 'session_store')
     {
-        $this->tableName = $tableName;
-        $this->maxLifetime = (int)ini_get('session.gc_maxlifetime');
+        $this->tableName   = $tableName;
+        $this->maxLifetime = (int)\ini_get('session.gc_maxlifetime');
         parent::__construct($dbManager);
     }
 
@@ -123,7 +125,7 @@ class SessionHandler extends AbstractTable implements SessionHandlerInterface, S
     public function read(string $sessionId)
     {
         $stmt = $this->createReadQuery($sessionId, [self::SESSION_DATA])->execute();
-        if (is_object($stmt)) {
+        if (\is_object($stmt)) {
             return (string)$stmt->fetchOne();
         }
         return '';
@@ -145,7 +147,7 @@ class SessionHandler extends AbstractTable implements SessionHandlerInterface, S
         $rowCount = $this->update($data, [self::SESSION_ID => $sessionId]);
         if ($rowCount === 0) {
             try {
-                $this->insert(array_merge($data, [self::SESSION_ID => $sessionId]));
+                $this->insert(\array_merge($data, [self::SESSION_ID => $sessionId]));
             } catch (UniqueConstraintViolationException $ex) {
                 $this->update($data, [self::SESSION_ID => $sessionId]);
             }
@@ -162,7 +164,7 @@ class SessionHandler extends AbstractTable implements SessionHandlerInterface, S
     public function validateId(string $sessionId): bool
     {
         $stmt = $this->createReadQuery($sessionId, [self::SESSION_ID])->execute();
-        if (is_object($stmt)) {
+        if (\is_object($stmt)) {
             return $stmt->fetchOne() === $sessionId;
         }
 
@@ -205,6 +207,6 @@ class SessionHandler extends AbstractTable implements SessionHandlerInterface, S
      */
     protected function calculateExpiryTime(): int
     {
-        return time() + $this->maxLifetime;
+        return \time() + $this->maxLifetime;
     }
 }

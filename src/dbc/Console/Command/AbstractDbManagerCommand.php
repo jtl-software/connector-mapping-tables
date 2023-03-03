@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Jtl\Connector\Dbc\Console\Command;
 
 use Jtl\Connector\Dbc\DbManager;
@@ -19,13 +21,14 @@ abstract class AbstractDbManagerCommand extends Command
 
     /**
      * AbstractDbManagerCommand constructor.
-     * @param DbManager $dbManager
+     *
+     * @param DbManager   $dbManager
      * @param string|null $name
      */
     public function __construct(DbManager $dbManager, string $name = null)
     {
         $this->dbManager = $dbManager;
-        $this->dbParams = $dbManager->getConnection()->getParams();
+        $this->dbParams  = $dbManager->getConnection()->getParams();
         parent::__construct($name);
     }
 

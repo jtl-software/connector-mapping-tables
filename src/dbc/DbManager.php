@@ -1,4 +1,7 @@
 <?php
+
+declare(strict_types=1);
+
 /**
  * @author Immanuel Klinkenberg <immanuel.klinkenberg@jtl-software.com>
  * @copyright 2010-2017 JTL-Software GmbH
@@ -36,7 +39,7 @@ class DbManager
      */
     public function __construct(Connection $connection, string $tablesPrefix = null)
     {
-        $this->connection = $connection;
+        $this->connection   = $connection;
         $this->tablesPrefix = $tablesPrefix;
     }
 
@@ -76,7 +79,7 @@ class DbManager
     {
         $originalSchemaAssetsFilter = $this->connection->getConfiguration()->getSchemaAssetsFilter();
         $this->connection->getConfiguration()->setSchemaAssetsFilter($this->createSchemaAssetsFilterCallback());
-        $fromSchema = $this->connection->getSchemaManager()->createSchema();
+        $fromSchema       = $this->connection->getSchemaManager()->createSchema();
         $updateStatements = $fromSchema->getMigrateToSql(new Schema($this->getSchemaTables()), $this->connection->getDatabasePlatform());
         $this->connection->getConfiguration()->setSchemaAssetsFilter($originalSchemaAssetsFilter);
         return $updateStatements;
@@ -88,7 +91,7 @@ class DbManager
      */
     public function hasSchemaUpdates(): bool
     {
-        return count($this->getSchemaUpdates()) > 0;
+        return \count($this->getSchemaUpdates()) > 0;
     }
 
     /**
@@ -108,7 +111,7 @@ class DbManager
      */
     public function hasTablesPrefix(): bool
     {
-        return is_string($this->tablesPrefix) && strlen($this->tablesPrefix) > 0;
+        return \is_string($this->tablesPrefix) && \strlen($this->tablesPrefix) > 0;
     }
 
     /**
@@ -125,11 +128,11 @@ class DbManager
     public function createSchemaAssetsFilterCallback(): callable
     {
         return function (string $tableName) {
-            $tableNames = array_map(function (AbstractTable $table) {
+            $tableNames = \array_map(function (AbstractTable $table) {
                 return $table->getTableName();
             }, $this->getTables());
 
-            return in_array($tableName, $tableNames, true);
+            return \in_array($tableName, $tableNames, true);
         };
     }
 
@@ -142,7 +145,7 @@ class DbManager
         if ($shortName === '') {
             throw RuntimeException::tableNameEmpty();
         }
-        return sprintf('%s%s', (string)$this->tablesPrefix, $shortName);
+        return \sprintf('%s%s', (string)$this->tablesPrefix, $shortName);
     }
 
     /**
@@ -150,7 +153,7 @@ class DbManager
      */
     protected function getTables(): array
     {
-        return array_values($this->tables);
+        return \array_values($this->tables);
     }
 
     /**
@@ -159,7 +162,7 @@ class DbManager
      */
     protected function getSchemaTables(): array
     {
-        return array_map(function (AbstractTable $table) {
+        return \array_map(function (AbstractTable $table) {
             return $table->getTableSchema();
         }, $this->getTables());
     }
@@ -175,7 +178,7 @@ class DbManager
      */
     public static function createFromPDO(\PDO $pdo, Configuration $config = null, string $tablesPrefix = null): DbManager
     {
-        $params = [
+        $params     = [
             'pdo' => $pdo,
             'wrapperClass' => Connection::class
         ];
@@ -193,7 +196,7 @@ class DbManager
     public static function createFromParams(array $params, Configuration $config = null, string $tablesPrefix = null): DbManager
     {
         $params['wrapperClass'] = Connection::class;
-        $connection = DriverManager::getConnection($params, $config);
+        $connection             = DriverManager::getConnection($params, $config);
         return new static($connection, $tablesPrefix);
     }
 }

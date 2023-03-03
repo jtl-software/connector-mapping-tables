@@ -1,5 +1,6 @@
 <?php
 
+declare(strict_types=1);
 
 namespace Jtl\Connector\Dbc\Types;
 
@@ -22,7 +23,7 @@ class Uuid4Type extends Type
     public function getSQLDeclaration(array $column, AbstractPlatform $platform)
     {
         $column['length'] = 16;
-        $column['fixed'] = true;
+        $column['fixed']  = true;
 
         return $platform->getBinaryTypeDeclarationSQL($column);
     }
@@ -34,7 +35,7 @@ class Uuid4Type extends Type
      */
     public function convertToPHPValue($value, AbstractPlatform $platform)
     {
-        return ctype_xdigit(str_replace('-', '', $value)) ? $value : bin2hex($value);
+        return \ctype_xdigit(\str_replace('-', '', $value)) ? $value : \bin2hex($value);
     }
 
     /**
@@ -45,7 +46,7 @@ class Uuid4Type extends Type
      */
     public function convertToDatabaseValue($value, AbstractPlatform $platform)
     {
-        $converted = hex2bin(str_replace('-', '', $value));
+        $converted = \hex2bin(\str_replace('-', '', $value));
         if ($converted === false) {
             throw ConversionException::conversionFailedInvalidType((string)$value, $this->getName(), ['UUIDv4 string']);
         }
@@ -64,7 +65,7 @@ class Uuid4Type extends Type
     public function convertToPHPValueSQL($sqlExpr, $platform)
     {
         if ($platform instanceof MySqlPlatform || $platform instanceof SqlitePlatform) {
-            return $platform->getLowerExpression(sprintf('HEX(%s)', $sqlExpr));
+            return $platform->getLowerExpression(\sprintf('HEX(%s)', $sqlExpr));
         }
 
         return $sqlExpr;

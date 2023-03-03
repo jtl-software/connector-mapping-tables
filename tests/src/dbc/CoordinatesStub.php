@@ -1,8 +1,12 @@
 <?php
+
+declare(strict_types=1);
+
 /**
  * @author Immanuel Klinkenberg <immanuel.klinkenberg@jtl-software.com>
  * @copyright 2010-2017 JTL-Software GmbH
  */
+
 namespace Jtl\Connector\Dbc;
 
 use Doctrine\DBAL\DBALException;
@@ -41,7 +45,7 @@ class CoordinatesStub extends AbstractTable
      */
     public function addCoordinate(float $x, float $y, float $z)
     {
-        $data = [self::COL_X => $x, self::COL_Y => $y, self::COL_Z => $z];
+        $data  = [self::COL_X => $x, self::COL_Y => $y, self::COL_Z => $z];
         $types = [self::COL_X => Type::FLOAT, self::COL_Y => Type::FLOAT, self::COL_Z => Type::FLOAT];
 
         return $this->getConnection()

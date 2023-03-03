@@ -1,8 +1,12 @@
 <?php
+
+declare(strict_types=1);
+
 /**
  * @author Immanuel Klinkenberg <immanuel.klinkenberg@jtl-software.com>
  * @copyright 2010-2017 JTL-Software GmbH
  */
+
 namespace Jtl\Connector\Dbc\Schema;
 
 use Doctrine\DBAL\Schema\SchemaException;
@@ -38,9 +42,9 @@ class TableRestriction
             throw SchemaException::columnDoesNotExist($columnName, $table->getName());
         }
 
-        $this->table = $table;
+        $this->table      = $table;
         $this->columnName = $columnName;
-        $this->value = $columnValue;
+        $this->value      = $columnValue;
     }
 
     /**

@@ -1,8 +1,12 @@
 <?php
+
+declare(strict_types=1);
+
 /**
  * @author Immanuel Klinkenberg <immanuel.klinkenberg@jtl-software.com>
  * @copyright 2010-2017 JTL-Software GmbH
  */
+
 namespace Jtl\Connector\Dbc;
 
 use Doctrine\DBAL\DBALException;
@@ -39,7 +43,7 @@ class DbManagerTest extends TestCase
         $coordinateTable = $tables[1];
         $this->assertEquals('coordinates', $coordinateTable->getName());
         $schemaTables = $this->getDbManager()->getSchemaTables();
-        $this->assertEquals(self::TABLE_PREFIX, substr($schemaTables[1]->getName(), 0, strlen(self::TABLE_PREFIX)));
+        $this->assertEquals(self::TABLE_PREFIX, \substr($schemaTables[1]->getName(), 0, \strlen(self::TABLE_PREFIX)));
     }
 
     public function testHasSchemaUpdates()
@@ -81,16 +85,16 @@ class DbManagerTest extends TestCase
 
     public function testCreateSchemaAssetsFilterCallback()
     {
-        $dbm = DbManager::createFromParams(['url' => 'sqlite:///:memory:']);
+        $dbm      = DbManager::createFromParams(['url' => 'sqlite:///:memory:']);
         $callback = $dbm->createSchemaAssetsFilterCallback();
-        $tables = $this->createTableStubs($dbm);
+        $tables   = $this->createTableStubs($dbm);
 
         foreach ($tables as $table) {
             $this->assertTrue($callback($table->getTableName()));
         }
 
-        for ($i = 0; $i < count($tables); $i++) {
-            $this->assertFalse($callback(uniqid('nxtbl-')));
+        for ($i = 0; $i < \count($tables); $i++) {
+            $this->assertFalse($callback(\uniqid('nxtbl-')));
         }
     }
 
@@ -104,7 +108,7 @@ class DbManagerTest extends TestCase
      */
     public function testCreateTableName(string $shortName, ?string $tablesPrefix, string $expectedTableName)
     {
-        $dbm = DbManager::createFromParams(['url' => 'sqlite:///:memory:'], null, $tablesPrefix);
+        $dbm             = DbManager::createFromParams(['url' => 'sqlite:///:memory:'], null, $tablesPrefix);
         $actualTableName = $dbm->createTableName($shortName);
         $this->assertEquals($expectedTableName, $actualTableName);
     }
@@ -135,17 +139,17 @@ class DbManagerTest extends TestCase
      */
     protected function createTableStubs(DbManager $dbManager, int $amount = null): array
     {
-        if (is_null($amount)) {
-            $amount = mt_rand(1, 10);
+        if (\is_null($amount)) {
+            $amount = \mt_rand(1, 10);
         }
 
-        return array_map(function (DbManager $dbManager) {
-            return new class($dbManager) extends AbstractTable {
+        return \array_map(function (DbManager $dbManager) {
+            return new class ($dbManager) extends AbstractTable {
                 protected $tableName;
 
                 public function __construct(DbManager $dbManager)
                 {
-                    $this->tableName = uniqid('tbl-');
+                    $this->tableName = \uniqid('tbl-');
                     parent::__construct($dbManager);
                 }
 
@@ -160,6 +164,6 @@ class DbManagerTest extends TestCase
                     $tableSchema->setPrimaryKey(['id']);
                 }
             };
-        }, array_fill(0, $amount, $dbManager));
+        }, \array_fill(0, $amount, $dbManager));
     }
 }

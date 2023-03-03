@@ -1,8 +1,12 @@
 <?php
+
+declare(strict_types=1);
+
 /**
  * @author Immanuel Klinkenberg <immanuel.klinkenberg@jtl-software.com>
  * @copyright 2010-2017 JTL-Software GmbH
  */
+
 namespace Jtl\Connector\Dbc;
 
 use Doctrine\DBAL\DriverManager;
@@ -21,12 +25,12 @@ class ConnectionTest extends TestCase
         $this->table = new TableStub($this->getDBManager());
         parent::setUp();
         $this->insertFixtures($this->table, self::getTableStubFixtures());
-        $params = [
+        $params           = [
             'pdo' => $this->getPDO(),
             'wrapperClass' => Connection::class
         ];
-        $config = null;
-        $connection = DriverManager::getConnection($params, $config);
+        $config           = null;
+        $connection       = DriverManager::getConnection($params, $config);
         $this->connection = $connection;
     }
 
@@ -41,7 +45,7 @@ class ConnectionTest extends TestCase
         ];
         $this->assertEquals(1, $this->connection->insert($this->table->getTableName(), $data));
         $this->assertEquals(3, $this->countRows($this->table->getTableName()));
-        $qb = $this->connection->createQueryBuilder();
+        $qb   = $this->connection->createQueryBuilder();
         $stmt = $qb
             ->select($this->table->getColumnNames())
             ->from($this->table->getTableName())
@@ -67,7 +71,7 @@ class ConnectionTest extends TestCase
 
         $identifier = [TableStub::B => 'yolo'];
         $this->connection->update($this->table->getTableName(), $data, $identifier);
-        $qb = $this->connection->createQueryBuilder();
+        $qb   = $this->connection->createQueryBuilder();
         $stmt = $qb
             ->select($this->table->getColumnNames())
             ->from($this->table->getTableName())
@@ -87,7 +91,7 @@ class ConnectionTest extends TestCase
         $this->connection->restrictTable(new TableRestriction($this->table->getTableSchema(), TableStub::B, 'b string'));
         $this->connection->delete($this->table->getTableName(), [TableStub::B => 'something else']);
         $this->assertEquals(1, $this->countRows($this->table->getTableName()));
-        $qb = $this->connection->createQueryBuilder();
+        $qb   = $this->connection->createQueryBuilder();
         $stmt = $qb
             ->select($this->table->getColumnNames())
             ->from($this->table->getTableName())
@@ -159,7 +163,7 @@ class ConnectionTest extends TestCase
 
     public function testMultiInsert()
     {
-        $data = [];
+        $data   = [];
         $data[] = [
             TableStub::A => 25,
             TableStub::B => 'another string',
@@ -183,7 +187,7 @@ class ConnectionTest extends TestCase
     {
         $this->expectException(\Exception::class);
 
-        $data = [];
+        $data   = [];
         $data[] = [
             TableStub::A => 25,
             TableStub::B => 'another string',

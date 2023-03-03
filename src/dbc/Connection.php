@@ -1,8 +1,12 @@
 <?php
+
+declare(strict_types=1);
+
 /**
  * @author Immanuel Klinkenberg <immanuel.klinkenberg@jtl-software.com>
  * @copyright 2010-2017 JTL-Software GmbH
  */
+
 namespace Jtl\Connector\Dbc;
 
 use Doctrine\DBAL\DBALException;
@@ -70,7 +74,7 @@ class Connection extends \Doctrine\DBAL\Connection
      */
     public function insert($tableExpression, array $data, array $types = []): int
     {
-        return parent::insert($tableExpression, array_merge($data, $this->getTableRestrictions($tableExpression)), $types);
+        return parent::insert($tableExpression, \array_merge($data, $this->getTableRestrictions($tableExpression)), $types);
     }
 
     /**
@@ -107,8 +111,8 @@ class Connection extends \Doctrine\DBAL\Connection
     public function update($tableExpression, array $data, array $identifiers, array $types = []): int
     {
         $restrictions = $this->getTableRestrictions($tableExpression);
-        $data = array_merge($data, $restrictions);
-        $identifiers = array_merge($identifiers, $restrictions);
+        $data         = \array_merge($data, $restrictions);
+        $identifiers  = \array_merge($identifiers, $restrictions);
         return parent::update($tableExpression, $data, $identifiers, $types);
     }
 
@@ -123,7 +127,7 @@ class Connection extends \Doctrine\DBAL\Connection
     public function delete($tableExpression, array $identifiers, array $types = []): int
     {
         $restrictions = $this->getTableRestrictions($tableExpression);
-        $identifiers = array_merge($identifiers, $restrictions);
+        $identifiers  = \array_merge($identifiers, $restrictions);
         return parent::delete($tableExpression, $identifiers, $types);
     }
 }

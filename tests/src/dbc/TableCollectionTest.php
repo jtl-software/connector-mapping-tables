@@ -1,4 +1,7 @@
 <?php
+
+declare(strict_types=1);
+
 /**
  * @author Immanuel Klinkenberg <immanuel.klinkenberg@jtl-software.com>
  * @copyright 2010-2018 JTL-Software GmbH
@@ -82,7 +85,7 @@ class TableCollectionTest extends TestCase
     public function testFilterByInstanceClass()
     {
         $tables[] = $this->table;
-        $tables[] = new class($this->getDBManager()) extends TableStub {
+        $tables[] = new class ($this->getDBManager()) extends TableStub {
             public function getName(): string
             {
                 return 'tableX';
@@ -91,7 +94,7 @@ class TableCollectionTest extends TestCase
         $tables[] = new Table2Stub($this->getDBManager());
 
         $collection = new TableCollection($tables);
-        $filtered = $collection->filterByInstanceClass(TableStub::class);
+        $filtered   = $collection->filterByInstanceClass(TableStub::class);
 
         $this->assertInstanceOf(TableCollection::class, $filtered);
         $this->assertNotEquals($collection, $filtered);
@@ -118,7 +121,7 @@ class TableCollectionTest extends TestCase
         $this->collection->set($t2Stub);
 
         $expected = $this->table;
-        $actual = $this->collection->filterOneByInstanceClass(AbstractTable::class);
+        $actual   = $this->collection->filterOneByInstanceClass(AbstractTable::class);
         $this->assertEquals($expected, $actual);
     }
 

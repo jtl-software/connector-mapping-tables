@@ -1,4 +1,7 @@
 <?php
+
+declare(strict_types=1);
+
 /**
  * @author Immanuel Klinkenberg <immanuel.klinkenberg@jtl-software.com>
  * @copyright 2010-2017 JTL-Software GmbH
@@ -21,7 +24,7 @@ class TableTest extends TestCase
 
     protected function setUp(): void
     {
-        $this->table = new TableStub($this->getDBManager());
+        $this->table  = new TableStub($this->getDBManager());
         $this->coords = new CoordinatesStub($this->getDBManager());
         parent::setUp();
         $this->insertFixtures($this->table, self::getTableStubFixtures());
@@ -43,15 +46,15 @@ class TableTest extends TestCase
         $this->table->restrict(TableStub::B, 'a string');
         $data = $this->table->findAll();
         $this->assertCount(1, $data);
-        $row = reset($data);
+        $row = \reset($data);
         $this->assertEquals(1, $row[TableStub::A]);
         $this->assertEquals('a string', $row[TableStub::B]);
-        $this->assertEquals(new \DateTime('@' . strtotime("2017-03-29 00:00:00")), $row[TableStub::C]);
+        $this->assertEquals(new \DateTime('@' . \strtotime("2017-03-29 00:00:00")), $row[TableStub::C]);
     }
 
     public function testGetTableSchema()
     {
-        $table = $this->coords->getTableSchema();
+        $table   = $this->coords->getTableSchema();
         $columns = $table->getColumns();
         $this->assertCount(3, $columns);
         $this->assertArrayHasKey(CoordinatesStub::COL_X, $columns);
@@ -89,7 +92,7 @@ class TableTest extends TestCase
     public function testConvertToPhpValuesAssoc()
     {
         $connection = $this->table->getDbManager()->getConnection();
-        $rows = $connection->createQueryBuilder()
+        $rows       = $connection->createQueryBuilder()
             ->select($this->table->getColumnNames())
             ->from($this->table->getTableName())
             ->execute()
@@ -98,13 +101,13 @@ class TableTest extends TestCase
         $this->assertCount(2, $rows);
         $mappedRow = $this->invokeMethodFromObject($this->table, 'convertToPhpValues', $rows[1]);
         $this->assertArrayHasKey(TableStub::ID, $mappedRow);
-        $this->assertTrue(is_int($mappedRow[TableStub::ID]));
+        $this->assertTrue(\is_int($mappedRow[TableStub::ID]));
         $this->assertEquals(3, $mappedRow[TableStub::ID]);
         $this->assertArrayHasKey(TableStub::A, $mappedRow);
-        $this->assertTrue(is_int($mappedRow[TableStub::A]));
+        $this->assertTrue(\is_int($mappedRow[TableStub::A]));
         $this->assertEquals(4, $mappedRow[TableStub::A]);
         $this->assertArrayHasKey(TableStub::B, $mappedRow);
-        $this->assertTrue(is_string($mappedRow[TableStub::B]));
+        $this->assertTrue(\is_string($mappedRow[TableStub::B]));
         $this->assertEquals('b string', $mappedRow[TableStub::B]);
         $this->assertArrayHasKey(TableStub::C, $mappedRow);
         $this->assertInstanceOf(\DateTimeImmutable::class, $mappedRow[TableStub::C]);
@@ -113,7 +116,7 @@ class TableTest extends TestCase
     public function testConvertToPhpValuesPartiallyAssoc()
     {
         $connection = $this->table->getDbManager()->getConnection();
-        $rows = $connection->createQueryBuilder()
+        $rows       = $connection->createQueryBuilder()
             ->select(['a', 'c'])
             ->from($this->table->getTableName())
             ->execute()
@@ -123,7 +126,7 @@ class TableTest extends TestCase
         $mappedRow = $this->invokeMethodFromObject($this->table, 'convertToPhpValues', $rows[1]);
         $this->assertCount(2, $mappedRow);
         $this->assertArrayHasKey(TableStub::A, $mappedRow);
-        $this->assertTrue(is_int($mappedRow[TableStub::A]));
+        $this->assertTrue(\is_int($mappedRow[TableStub::A]));
         $this->assertEquals(4, $mappedRow[TableStub::A]);
         $this->assertArrayHasKey(TableStub::C, $mappedRow);
         $this->assertInstanceOf(\DateTimeImmutable::class, $mappedRow[TableStub::C]);
@@ -132,7 +135,7 @@ class TableTest extends TestCase
     public function testConvertToPhpValuesNumeric()
     {
         $connection = $this->table->getDbManager()->getConnection();
-        $rows = $connection->createQueryBuilder()
+        $rows       = $connection->createQueryBuilder()
             ->select($this->table->getColumnNames())
             ->from($this->table->getTableName())
             ->execute()
@@ -141,13 +144,13 @@ class TableTest extends TestCase
         $this->assertCount(2, $rows);
         $mappedRow = $this->invokeMethodFromObject($this->table, 'convertToPhpValues', $rows[1]);
         $this->assertArrayHasKey(0, $mappedRow);
-        $this->assertTrue(is_int($mappedRow[0]));
+        $this->assertTrue(\is_int($mappedRow[0]));
         $this->assertEquals(3, $mappedRow[0]);
         $this->assertArrayHasKey(1, $mappedRow);
-        $this->assertTrue(is_int($mappedRow[1]));
+        $this->assertTrue(\is_int($mappedRow[1]));
         $this->assertEquals(4, $mappedRow[1]);
         $this->assertArrayHasKey(2, $mappedRow);
-        $this->assertTrue(is_string($mappedRow[2]));
+        $this->assertTrue(\is_string($mappedRow[2]));
         $this->assertEquals('b string', $mappedRow[2]);
         $this->assertArrayHasKey(3, $mappedRow);
         $this->assertInstanceOf(\DateTimeImmutable::class, $mappedRow[3]);
@@ -159,7 +162,7 @@ class TableTest extends TestCase
         $this->expectExceptionCode(RuntimeException::INDICES_MISSING);
 
         $connection = $this->table->getDbManager()->getConnection();
-        $rows = $connection->createQueryBuilder()
+        $rows       = $connection->createQueryBuilder()
             ->select(['a', 'c'])
             ->from($this->table->getTableName())
             ->execute()
@@ -171,13 +174,13 @@ class TableTest extends TestCase
 
     public function testInsertWithTableColumnTypes()
     {
-        $a = mt_rand();
+        $a = \mt_rand();
         $b = 'foobar';
-        $c = new \DateTimeImmutable(sprintf('@%d', mt_rand(1, time())));
+        $c = new \DateTimeImmutable(\sprintf('@%d', \mt_rand(1, \time())));
         $this->table->insert(['a' => $a, 'b' => $b, 'c' => $c]);
         $rows = $this->table->find(['a' => $a, 'b' => $b]);
         $this->assertCount(1, $rows);
-        $data = reset($rows);
+        $data = \reset($rows);
         $this->assertArrayHasKey('c', $data);
         $this->assertInstanceOf(\DateTimeImmutable::class, $data['c']);
         $this->assertEquals($c, $data['c']);
@@ -185,23 +188,23 @@ class TableTest extends TestCase
 
     public function testInsertWithoutTypes()
     {
-        $a = mt_rand();
+        $a = \mt_rand();
         $b = 'foobar';
-        $c = new \DateTimeImmutable(sprintf('@%d', mt_rand(1, time())));
+        $c = new \DateTimeImmutable(\sprintf('@%d', \mt_rand(1, \time())));
         $this->table->insert(['a' => $a, 'b' => $b, 'c' => $c->format('Y-m-d H:i:s')], []);
         $rows = $this->table->find(['a' => $a, 'b' => $b]);
         $this->assertCount(1, $rows);
-        $data = reset($rows);
+        $data = \reset($rows);
         $this->assertArrayHasKey('c', $data);
         $this->assertEquals($c, $data['c']);
     }
 
     public function testUpdateWithTableColumnTypes()
     {
-        $a = mt_rand();
-        $b = 'foobar';
-        $c = new \DateTimeImmutable(sprintf('@%d', mt_rand(1, time())));
-        $newC = new \DateTimeImmutable(sprintf('@%d', mt_rand(1, time())));
+        $a    = \mt_rand();
+        $b    = 'foobar';
+        $c    = new \DateTimeImmutable(\sprintf('@%d', \mt_rand(1, \time())));
+        $newC = new \DateTimeImmutable(\sprintf('@%d', \mt_rand(1, \time())));
         ;
         $this->table->insert(['a' => $a, 'b' => $b, 'c' => $c]);
         $this->table->update(['c' => $newC], ['a' => $a, 'b' => $b]);
@@ -211,10 +214,10 @@ class TableTest extends TestCase
 
     public function testUpdateWithoutTypes()
     {
-        $a = mt_rand();
-        $b = 'foobar';
-        $c = new \DateTimeImmutable(sprintf('@%d', mt_rand(1, time())));
-        $newC = new \DateTimeImmutable(sprintf('@%d', mt_rand(1, time())));
+        $a    = \mt_rand();
+        $b    = 'foobar';
+        $c    = new \DateTimeImmutable(\sprintf('@%d', \mt_rand(1, \time())));
+        $newC = new \DateTimeImmutable(\sprintf('@%d', \mt_rand(1, \time())));
         ;
         $this->table->insert(['a' => $a, 'b' => $b, 'c' => $c]);
         $this->table->update(['c' => $newC->format('Y-m-d H:i:s')], ['a' => $a, 'b' => $b], []);
@@ -224,9 +227,9 @@ class TableTest extends TestCase
 
     public function testDeleteWithTableColumnTypes()
     {
-        $a = mt_rand();
+        $a = \mt_rand();
         $b = 'foobar';
-        $c = new \DateTimeImmutable(sprintf('@%d', mt_rand(1, time())));
+        $c = new \DateTimeImmutable(\sprintf('@%d', \mt_rand(1, \time())));
         $this->table->insert(['a' => $a, 'b' => $b, 'c' => $c]);
         $this->table->delete(['a' => $a, 'c' => $c]);
         $this->assertCount(0, $this->table->find(['a' => $a, 'b' => $b]));
@@ -234,9 +237,9 @@ class TableTest extends TestCase
 
     public function testDeleteWithoutTypes()
     {
-        $a = mt_rand();
+        $a = \mt_rand();
         $b = 'foobar';
-        $c = new \DateTimeImmutable(sprintf('@%d', mt_rand(1, time())));
+        $c = new \DateTimeImmutable(\sprintf('@%d', \mt_rand(1, \time())));
         $this->table->insert(['a' => $a, 'b' => $b, 'c' => $c]);
         $this->table->delete(['a' => $a, 'c' => $c->format('Y-m-d H:i:s')], []);
         $this->assertCount(0, $this->table->find(['a' => $a, 'b' => $b]));

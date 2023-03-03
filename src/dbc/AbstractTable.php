@@ -1,4 +1,7 @@
 <?php
+
+declare(strict_types=1);
+
 /**
  * @author Immanuel Klinkenberg <immanuel.klinkenberg@jtl-software.com>
  * @copyright 2010-2017 JTL-Software GmbH
@@ -57,8 +60,8 @@ abstract class AbstractTable
      */
     public function insert(array $data, array $types = null): int
     {
-        if (is_null($types)) {
-            $types = $this->getColumnTypesFor(...array_keys($data));
+        if (\is_null($types)) {
+            $types = $this->getColumnTypesFor(...\array_keys($data));
         }
 
         return $this->getConnection()->insert($this->getTableName(), $data, $types);
@@ -73,8 +76,8 @@ abstract class AbstractTable
      */
     public function update(array $data, array $identifiers, array $types = null): int
     {
-        if (is_null($types)) {
-            $types = $this->getColumnTypesFor(...array_unique(array_merge(array_keys($data), array_keys($identifiers))));
+        if (\is_null($types)) {
+            $types = $this->getColumnTypesFor(...\array_unique(\array_merge(\array_keys($data), \array_keys($identifiers))));
         }
 
         return $this->getConnection()->update($this->getTableName(), $data, $identifiers, $types);
@@ -89,8 +92,8 @@ abstract class AbstractTable
      */
     public function delete(array $identifiers, array $types = null): int
     {
-        if (is_null($types)) {
-            $types = $this->getColumnTypesFor(...array_keys($identifiers));
+        if (\is_null($types)) {
+            $types = $this->getColumnTypesFor(...\array_keys($identifiers));
         }
 
         return $this->getConnection()->delete($this->getTableName(), $identifiers, $types);
@@ -111,12 +114,12 @@ abstract class AbstractTable
      */
     public function getTableSchema(): Table
     {
-        if (is_null($this->tableSchema)) {
+        if (\is_null($this->tableSchema)) {
             $this->tableSchema = $this->createSchemaTable();
             $this->preCreateTableSchema($this->tableSchema);
             $this->createTableSchema($this->tableSchema);
             $this->postCreateTableSchema($this->tableSchema);
-            if (count($this->tableSchema->getColumns()) === 0) {
+            if (\count($this->tableSchema->getColumns()) === 0) {
                 throw RuntimeException::tableEmpty($this->tableSchema->getName());
             }
         }
@@ -151,7 +154,7 @@ abstract class AbstractTable
      */
     public function getColumnNames(): array
     {
-        return array_keys($this->getColumnTypes());
+        return \array_keys($this->getColumnTypes());
     }
 
     /**
@@ -196,15 +199,15 @@ abstract class AbstractTable
      */
     protected function convertToPhpValues(array $row): array
     {
-        $types = $this->getColumnTypes();
-        $numericIndices = is_int(key($row));
+        $types          = $this->getColumnTypes();
+        $numericIndices = \is_int(\key($row));
 
-        if ($numericIndices && count($row) < count($types)) {
+        if ($numericIndices && \count($row) < \count($types)) {
             throw RuntimeException::numericIndicesMissing();
         }
 
         if ($numericIndices) {
-            $types = array_values($types);
+            $types = \array_values($types);
         }
 
         $result = [];
@@ -230,7 +233,7 @@ abstract class AbstractTable
      */
     protected function convertAllToPhpValues(array $rows): array
     {
-        return array_map(function (array $row) {
+        return \array_map(function (array $row) {
             return $this->convertToPhpValues($row);
         }, $rows);
     }
@@ -256,8 +259,8 @@ abstract class AbstractTable
      */
     protected function getColumnTypesFor(string ...$columnNames): array
     {
-        return array_filter($this->getColumnTypes(), function (string $columnName) use ($columnNames) {
-            return in_array($columnName, $columnNames, true);
+        return \array_filter($this->getColumnTypes(), function (string $columnName) use ($columnNames) {
+            return \in_array($columnName, $columnNames, true);
         }, \ARRAY_FILTER_USE_KEY);
     }
 

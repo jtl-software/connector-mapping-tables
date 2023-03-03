@@ -1,8 +1,12 @@
 <?php
+
+declare(strict_types=1);
+
 /**
  * @author Immanuel Klinkenberg <immanuel.klinkenberg@jtl-software.com>
  * @copyright 2010-2016 JTL-Software GmbH
  */
+
 namespace Jtl\Connector\Dbc;
 
 use Doctrine\DBAL\DBALException;
@@ -12,7 +16,7 @@ use Jtl\UnitTest\TestCase as JtlTestCase;
 abstract class TestCase extends JtlTestCase
 {
     public const TABLE_PREFIX = 'pre_';
-    public const SCHEMA       = TESTROOT . '/tmp/db.sqlite';
+    public const SCHEMA       = \TESTROOT . '/tmp/db.sqlite';
 
     /**
      * @var PDO
@@ -43,12 +47,12 @@ abstract class TestCase extends JtlTestCase
     protected function getPDO()
     {
         if (!$this->pdo instanceof \PDO) {
-            if (!is_dir(dirname(self::SCHEMA))) {
-                mkdir(dirname(self::SCHEMA));
+            if (!\is_dir(\dirname(self::SCHEMA))) {
+                \mkdir(\dirname(self::SCHEMA));
             }
 
-            if (file_exists(self::SCHEMA)) {
-                unlink(self::SCHEMA);
+            if (\file_exists(self::SCHEMA)) {
+                \unlink(self::SCHEMA);
             }
             $this->pdo = new \PDO('sqlite:' . self::SCHEMA);
         }
@@ -83,7 +87,7 @@ abstract class TestCase extends JtlTestCase
 
         foreach ($conditions as $column => $value) {
             $qb
-                ->andWhere(sprintf('%s = :%s', $column, $column))
+                ->andWhere(\sprintf('%s = :%s', $column, $column))
                 ->setParameter($column, $value);
         }
 

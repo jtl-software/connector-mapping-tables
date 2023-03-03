@@ -1,5 +1,6 @@
 <?php
 
+declare(strict_types=1);
 
 namespace Jtl\Connector\Dbc\Console\Command;
 
@@ -41,7 +42,7 @@ class UpdateDatabaseSchemaCommand extends AbstractDbManagerCommand
                 $output->writeln('Schema updated.');
             } else {
                 foreach ($this->dbManager->getSchemaUpdates() as $statement) {
-                    $output->writeln(sprintf('%s;', $statement));
+                    $output->writeln(\sprintf('%s;', $statement));
                 }
             }
         } else {
