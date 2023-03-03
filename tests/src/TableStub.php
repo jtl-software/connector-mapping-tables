@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Jtl\Connector\MappingTables;
 
+use Doctrine\DBAL\Exception;
 use Doctrine\DBAL\Schema\Column;
 use Doctrine\DBAL\Schema\Table;
 use Doctrine\DBAL\Types\Types;
@@ -32,6 +33,10 @@ class TableStub extends AbstractTable
         return self::TABLE_NAME;
     }
 
+    /**
+     * @throws MappingTablesException
+     * @throws Exception
+     */
     public function defineEndpoint(): void
     {
         $this->setEndpointColumn(self::COL_ID1, Types::INTEGER);

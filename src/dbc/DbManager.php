@@ -2,11 +2,6 @@
 
 declare(strict_types=1);
 
-/**
- * @author Immanuel Klinkenberg <immanuel.klinkenberg@jtl-software.com>
- * @copyright 2010-2017 JTL-Software GmbH
- */
-
 namespace Jtl\Connector\Dbc;
 
 use Doctrine\DBAL\Configuration;
@@ -20,27 +15,52 @@ class DbManager
     /**
      * @var Connection
      */
-    protected $connection;
+    protected Connection $connection;
 
     /**
      * @var AbstractTable[]
      */
-    protected $tables = [];
+    protected array $tables = [];
 
     /**
      * @var string|null
      */
-    protected $tablesPrefix;
+    protected ?string $tablesPrefix;
 
     /**
      * DbManager constructor.
-     * @param Connection $connection
+     *
+     * @param Connection  $connection
      * @param string|null $tablesPrefix
      */
     public function __construct(Connection $connection, string $tablesPrefix = null)
     {
         $this->connection   = $connection;
         $this->tablesPrefix = $tablesPrefix;
+    }
+
+    /**
+     * @param \PDO               $pdo
+     * @param Configuration|null $config
+     * @param string|null        $tablesPrefix
+     *
+     * @return DbManager
+     * @throws DBALException
+     * @deprecated Is getting removed in a future release. Use static::createFromParams() instead.
+     *
+     */
+    public static function createFromPDO(
+        \PDO          $pdo,
+        Configuration $config = null,
+        string        $tablesPrefix = null
+    ): DbManager {
+        $params     = [
+            'pdo'          => $pdo,
+            'wrapperClass' => Connection::class
+        ];
+        $connection = DriverManager::getConnection($params, $config);
+
+        return new static($connection, $tablesPrefix);
     }
 
     /**
@@ -52,12 +72,33 @@ class DbManager
     }
 
     /**
+     * @param string[]           $params
+     * @param Configuration|null $config
+     * @param string|null        $tablesPrefix
+     *
+     * @return DbManager
+     * @throws DBALException
+     */
+    public static function createFromParams(
+        array         $params,
+        Configuration $config = null,
+        string        $tablesPrefix = null
+    ): DbManager {
+        $params['wrapperClass'] = Connection::class;
+        $connection             = DriverManager::getConnection($params, $config);
+
+        return new static($connection, $tablesPrefix);
+    }
+
+    /**
      * @param AbstractTable $table
+     *
      * @return DbManager
      */
     public function registerTable(AbstractTable $table): DbManager
     {
         $this->tables[$table->getTableName()] = $table;
+
         return $this;
     }
 
@@ -67,8 +108,35 @@ class DbManager
      */
     public function getSchema(): array
     {
-        $schema = new Schema($this->getSchemaTables());
-        return $schema->toSql($this->connection->getDatabasePlatform());
+        return (new Schema($this->getSchemaTables()))->toSql($this->connection->getDatabasePlatform());
+    }
+
+    /**
+     * @return Table[]
+     * @throws DBALException
+     */
+    protected function getSchemaTables(): array
+    {
+        return \array_map(static function (AbstractTable $table) {
+            return $table->getTableSchema();
+        }, $this->getTables());
+    }
+
+    /**
+     * @return AbstractTable[]
+     */
+    protected function getTables(): array
+    {
+        return \array_values($this->tables);
+    }
+
+    /**
+     * @return boolean
+     * @throws DBALException
+     */
+    public function hasSchemaUpdates(): bool
+    {
+        return \count($this->getSchemaUpdates()) > 0;
     }
 
     /**
@@ -80,18 +148,26 @@ class DbManager
         $originalSchemaAssetsFilter = $this->connection->getConfiguration()->getSchemaAssetsFilter();
         $this->connection->getConfiguration()->setSchemaAssetsFilter($this->createSchemaAssetsFilterCallback());
         $fromSchema       = $this->connection->getSchemaManager()->createSchema();
-        $updateStatements = $fromSchema->getMigrateToSql(new Schema($this->getSchemaTables()), $this->connection->getDatabasePlatform());
+        $updateStatements = $fromSchema->getMigrateToSql(
+            new Schema($this->getSchemaTables()),
+            $this->connection->getDatabasePlatform()
+        );
         $this->connection->getConfiguration()->setSchemaAssetsFilter($originalSchemaAssetsFilter);
         return $updateStatements;
     }
 
     /**
-     * @return boolean
-     * @throws DBALException
+     * @return callable
      */
-    public function hasSchemaUpdates(): bool
+    public function createSchemaAssetsFilterCallback(): callable
     {
-        return \count($this->getSchemaUpdates()) > 0;
+        return function (string $tableName) {
+            $tableNames = \array_map(static function (AbstractTable $table) {
+                return $table->getTableName();
+            }, $this->getTables());
+
+            return \in_array($tableName, $tableNames, true);
+        };
     }
 
     /**
@@ -115,7 +191,7 @@ class DbManager
     }
 
     /**
-     * @return string
+     * @return string|null
      */
     public function getTablesPrefix(): ?string
     {
@@ -123,21 +199,8 @@ class DbManager
     }
 
     /**
-     * @return callable
-     */
-    public function createSchemaAssetsFilterCallback(): callable
-    {
-        return function (string $tableName) {
-            $tableNames = \array_map(function (AbstractTable $table) {
-                return $table->getTableName();
-            }, $this->getTables());
-
-            return \in_array($tableName, $tableNames, true);
-        };
-    }
-
-    /**
      * @param string $shortName
+     *
      * @return string
      */
     public function createTableName(string $shortName): string
@@ -146,57 +209,5 @@ class DbManager
             throw RuntimeException::tableNameEmpty();
         }
         return \sprintf('%s%s', (string)$this->tablesPrefix, $shortName);
-    }
-
-    /**
-     * @return AbstractTable[]
-     */
-    protected function getTables(): array
-    {
-        return \array_values($this->tables);
-    }
-
-    /**
-     * @return Table[]
-     * @throws DBALException
-     */
-    protected function getSchemaTables(): array
-    {
-        return \array_map(function (AbstractTable $table) {
-            return $table->getTableSchema();
-        }, $this->getTables());
-    }
-
-    /**
-     * @deprecated Is getting removed in a future release. Use static::createFromParams() instead.
-     *
-     * @param \PDO $pdo
-     * @param Configuration|null $config
-     * @param string|null $tablesPrefix
-     * @return DbManager
-     * @throws DBALException
-     */
-    public static function createFromPDO(\PDO $pdo, Configuration $config = null, string $tablesPrefix = null): DbManager
-    {
-        $params     = [
-            'pdo' => $pdo,
-            'wrapperClass' => Connection::class
-        ];
-        $connection = DriverManager::getConnection($params, $config);
-        return new static($connection, $tablesPrefix);
-    }
-
-    /**
-     * @param string[] $params
-     * @param Configuration|null $config
-     * @param string|null $tablesPrefix
-     * @return DbManager
-     * @throws DBALException
-     */
-    public static function createFromParams(array $params, Configuration $config = null, string $tablesPrefix = null): DbManager
-    {
-        $params['wrapperClass'] = Connection::class;
-        $connection             = DriverManager::getConnection($params, $config);
-        return new static($connection, $tablesPrefix);
     }
 }

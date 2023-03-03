@@ -2,48 +2,39 @@
 
 declare(strict_types=1);
 
-/**
- * @author Immanuel Klinkenberg <immanuel.klinkenberg@jtl-software.com>
- * @copyright 2010-2017 JTL-Software GmbH
- */
-
 namespace Jtl\Connector\Dbc\Query;
 
+use Doctrine\DBAL\DBALException;
+use Doctrine\DBAL\Exception;
+use Doctrine\DBAL\Schema\SchemaException;
 use Jtl\Connector\Dbc\CoordinatesStub;
-use Jtl\Connector\Dbc\TestCase;
 use Jtl\Connector\Dbc\Schema\TableRestriction;
+use Jtl\Connector\Dbc\TestCase;
+use Throwable;
 
 class QueryBuilderTest extends TestCase
 {
     /**
      * @var QueryBuilder
      */
-    protected $qb;
+    protected QueryBuilder $qb;
 
     /**
      * @var CoordinatesStub
      */
-    protected $coordsTable;
+    protected CoordinatesStub $coordsTable;
 
     /**
      * @var string
      */
-    protected $tableExpression = 'yolo';
+    protected string $tableExpression = 'yolo';
 
     /**
      * @var string[]
      */
-    protected $globalIdentifiers = ['foo' => 'bar'];
+    protected array $globalIdentifiers = ['foo' => 'bar'];
 
-    protected function setUp(): void
-    {
-        $this->coordsTable = new CoordinatesStub($this->getDBManager());
-        $this->qb          = new QueryBuilder($this->getDBManager()->getConnection(), [$this->tableExpression => $this->globalIdentifiers]);
-        parent::setUp();
-        $this->insertFixtures($this->coordsTable, self::getCoordinatesFixtures());
-    }
-
-    public function testTableRestrictionWithSelect()
+    public function testTableRestrictionWithSelect(): void
     {
         $this->qb
             ->select('something')
@@ -54,10 +45,10 @@ class QueryBuilderTest extends TestCase
         $sql        = $this->qb->getSQL();
         $whereSplit = \explode('WHERE', $sql);
         $andSplit   = \array_map([$this, 'myTrim'], \explode('AND', $whereSplit[1]));
-        $this->assertTrue(\in_array('foo = :glob_id_foo', $andSplit, true));
+        $this->assertContains('foo = :glob_id_foo', $andSplit);
     }
 
-    public function testTableRestrictionWithInsert()
+    public function testTableRestrictionWithInsert(): void
     {
         $this->qb
             ->insert($this->tableExpression)
@@ -67,10 +58,10 @@ class QueryBuilderTest extends TestCase
         $valuesSplit  = \explode('VALUES', $sql);
         $valuesString = \str_replace(['(', ')'], ['', ''], $valuesSplit[1]);
         $values       = \array_map('trim', \explode(',', $valuesString));
-        $this->assertTrue(\in_array(':glob_id_foo', $values, true));
+        $this->assertContains(':glob_id_foo', $values);
     }
 
-    public function testGlobalIdentifierWithUpdate()
+    public function testGlobalIdentifierWithUpdate(): void
     {
         $this->qb->update($this->tableExpression)->set('key', 'value');
         $sql = $this->qb->getSQL();
@@ -98,18 +89,25 @@ class QueryBuilderTest extends TestCase
         $this->assertEquals(':glob_id_foo', $wheres['foo']);
     }
 
-    public function testGlobalIdentifierWithDelete()
+    public function testGlobalIdentifierWithDelete(): void
     {
         $this->qb->delete($this->tableExpression)->where('a = b');
         $sql        = $this->qb->getSQL();
         $whereSplit = \explode('WHERE', $sql);
         $andSplit   = \array_map([$this, 'myTrim'], \explode('AND', $whereSplit[1]));
-        $this->assertTrue(\in_array('foo = :glob_id_foo', $andSplit, true));
+        $this->assertContains('foo = :glob_id_foo', $andSplit);
     }
 
-    public function testTableRestriction()
+    /**
+     * @throws DBALException
+     * @throws SchemaException
+     * @throws Exception
+     */
+    public function testTableRestriction(): void
     {
-        $this->getDBManager()->getConnection()->restrictTable(new TableRestriction($this->coordsTable->getTableSchema(), CoordinatesStub::COL_X, 1.));
+        $this->getDBManager()->getConnection()->restrictTable(
+            new TableRestriction($this->coordsTable->getTableSchema(), CoordinatesStub::COL_X, 1.)
+        );
         $this->assertEquals(4, $this->countRows($this->coordsTable->getTableName()));
         $datasets = $this->coordsTable->findAll();
         $this->assertEquals(3, $datasets[0]['z']);
@@ -117,16 +115,19 @@ class QueryBuilderTest extends TestCase
 
         $qb = $this->getDBManager()->getConnection()->createQueryBuilder();
         $qb->update($this->coordsTable->getTableName())
-            ->set('z', ':z')
-            ->setParameter('z', 10.5)
-            ->execute();
+           ->set('z', ':z')
+           ->setParameter('z', 10.5)
+           ->execute();
 
         $datasets = $this->coordsTable->findAll();
         $this->assertEquals(10.5, $datasets[0]['z']);
         $this->assertEquals(10.5, $datasets[1]['z']);
     }
 
-    public function testSelectWithLockedFromTableAndCalledFromMethod()
+    /**
+     * @throws DBALException
+     */
+    public function testSelectWithLockedFromTableAndCalledFromMethod(): void
     {
         $fromTable   = 'tableau';
         $connection  = $this->getDBManager()->getConnection();
@@ -136,7 +137,10 @@ class QueryBuilderTest extends TestCase
         $this->assertEquals($expectedSql, $actualSql);
     }
 
-    public function testSelectWithLockedFromTableAndFromAliasAndNotCalledFromMethod()
+    /**
+     * @throws DBALException
+     */
+    public function testSelectWithLockedFromTableAndFromAliasAndNotCalledFromMethod(): void
     {
         $fromTable   = 'tableau';
         $fromAlias   = 't';
@@ -147,7 +151,10 @@ class QueryBuilderTest extends TestCase
         $this->assertEquals($expectedSql, $actualSql);
     }
 
-    public function testInsertWithLockedFromTableAndTableNameInInsert()
+    /**
+     * @throws DBALException
+     */
+    public function testInsertWithLockedFromTableAndTableNameInInsert(): void
     {
         $fromTable   = 'tableau';
         $connection  = $this->getDBManager()->getConnection();
@@ -157,7 +164,10 @@ class QueryBuilderTest extends TestCase
         $this->assertEquals($expectedSql, $actualSql);
     }
 
-    public function testInsertWithLockedFromTableAndNotTableNameInInsert()
+    /**
+     * @throws DBALException
+     */
+    public function testInsertWithLockedFromTableAndNotTableNameInInsert(): void
     {
         $fromTable   = 'tableau';
         $connection  = $this->getDBManager()->getConnection();
@@ -167,7 +177,10 @@ class QueryBuilderTest extends TestCase
         $this->assertEquals($expectedSql, $actualSql);
     }
 
-    public function testUpdateWithLockedFromTableAndFromAliasAndTableNameInUpdate()
+    /**
+     * @throws DBALException
+     */
+    public function testUpdateWithLockedFromTableAndFromAliasAndTableNameInUpdate(): void
     {
         $fromTable   = 'tableau';
         $fromAlias   = 't';
@@ -178,7 +191,10 @@ class QueryBuilderTest extends TestCase
         $this->assertEquals($expectedSql, $actualSql);
     }
 
-    public function testUpdateWithLockedFromTableAndNotTableNameInUpdate()
+    /**
+     * @throws DBALException
+     */
+    public function testUpdateWithLockedFromTableAndNotTableNameInUpdate(): void
     {
         $fromTable   = 'tableau';
         $connection  = $this->getDBManager()->getConnection();
@@ -188,7 +204,10 @@ class QueryBuilderTest extends TestCase
         $this->assertEquals($expectedSql, $actualSql);
     }
 
-    public function testDeleteWithLockedFromTableAndTableNameInDelete()
+    /**
+     * @throws DBALException
+     */
+    public function testDeleteWithLockedFromTableAndTableNameInDelete(): void
     {
         $fromTable   = 'tableau';
         $connection  = $this->getDBManager()->getConnection();
@@ -198,7 +217,10 @@ class QueryBuilderTest extends TestCase
         $this->assertEquals($expectedSql, $actualSql);
     }
 
-    public function testDeleteWithLockedFromTableAndFromAliasAndTableNameNotInDelete()
+    /**
+     * @throws DBALException
+     */
+    public function testDeleteWithLockedFromTableAndFromAliasAndTableNameNotInDelete(): void
     {
         $fromTable   = 'tableau';
         $fromAlias   = 't';
@@ -209,8 +231,24 @@ class QueryBuilderTest extends TestCase
         $this->assertEquals($expectedSql, $actualSql);
     }
 
-    public function myTrim($str)
+    public function myTrim($str): string
     {
         return \trim($str, " \t\n\r\0\x0B()");
+    }
+
+    /**
+     * @throws DBALException
+     * @throws \Exception
+     * @throws Throwable
+     */
+    protected function setUp(): void
+    {
+        $this->coordsTable = new CoordinatesStub($this->getDBManager());
+        $this->qb          = new QueryBuilder(
+            $this->getDBManager()->getConnection(),
+            [$this->tableExpression => $this->globalIdentifiers]
+        );
+        parent::setUp();
+        $this->insertFixtures($this->coordsTable, self::getCoordinatesFixtures());
     }
 }

@@ -9,17 +9,17 @@ class TableCollection
     /**
      * @var boolean
      */
-    protected $strictMode = false;
+    protected bool $strictMode = false;
 
     /**
      * @var TableDummy
      */
-    protected $tableDummy;
+    protected TableDummy $tableDummy;
 
     /**
      * @var array<TableInterface>
      */
-    protected $tables = [];
+    protected array $tables = [];
 
     /**
      * TableCollection constructor.

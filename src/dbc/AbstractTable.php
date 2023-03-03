@@ -2,11 +2,6 @@
 
 declare(strict_types=1);
 
-/**
- * @author Immanuel Klinkenberg <immanuel.klinkenberg@jtl-software.com>
- * @copyright 2010-2017 JTL-Software GmbH
- */
-
 namespace Jtl\Connector\Dbc;
 
 use Doctrine\DBAL\DBALException;
@@ -23,27 +18,18 @@ abstract class AbstractTable
     /**
      * @var DbManager
      */
-    protected $dbManager;
+    protected DbManager $dbManager;
 
     /**
      * @var Table
      */
-    protected $tableSchema;
-
-    /**
-     * @return string
-     */
-    abstract protected function getName(): string;
-
-    /**
-     * @param $tableSchema Table
-     * @return void
-     */
-    abstract protected function createTableSchema(Table $tableSchema): void;
+    protected Table $tableSchema;
 
     /**
      * Table constructor.
+     *
      * @param DbManager $dbManager
+     *
      * @throws \Exception
      */
     public function __construct(DbManager $dbManager)
@@ -53,8 +39,9 @@ abstract class AbstractTable
     }
 
     /**
-     * @param mixed[] $data
+     * @param mixed[]       $data
      * @param string[]|null $types
+     *
      * @return int
      * @throws DBALException
      */
@@ -68,43 +55,29 @@ abstract class AbstractTable
     }
 
     /**
-     * @param array $data
-     * @param array $identifiers
-     * @param array|null $types
-     * @return integer
+     * @param string[] $columnNames
+     *
+     * @return string[]
      * @throws DBALException
      */
-    public function update(array $data, array $identifiers, array $types = null): int
+    protected function getColumnTypesFor(string ...$columnNames): array
     {
-        if (\is_null($types)) {
-            $types = $this->getColumnTypesFor(...\array_unique(\array_merge(\array_keys($data), \array_keys($identifiers))));
-        }
-
-        return $this->getConnection()->update($this->getTableName(), $data, $identifiers, $types);
+        return \array_filter($this->getColumnTypes(), function (string $columnName) use ($columnNames) {
+            return \in_array($columnName, $columnNames, true);
+        }, \ARRAY_FILTER_USE_KEY);
     }
 
     /**
-     * @param mixed[] $identifiers
-     * @param string[]|null $types
-     * @return int
+     * @return array
      * @throws DBALException
-     * @throws InvalidArgumentException
      */
-    public function delete(array $identifiers, array $types = null): int
+    public function getColumnTypes(): array
     {
-        if (\is_null($types)) {
-            $types = $this->getColumnTypesFor(...\array_keys($identifiers));
+        $columnTypes = [];
+        foreach ($this->getTableSchema()->getColumns() as $column) {
+            $columnTypes[$column->getName()] = $column->getType()->getName();
         }
-
-        return $this->getConnection()->delete($this->getTableName(), $identifiers, $types);
-    }
-
-    /**
-     * @return DbManager
-     */
-    public function getDbManager(): DbManager
-    {
-        return $this->dbManager;
+        return $columnTypes;
     }
 
     /**
@@ -127,6 +100,15 @@ abstract class AbstractTable
     }
 
     /**
+     * @return Table
+     * @throws Exception
+     */
+    protected function createSchemaTable(): Table
+    {
+        return new Table($this->getTableName());
+    }
+
+    /**
      * @return string
      */
     public function getTableName(): string
@@ -135,16 +117,80 @@ abstract class AbstractTable
     }
 
     /**
-     * @return array
+     * @return string
+     */
+    abstract protected function getName(): string;
+
+    /**
+     * @param Table $schemaTable
+     */
+    protected function preCreateTableSchema(Table $schemaTable): void
+    {
+    }
+
+    /**
+     * @param $tableSchema Table
+     *
+     * @return void
+     */
+    abstract protected function createTableSchema(Table $tableSchema): void;
+
+    /**
+     * @param Table $schemaTable
+     */
+    protected function postCreateTableSchema(Table $schemaTable): void
+    {
+    }
+
+    /**
+     * @return Connection
+     */
+    protected function getConnection(): Connection
+    {
+        return $this->getDbManager()->getConnection();
+    }
+
+    /**
+     * @return DbManager
+     */
+    public function getDbManager(): DbManager
+    {
+        return $this->dbManager;
+    }
+
+    /**
+     * @param array      $data
+     * @param array      $identifiers
+     * @param array|null $types
+     *
+     * @return integer
      * @throws DBALException
      */
-    public function getColumnTypes(): array
+    public function update(array $data, array $identifiers, array $types = null): int
     {
-        $columnTypes = [];
-        foreach ($this->getTableSchema()->getColumns() as $column) {
-            $columnTypes[$column->getName()] = $column->getType()->getName();
+        if (\is_null($types)) {
+            $types =
+                $this->getColumnTypesFor(...\array_unique(\array_merge(\array_keys($data), \array_keys($identifiers))));
         }
-        return $columnTypes;
+
+        return $this->getConnection()->update($this->getTableName(), $data, $identifiers, $types);
+    }
+
+    /**
+     * @param mixed[]       $identifiers
+     * @param string[]|null $types
+     *
+     * @return int
+     * @throws DBALException
+     * @throws InvalidArgumentException
+     */
+    public function delete(array $identifiers, array $types = null): int
+    {
+        if (\is_null($types)) {
+            $types = $this->getColumnTypesFor(...\array_keys($identifiers));
+        }
+
+        return $this->getConnection()->delete($this->getTableName(), $identifiers, $types);
     }
 
     /**
@@ -158,41 +204,36 @@ abstract class AbstractTable
     }
 
     /**
-     * @return Table
-     * @throws Exception
-     */
-    protected function createSchemaTable(): Table
-    {
-        return new Table($this->getTableName());
-    }
-
-    /**
-     * @param Table $schemaTable
-     */
-    protected function preCreateTableSchema(Table $schemaTable): void
-    {
-    }
-
-    /**
-     * @param Table $schemaTable
-     */
-    protected function postCreateTableSchema(Table $schemaTable): void
-    {
-    }
-
-    /**
      * @param string $doctrineType
-     * @param mixed $phpValue
+     * @param mixed  $phpValue
+     *
      * @return mixed
      * @throws Exception
      */
-    protected function convertToDatabaseValue(string $doctrineType, $phpValue)
+    protected function convertToDatabaseValue(string $doctrineType, mixed $phpValue): mixed
     {
-        return Type::getType($doctrineType)->convertToDatabaseValue($phpValue, $this->getConnection()->getDatabasePlatform());
+        return Type::getType($doctrineType)->convertToDatabaseValue(
+            $phpValue,
+            $this->getConnection()->getDatabasePlatform()
+        );
+    }
+
+    /**
+     * @param array $rows
+     *
+     * @return array
+     * @throws DBALException
+     */
+    protected function convertAllToPhpValues(array $rows): array
+    {
+        return \array_map(function (array $row) {
+            return $this->convertToPhpValues($row);
+        }, $rows);
     }
 
     /**
      * @param array<string> $row
+     *
      * @return array
      * @throws RuntimeException
      * @throws DBALException
@@ -214,7 +255,10 @@ abstract class AbstractTable
         foreach ($row as $index => $value) {
             $result[$index] = $value;
             if (isset($types[$index]) && Type::hasType($types[$index]) && $types[$index] !== Type::BINARY) {
-                $result[$index] = Type::getType($types[$index])->convertToPHPValue($value, $this->getConnection()->getDatabasePlatform());
+                $result[$index] = Type::getType($types[$index])->convertToPHPValue(
+                    $value,
+                    $this->getConnection()->getDatabasePlatform()
+                );
 
                 //Dirty BIGINT to int cast
                 if ($result[$index] !== null && $types[$index] === Type::BIGINT) {
@@ -227,19 +271,8 @@ abstract class AbstractTable
     }
 
     /**
-     * @param array $rows
-     * @return array
-     * @throws DBALException
-     */
-    protected function convertAllToPhpValues(array $rows): array
-    {
-        return \array_map(function (array $row) {
-            return $this->convertToPhpValues($row);
-        }, $rows);
-    }
-
-    /**
      * @param string|null $tableAlias
+     *
      * @return QueryBuilder
      */
     protected function createQueryBuilder(string $tableAlias = null): QueryBuilder
@@ -253,28 +286,9 @@ abstract class AbstractTable
     }
 
     /**
-     * @param string[] $columnNames
-     * @return string[]
-     * @throws DBALException
-     */
-    protected function getColumnTypesFor(string ...$columnNames): array
-    {
-        return \array_filter($this->getColumnTypes(), function (string $columnName) use ($columnNames) {
-            return \in_array($columnName, $columnNames, true);
-        }, \ARRAY_FILTER_USE_KEY);
-    }
-
-    /**
-     * @return Connection
-     */
-    protected function getConnection(): Connection
-    {
-        return $this->getDbManager()->getConnection();
-    }
-
-    /**
      * @param string $column
-     * @param mixed $value
+     * @param mixed  $value
+     *
      * @return AbstractTable
      * @throws RuntimeException
      * @throws DBALException

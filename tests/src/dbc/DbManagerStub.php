@@ -2,12 +2,9 @@
 
 declare(strict_types=1);
 
-/**
- * @author Immanuel Klinkenberg <immanuel.klinkenberg@jtl-software.com>
- * @copyright 2010-2017 JTL-Software GmbH
- */
-
 namespace Jtl\Connector\Dbc;
+
+use Doctrine\DBAL\DBALException;
 
 class DbManagerStub extends DbManager
 {
@@ -21,7 +18,7 @@ class DbManagerStub extends DbManager
 
     /**
      * @return array
-     * @throws \Doctrine\DBAL\DBALException
+     * @throws DBALException
      */
     public function getSchemaTables(): array
     {

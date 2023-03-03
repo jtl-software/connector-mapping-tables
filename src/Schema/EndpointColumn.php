@@ -11,12 +11,12 @@ class EndpointColumn
     /**
      * @var Column
      */
-    protected $column;
+    protected Column $column;
 
     /**
      * @var boolean
      */
-    protected $primary = true;
+    protected bool $primary = true;
 
     /**
      * EndpointColumn constructor.

@@ -2,109 +2,21 @@
 
 declare(strict_types=1);
 
-/**
- * @author Immanuel Klinkenberg <immanuel.klinkenberg@jtl-software.com>
- * @copyright 2010-2016 JTL-Software GmbH
- */
-
 namespace Jtl\Connector\Dbc;
 
 use Doctrine\DBAL\DBALException;
 use Doctrine\DBAL\Query\QueryBuilder;
 use Jtl\UnitTest\TestCase as JtlTestCase;
+use PDO;
+use Throwable;
 
 abstract class TestCase extends JtlTestCase
 {
     public const TABLE_PREFIX = 'pre_';
     public const SCHEMA       = \TESTROOT . '/tmp/db.sqlite';
-
-    /**
-     * @var PDO
-     */
-    private $pdo;
-
-    /**
-     * @var DbManagerStub
-     */
-    private $dbManager;
-
-    /**
-     * @var AbstractTable
-     */
-    protected $table;
-
-    protected function setUp(): void
-    {
-        parent::setUp();
-        if ($this->getDBManager()->hasSchemaUpdates()) {
-            $this->getDBManager()->updateDatabaseSchema();
-        }
-    }
-
-    /**
-     * @return PDO
-     */
-    protected function getPDO()
-    {
-        if (!$this->pdo instanceof \PDO) {
-            if (!\is_dir(\dirname(self::SCHEMA))) {
-                \mkdir(\dirname(self::SCHEMA));
-            }
-
-            if (\file_exists(self::SCHEMA)) {
-                \unlink(self::SCHEMA);
-            }
-            $this->pdo = new \PDO('sqlite:' . self::SCHEMA);
-        }
-        return $this->pdo;
-    }
-
-    /**
-     * @return DbManager|DbManagerStub
-     * @throws DBALException
-     */
-    protected function getDBManager()
-    {
-        if (!$this->dbManager instanceof DbManagerStub) {
-            $this->dbManager = DbManagerStub::createFromPDO($this->getPDO(), null, self::TABLE_PREFIX);
-        }
-        return $this->dbManager;
-    }
-
-    /**
-     * @param string $tableName
-     * @param array $conditions
-     * @return int
-     * @throws DBALException
-     */
-    protected function countRows(string $tableName, array $conditions = []): int
-    {
-        $connection = $this->getDbManager()->getConnection();
-
-        $qb = (new QueryBuilder($connection))
-            ->select($connection->getDatabasePlatform()->getCountExpression('*'))
-            ->from($tableName);
-
-        foreach ($conditions as $column => $value) {
-            $qb
-                ->andWhere(\sprintf('%s = :%s', $column, $column))
-                ->setParameter($column, $value);
-        }
-
-        return $qb->execute()->fetchColumn();
-    }
-
-    /**
-     * @param AbstractTable $table
-     * @param array $fixtures
-     * @throws DBALException
-     */
-    protected function insertFixtures(AbstractTable $table, array $fixtures)
-    {
-        foreach ($fixtures as $fixture) {
-            $table->insert($fixture);
-        }
-    }
+    protected AbstractTable         $table;
+    private PDO                     $pdo;
+    private DbManager|DbManagerStub $dbManager;
 
     /**
      * @return mixed[]
@@ -128,5 +40,89 @@ abstract class TestCase extends JtlTestCase
             ["x" => 3, "y" => 1, "z" => 2],
             ["x" => 2, "y" => 3, "z" => 1],
         ];
+    }
+
+    /**
+     * @throws Throwable
+     * @throws DBALException
+     */
+    protected function setUp(): void
+    {
+        parent::setUp();
+        if ($this->getDBManager()->hasSchemaUpdates()) {
+            $this->getDBManager()->updateDatabaseSchema();
+        }
+    }
+
+    /**
+     * @return DbManager|DbManagerStub
+     * @throws DBALException
+     */
+    protected function getDBManager()
+    {
+        if (!$this->dbManager instanceof DbManagerStub) {
+            $this->dbManager = DbManagerStub::createFromPDO($this->getPDO(), null, self::TABLE_PREFIX);
+        }
+        return $this->dbManager;
+    }
+
+    /**
+     * @return PDO
+     * @throws \RuntimeException
+     */
+    protected function getPDO(): PDO
+    {
+        if (!isset($this->pdo)) {
+            if (
+                !\is_dir(\dirname(self::SCHEMA))
+                && !\mkdir($concurrentDirectory = \dirname(self::SCHEMA))
+                && !\is_dir($concurrentDirectory)
+            ) {
+                throw new \RuntimeException(\sprintf('Directory "%s" was not created', $concurrentDirectory));
+            }
+
+            if (\file_exists(self::SCHEMA)) {
+                \unlink(self::SCHEMA);
+            }
+            $this->pdo = new PDO('sqlite:' . self::SCHEMA);
+        }
+        return $this->pdo;
+    }
+
+    /**
+     * @param string $tableName
+     * @param array  $conditions
+     *
+     * @return int
+     * @throws DBALException
+     */
+    protected function countRows(string $tableName, array $conditions = []): int
+    {
+        $connection = $this->getDbManager()->getConnection();
+
+        $qb = (new QueryBuilder($connection))
+            ->select($connection->getDatabasePlatform()->getCountExpression('*'))
+            ->from($tableName);
+
+        foreach ($conditions as $column => $value) {
+            $qb
+                ->andWhere(\sprintf('%s = :%s', $column, $column))
+                ->setParameter($column, $value);
+        }
+
+        return $qb->execute()->fetchColumn();
+    }
+
+    /**
+     * @param AbstractTable $table
+     * @param array         $fixtures
+     *
+     * @throws DBALException
+     */
+    protected function insertFixtures(AbstractTable $table, array $fixtures): void
+    {
+        foreach ($fixtures as $fixture) {
+            $table->insert($fixture);
+        }
     }
 }

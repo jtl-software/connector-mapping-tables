@@ -2,11 +2,6 @@
 
 declare(strict_types=1);
 
-/**
- * @author Immanuel Klinkenberg <immanuel.klinkenberg@jtl-software.com>
- * @copyright 2010-2017 JTL-Software GmbH
- */
-
 namespace Jtl\Connector\Dbc;
 
 class RuntimeException extends \RuntimeException
@@ -22,6 +17,7 @@ class RuntimeException extends \RuntimeException
 
     /**
      * @param string $tableName
+     *
      * @return RuntimeException
      */
     public static function tableNotFound(string $tableName): self
@@ -31,15 +27,20 @@ class RuntimeException extends \RuntimeException
 
     /**
      * @param string $tableName
+     *
      * @return RuntimeException
      */
     public static function tableEmpty(string $tableName): self
     {
-        return new static(\sprintf('Table %s is empty. At least one column is required', $tableName), self::TABLE_EMPTY);
+        return new static(
+            \sprintf('Table %s is empty. At least one column is required', $tableName),
+            self::TABLE_EMPTY
+        );
     }
 
     /**
      * @param string $columnName
+     *
      * @return RuntimeException
      */
     public static function columnNotFound(string $columnName): self
@@ -49,6 +50,7 @@ class RuntimeException extends \RuntimeException
 
     /**
      * @param string $className
+     *
      * @return RuntimeException
      */
     public static function classNotFound(string $className): self
@@ -58,11 +60,15 @@ class RuntimeException extends \RuntimeException
 
     /**
      * @param string $className
+     *
      * @return RuntimeException
      */
     public static function classNotChildOfTable(string $className): self
     {
-        return new static(\sprintf('The class %s does not inherit from %s', $className, AbstractTable::class), self::CLASS_NOT_A_TABLE);
+        return new static(
+            \sprintf('The class %s does not inherit from %s', $className, AbstractTable::class),
+            self::CLASS_NOT_A_TABLE
+        );
     }
 
     /**
@@ -70,7 +76,10 @@ class RuntimeException extends \RuntimeException
      */
     public static function numericIndicesMissing(): self
     {
-        return new static('Converting a row with a subset of columns is only possible with associative indices', self::INDICES_MISSING);
+        return new static(
+            'Converting a row with a subset of columns is only possible with associative indices',
+            self::INDICES_MISSING
+        );
     }
 
     /**

@@ -2,27 +2,21 @@
 
 declare(strict_types=1);
 
-/**
- * @author Immanuel Klinkenberg <immanuel.klinkenberg@jtl-software.com>
- * @copyright 2010-2017 JTL-Software GmbH
- */
-
 namespace Jtl\Connector\Dbc;
 
 use Doctrine\DBAL\DBALException;
 use Doctrine\DBAL\Schema\Table;
-use Doctrine\DBAL\Types\Types;
+use Doctrine\DBAL\Types\Type;
+use Exception;
+use Throwable;
 
 class DbManagerTest extends TestCase
 {
-    protected function setUp(): void
-    {
-        new TableStub($this->getDBManager());
-        parent::setUp();
-    }
-
-
-    public function testRegisterTable()
+    /**
+     * @throws DBALException
+     * @throws Exception
+     */
+    public function testRegisterTable(): void
     {
         new CoordinatesStub($this->getDBManager());
         $schemaTables = $this->getDbManager()->getSchemaTables();
@@ -33,7 +27,11 @@ class DbManagerTest extends TestCase
         $this->assertInstanceOf(CoordinatesStub::class, $tables[1]);
     }
 
-    public function testTablesPrefix()
+    /**
+     * @throws DBALException
+     * @throws Exception
+     */
+    public function testTablesPrefix(): void
     {
         new CoordinatesStub($this->getDbManager());
         $this->assertTrue($this->getDbManager()->hasTablesPrefix());
@@ -46,7 +44,11 @@ class DbManagerTest extends TestCase
         $this->assertEquals(self::TABLE_PREFIX, \substr($schemaTables[1]->getName(), 0, \strlen(self::TABLE_PREFIX)));
     }
 
-    public function testHasSchemaUpdates()
+    /**
+     * @throws DBALException
+     * @throws Exception
+     */
+    public function testHasSchemaUpdates(): void
     {
         $this->assertFalse($this->getDBManager()->hasSchemaUpdates());
         new CoordinatesStub($this->getDbManager());
@@ -55,7 +57,11 @@ class DbManagerTest extends TestCase
         $this->assertTrue($this->getDbManager()->hasSchemaUpdates());
     }
 
-    public function testGetSchemaUpdates()
+    /**
+     * @throws DBALException
+     * @throws Exception
+     */
+    public function testGetSchemaUpdates(): void
     {
         $dbManager = $this->getDBManager();
         $this->assertCount(0, $dbManager->getSchemaUpdates());
@@ -63,7 +69,11 @@ class DbManagerTest extends TestCase
         $this->assertCount(1, $dbManager->getSchemaUpdates());
     }
 
-    public function testUpdateDatabaseSchema()
+    /**
+     * @throws Throwable
+     * @throws DBALException
+     */
+    public function testUpdateDatabaseSchema(): void
     {
         new CoordinatesStub($this->getDbManager());
         $this->assertTrue($this->getDbManager()->hasSchemaUpdates());
@@ -71,19 +81,28 @@ class DbManagerTest extends TestCase
         $this->assertFalse($this->getDbManager()->hasSchemaUpdates());
     }
 
-    public function testCreateFromPDO()
+    /**
+     * @throws DBALException
+     */
+    public function testCreateFromPDO(): void
     {
         $dbm = DbManager::createFromPDO($this->getPDO());
         $this->assertInstanceOf(DbManager::class, $dbm);
     }
 
-    public function testCreateFromParams()
+    /**
+     * @throws DBALException
+     */
+    public function testCreateFromParams(): void
     {
         $dbm = DbManager::createFromParams(['url' => 'sqlite:///:memory:']);
         $this->assertInstanceOf(DbManager::class, $dbm);
     }
 
-    public function testCreateSchemaAssetsFilterCallback()
+    /**
+     * @throws DBALException
+     */
+    public function testCreateSchemaAssetsFilterCallback(): void
     {
         $dbm      = DbManager::createFromParams(['url' => 'sqlite:///:memory:']);
         $callback = $dbm->createSchemaAssetsFilterCallback();
@@ -99,53 +118,20 @@ class DbManagerTest extends TestCase
     }
 
     /**
-     * @dataProvider tableNameProvider
-     *
-     * @param string $shortName
-     * @param string|null $tablesPrefix
-     * @param string $expectedTableName
-     * @throws DBALException
-     */
-    public function testCreateTableName(string $shortName, ?string $tablesPrefix, string $expectedTableName)
-    {
-        $dbm             = DbManager::createFromParams(['url' => 'sqlite:///:memory:'], null, $tablesPrefix);
-        $actualTableName = $dbm->createTableName($shortName);
-        $this->assertEquals($expectedTableName, $actualTableName);
-    }
-
-    public function testCreateTableNameEmptyString()
-    {
-        $this->expectException(RuntimeException::class);
-        $this->expectExceptionCode(RuntimeException::TABLE_NAME_EMPTY);
-        $dbm = DbManager::createFromParams(['url' => 'sqlite:///:memory:'], null, 'foo');
-        $dbm->createTableName('');
-    }
-
-    /**
-     * @return array
-     */
-    public function tableNameProvider(): array
-    {
-        return [
-            ['foo', null, 'foo'],
-            ['post', 'pre', 'prepost'],
-        ];
-    }
-
-    /**
      * @param DbManager $dbManager
-     * @param int|null $amount
+     * @param int|null  $amount
+     *
      * @return AbstractTable[]
      */
     protected function createTableStubs(DbManager $dbManager, int $amount = null): array
     {
         if (\is_null($amount)) {
-            $amount = \mt_rand(1, 10);
+            $amount = \random_int(1, 10);
         }
 
         return \array_map(function (DbManager $dbManager) {
             return new class ($dbManager) extends AbstractTable {
-                protected $tableName;
+                protected string $tableName;
 
                 public function __construct(DbManager $dbManager)
                 {
@@ -165,5 +151,54 @@ class DbManagerTest extends TestCase
                 }
             };
         }, \array_fill(0, $amount, $dbManager));
+    }
+
+    /**
+     * @dataProvider tableNameProvider
+     *
+     * @param string      $shortName
+     * @param string|null $tablesPrefix
+     * @param string      $expectedTableName
+     *
+     * @throws DBALException
+     */
+    public function testCreateTableName(string $shortName, ?string $tablesPrefix, string $expectedTableName): void
+    {
+        $dbm             = DbManager::createFromParams(['url' => 'sqlite:///:memory:'], null, $tablesPrefix);
+        $actualTableName = $dbm->createTableName($shortName);
+        $this->assertEquals($expectedTableName, $actualTableName);
+    }
+
+    /**
+     * @throws DBALException
+     */
+    public function testCreateTableNameEmptyString(): void
+    {
+        $this->expectException(RuntimeException::class);
+        $this->expectExceptionCode(RuntimeException::TABLE_NAME_EMPTY);
+        $dbm = DbManager::createFromParams(['url' => 'sqlite:///:memory:'], null, 'foo');
+        $dbm->createTableName('');
+    }
+
+    /**
+     * @return array
+     */
+    public function tableNameProvider(): array
+    {
+        return [
+            ['foo', null, 'foo'],
+            ['post', 'pre', 'prepost'],
+        ];
+    }
+
+    /**
+     * @throws DBALException
+     * @throws Exception
+     * @throws Throwable
+     */
+    protected function setUp(): void
+    {
+        new TableStub($this->getDBManager());
+        parent::setUp();
     }
 }

@@ -13,10 +13,11 @@ use Doctrine\DBAL\Schema\SchemaException;
 use Doctrine\DBAL\Types\Types;
 use Jtl\Connector\Dbc\DbManager;
 use ReflectionException;
+use Throwable;
 
 class AbstractTableTest extends TestCase
 {
-    protected TableStub $table;
+    protected \Jtl\Connector\Dbc\AbstractTable $table;
 
     /**
      * @throws DBALException
@@ -448,6 +449,7 @@ class AbstractTableTest extends TestCase
      * @throws SchemaException
      * @throws DBALException
      * @throws Exception
+     * @throws \Exception
      */
     public function testAddColumnType(): void
     {
@@ -462,6 +464,7 @@ class AbstractTableTest extends TestCase
      * @throws MappingTablesException
      * @throws DBALException
      * @throws Exception
+     * @throws \Exception
      */
     public function testAddColumn(): void
     {
@@ -543,7 +546,7 @@ class AbstractTableTest extends TestCase
         $this->expectException(MappingTablesException::class);
         $this->expectExceptionCode(MappingTablesException::TYPES_WRONG_DATA_TYPE);
         new class ($this->getDBManager(), $types) extends TableStub {
-            protected $types = [];
+            protected array $types = [];
 
             public function __construct(DbManager $dbManager, array $types)
             {
@@ -573,6 +576,8 @@ class AbstractTableTest extends TestCase
 
     /**
      * @throws DBALException
+     * @throws \Exception
+     * @throws Throwable
      */
     protected function setUp(): void
     {

@@ -2,11 +2,6 @@
 
 declare(strict_types=1);
 
-/**
- * @author Immanuel Klinkenberg <immanuel.klinkenberg@jtl-software.com>
- * @copyright 2010-2017 JTL-Software GmbH
- */
-
 namespace Jtl\Connector\Dbc\Schema;
 
 use Doctrine\DBAL\Schema\SchemaException;
@@ -17,26 +12,28 @@ class TableRestriction
     /**
      * @var Table
      */
-    protected $table;
+    protected Table $table;
 
     /**
      * @var string
      */
-    protected $columnName;
+    protected string $columnName;
 
     /**
      * @var mixed
      */
-    protected $value;
+    protected mixed $value;
 
     /**
      * TableRestriction constructor.
-     * @param Table $table
+     *
+     * @param Table  $table
      * @param string $columnName
-     * @param mixed $columnValue
+     * @param mixed  $columnValue
+     *
      * @throws SchemaException
      */
-    public function __construct(Table $table, string $columnName, $columnValue)
+    public function __construct(Table $table, string $columnName, mixed $columnValue)
     {
         if (!$table->hasColumn($columnName)) {
             throw SchemaException::columnDoesNotExist($columnName, $table->getName());
@@ -45,6 +42,19 @@ class TableRestriction
         $this->table      = $table;
         $this->columnName = $columnName;
         $this->value      = $columnValue;
+    }
+
+    /**
+     * @param Table  $table
+     * @param string $columnName
+     * @param mixed  $columnValue
+     *
+     * @return TableRestriction
+     * @throws SchemaException
+     */
+    public static function create(Table $table, string $columnName, $columnValue): TableRestriction
+    {
+        return new static($table, $columnName, $columnValue);
     }
 
     /**
@@ -69,17 +79,5 @@ class TableRestriction
     public function getColumnValue()
     {
         return $this->value;
-    }
-
-    /**
-     * @param Table $table
-     * @param string $columnName
-     * @param mixed $columnValue
-     * @return TableRestriction
-     * @throws SchemaException
-     */
-    public static function create(Table $table, string $columnName, $columnValue): TableRestriction
-    {
-        return new static($table, $columnName, $columnValue);
     }
 }

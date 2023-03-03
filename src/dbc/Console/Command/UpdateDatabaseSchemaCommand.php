@@ -20,16 +20,23 @@ class UpdateDatabaseSchemaCommand extends AbstractDbManagerCommand
     /**
      *
      */
-    protected function configure()
+    protected function configure(): void
     {
         $this
             ->setDescription('Creates/Updates the database schema')
-            ->addOption(self::OPTION_FORCE, null, InputOption::VALUE_OPTIONAL, 'Execute statements directly, instead of returning them to the output.', false);
+            ->addOption(
+                self::OPTION_FORCE,
+                null,
+                InputOption::VALUE_OPTIONAL,
+                'Execute statements directly, instead of returning them to the output.',
+                false
+            );
     }
 
     /**
-     * @param InputInterface $input
+     * @param InputInterface  $input
      * @param OutputInterface $output
+     *
      * @return int|void
      * @throws \Throwable
      */

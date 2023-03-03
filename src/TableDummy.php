@@ -9,7 +9,7 @@ class TableDummy implements TableInterface
     /**
      * @var integer[]
      */
-    protected $types = [];
+    protected array $types = [];
 
     /**
      * @return integer[]

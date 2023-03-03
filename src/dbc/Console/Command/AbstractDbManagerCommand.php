@@ -12,12 +12,12 @@ abstract class AbstractDbManagerCommand extends Command
     /**
      * @var string[]
      */
-    protected $dbParams;
+    protected array $dbParams;
 
     /**
      * @var DbManager
      */
-    protected $dbManager;
+    protected DbManager $dbManager;
 
     /**
      * AbstractDbManagerCommand constructor.

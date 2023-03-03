@@ -11,54 +11,54 @@ class TableDummyTest extends TestCase
     /**
      * @var TableDummy
      */
-    protected $table;
+    protected TableDummy $table;
 
-    public function testClear()
+    public function testClear(): void
     {
         $expected = 0;
         $actual   = $this->table->clear(12);
         $this->assertEquals($expected, $actual);
     }
 
-    public function testFindEndpoints()
+    public function testFindEndpoints(): void
     {
         $this->assertEquals([], $this->table->findEndpoints([], [], [], null, null, 23));
         $this->assertEquals([], $this->table->findEndpoints([], [], [], null, null, 5324));
         $this->assertEquals([], $this->table->findEndpoints([], [], [], null, null, 222));
     }
 
-    public function testGetTypeDefault()
+    public function testGetTypeDefault(): void
     {
         $this->assertEquals([], $this->table->getTypes());
     }
 
-    public function testRemove()
+    public function testRemove(): void
     {
         $this->assertEquals(0, $this->table->remove(null, null, 9999));
         $this->assertEquals(0, $this->table->remove('irgendwas', null, 421));
         $this->assertEquals(0, $this->table->remove(null, 1234, 007));
     }
 
-    public function testGetHostId()
+    public function testGetHostId(): void
     {
         $this->assertEquals(0, $this->table->getHostId('wtf'));
         $this->assertEquals(0, $this->table->getHostId(''));
         $this->assertEquals(0, $this->table->getHostId('caskdjasd'));
     }
 
-    public function testCount()
+    public function testCount(): void
     {
         $this->assertEquals(0, $this->table->count());
     }
 
-    public function testGetEndpointId()
+    public function testGetEndpointId(): void
     {
         $this->assertEquals('', $this->table->getEndpoint(12321, 5));
         $this->assertEquals('', $this->table->getEndpoint(3333, 9));
         $this->assertEquals('', $this->table->getEndpoint(0, 1222));
     }
 
-    public function testSetType()
+    public function testSetType(): void
     {
         $this->table->setType(444);
         $types = $this->table->getTypes();
@@ -70,14 +70,14 @@ class TableDummyTest extends TestCase
         $this->assertContains(555, $types);
     }
 
-    public function testSave()
+    public function testSave(): void
     {
         $this->assertEquals(0, $this->table->save('foo', 125));
         $this->assertEquals(0, $this->table->save('bar', 444));
         $this->assertEquals(0, $this->table->save('something', 444));
     }
 
-    public function testFindNotFetchedEndpoints()
+    public function testFindNotFetchedEndpoints(): void
     {
         $endpoints = ['a', 'b', 'c', 'd'];
         $this->table->save('a', 333);

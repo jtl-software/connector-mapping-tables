@@ -2,11 +2,6 @@
 
 declare(strict_types=1);
 
-/**
- * @author Immanuel Klinkenberg <immanuel.klinkenberg@jtl-software.com>
- * @copyright 2010-2017 JTL-Software GmbH
- */
-
 namespace Jtl\Connector\Dbc;
 
 use Doctrine\DBAL\DBALException;
@@ -31,63 +26,53 @@ class TableStub extends AbstractTable
 
     /**
      * @param string $column
-     * @param mixed $value
+     * @param mixed  $value
+     *
      * @return AbstractTable
      * @throws DBALException
      * @throws SchemaException
      */
-    public function restrict($column, $value): AbstractTable
+    public function restrict(string $column, $value): AbstractTable
     {
         return parent::restrict($column, $value);
     }
 
     /**
-     * @param Table $tableSchema
-     * @return void
-     */
-    protected function createTableSchema(Table $tableSchema): void
-    {
-        $tableSchema->addColumn(self::ID, Type::INTEGER, ['autoincrement' => true]);
-        $tableSchema->addColumn(self::A, Type::INTEGER, ['notnull' => false]);
-        $tableSchema->addColumn(self::B, Type::STRING, ['length' => 64]);
-        $tableSchema->addColumn(self::C, Type::DATETIME_IMMUTABLE);
-        $tableSchema->setPrimaryKey([self::ID]);
-    }
-
-    /**
-     * @param int $fetchType
+     * @param int        $fetchType
      * @param array|null $columns
+     *
      * @return mixed[]
      * @throws DBALException
      */
-    public function findAll($fetchType = \PDO::FETCH_ASSOC, array $columns = null)
+    public function findAll(int $fetchType = \PDO::FETCH_ASSOC, array $columns = null): array
     {
         if (\is_null($columns)) {
             $columns = $this->getColumnNames();
         }
 
         $stmt = $this->createQueryBuilder()->select($columns)
-                                           ->from($this->getTableName())
-                                           ->execute();
+                     ->from($this->getTableName())
+                     ->execute();
 
         return $this->convertAllToPhpValues($stmt->fetchAll($fetchType));
     }
 
     /**
      * @param array $identifier
-     * @param int $fetchType
+     * @param int   $fetchType
      * @param array $columns
+     *
      * @return array|mixed[]
      * @throws DBALException
      */
-    public function find(array $identifier, $fetchType = \PDO::FETCH_ASSOC, array $columns = null)
+    public function find(array $identifier, int $fetchType = \PDO::FETCH_ASSOC, array $columns = null): array
     {
         if (\is_null($columns)) {
             $columns = $this->getColumnNames();
         }
 
         $qb = $this->createQueryBuilder()->select($columns)
-            ->from($this->getTableName());
+                   ->from($this->getTableName());
 
         foreach ($identifier as $column => $value) {
             $qb->andWhere(\sprintf('%s = :%s', $column, $column))
@@ -97,5 +82,19 @@ class TableStub extends AbstractTable
         $stmt = $qb->execute();
 
         return $this->convertAllToPhpValues($stmt->fetchAll($fetchType));
+    }
+
+    /**
+     * @param Table $tableSchema
+     *
+     * @return void
+     */
+    protected function createTableSchema(Table $tableSchema): void
+    {
+        $tableSchema->addColumn(self::ID, Type::INTEGER, ['autoincrement' => true]);
+        $tableSchema->addColumn(self::A, Type::INTEGER, ['notnull' => false]);
+        $tableSchema->addColumn(self::B, Type::STRING, ['length' => 64]);
+        $tableSchema->addColumn(self::C, Type::DATETIME_IMMUTABLE);
+        $tableSchema->setPrimaryKey([self::ID]);
     }
 }

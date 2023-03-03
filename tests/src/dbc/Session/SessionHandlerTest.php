@@ -4,30 +4,30 @@ declare(strict_types=1);
 
 namespace Jtl\Connector\Dbc\Session;
 
+use Doctrine\DBAL\DBALException;
 use Doctrine\DBAL\Driver\DriverException;
+use Doctrine\DBAL\Exception\InvalidArgumentException;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use Doctrine\DBAL\Types\Type;
+use Exception;
 use Jtl\Connector\Dbc\Connection;
-use Jtl\Connector\Dbc\TestCase;
 use Jtl\Connector\Dbc\DbManager;
+use Jtl\Connector\Dbc\TestCase;
 use PHPUnit\Framework\MockObject\MockObject;
+use ReflectionException;
+use Throwable;
 
 class SessionHandlerTest extends TestCase
 {
-    protected $handler;
-
-    protected function setUp(): void
-    {
-        $this->handler = new SessionHandler($this->getDBManager());
-        parent::setUp();
-    }
+    protected SessionHandler $handler;
 
     /**
      * @runInSeparateProcess
      *
-     * @throws \ReflectionException
+     * @throws ReflectionException
+     * @throws Exception
      */
-    public function testMaxLifetime()
+    public function testMaxLifetime(): void
     {
         $expected = 254;
         \ini_set('session.gc_maxlifetime', $expected);
@@ -38,15 +38,20 @@ class SessionHandlerTest extends TestCase
         $this->assertEquals($expected, $reflMaxLifetimeProp->getValue($handler));
     }
 
-    public function testReadSessionSuccess()
+    /**
+     * @throws \Doctrine\DBAL\Driver\Exception
+     * @throws DBALException
+     * @throws \Doctrine\DBAL\Exception
+     */
+    public function testReadSessionSuccess(): void
     {
         $sessionId   = \uniqid('sess', true);
         $sessionData = 'serializedSessionData';
 
         $data = [
-            SessionHandler::SESSION_ID => $sessionId,
+            SessionHandler::SESSION_ID   => $sessionId,
             SessionHandler::SESSION_DATA => $sessionData,
-            SessionHandler::EXPIRES_AT => (new \DateTimeImmutable())->setTimestamp(\time() + 1)
+            SessionHandler::EXPIRES_AT   => (new \DateTimeImmutable())->setTimestamp(\time() + 1)
         ];
 
         $this->handler->insert($data);
@@ -54,15 +59,20 @@ class SessionHandlerTest extends TestCase
         $this->assertEquals($sessionData, $actual);
     }
 
-    public function testReadSessionExpired()
+    /**
+     * @throws \Doctrine\DBAL\Driver\Exception
+     * @throws \Doctrine\DBAL\Exception
+     * @throws DBALException
+     */
+    public function testReadSessionExpired(): void
     {
         $sessionId   = \uniqid('sess', true);
         $sessionData = 'something';
 
         $data = [
-            SessionHandler::SESSION_ID => $sessionId,
+            SessionHandler::SESSION_ID   => $sessionId,
             SessionHandler::SESSION_DATA => $sessionData,
-            SessionHandler::EXPIRES_AT => (new \DateTimeImmutable())->setTimestamp(\time() - 1)
+            SessionHandler::EXPIRES_AT   => (new \DateTimeImmutable())->setTimestamp(\time() - 1)
         ];
 
         $this->handler->insert($data);
@@ -71,12 +81,19 @@ class SessionHandlerTest extends TestCase
         $this->assertEquals('', $actual);
     }
 
-    public function testReadSessionDoesNotExist()
+    /**
+     * @throws \Doctrine\DBAL\Driver\Exception
+     * @throws \Doctrine\DBAL\Exception
+     */
+    public function testReadSessionDoesNotExist(): void
     {
         $this->assertEquals('', $this->handler->read(\uniqid('presess', true)));
     }
 
-    public function testWriteInsert()
+    /**
+     * @throws DBALException
+     */
+    public function testWriteInsert(): void
     {
         $sessionId   = \uniqid('sess', true);
         $sessionData = 'serializedSessionData';
@@ -86,15 +103,20 @@ class SessionHandlerTest extends TestCase
         $this->assertEquals(1, $this->countRows($this->handler->getTableName()));
     }
 
-    public function testWriteUpdate()
+    /**
+     * @throws \Doctrine\DBAL\Driver\Exception
+     * @throws DBALException
+     * @throws \Doctrine\DBAL\Exception
+     */
+    public function testWriteUpdate(): void
     {
         $sessionId   = \uniqid('sess', true);
         $sessionData = 'yeasdasdasf';
 
         $data = [
-            SessionHandler::SESSION_ID => $sessionId,
+            SessionHandler::SESSION_ID   => $sessionId,
             SessionHandler::SESSION_DATA => $sessionData,
-            SessionHandler::EXPIRES_AT => (new \DateTimeImmutable())->setTimestamp(\time() + 1)
+            SessionHandler::EXPIRES_AT   => (new \DateTimeImmutable())->setTimestamp(\time() + 1)
         ];
 
         $this->handler->insert($data);
@@ -104,27 +126,36 @@ class SessionHandlerTest extends TestCase
         $this->assertEquals($newData, $this->handler->read($sessionId));
     }
 
-    public function testWriteInsertSimultaneouslySameSessionId()
+    /**
+     * @throws ReflectionException
+     * @throws DBALException
+     */
+    public function testWriteInsertSimultaneouslySameSessionId(): void
     {
         $sessionId   = \uniqid('sess', true);
         $sessionData = 'sdoliufndvnsdzf089wezu089eu';
 
         /** @var SessionHandler|MockObject $handler */
         $handler = $this->getMockBuilder(SessionHandler::class)
-            ->setConstructorArgs([$this->getDBManager()])
-            ->setMethods(['insert', 'update'])
-            ->getMock();
+                        ->setConstructorArgs([$this->getDBManager()])
+                        ->setMethods(['insert', 'update'])
+                        ->getMock();
 
         $handler
             ->expects($this->once())
             ->method('insert')
-            ->willThrowException(new UniqueConstraintViolationException('Duplicate Key entry', $this->createMock(DriverException::class)));
+            ->willThrowException(
+                new UniqueConstraintViolationException(
+                    'Duplicate Key entry',
+                    $this->createMock(DriverException::class)
+                )
+            );
 
         $expiryTime = $this->invokeMethodFromObject($this->handler, 'calculateExpiryTime');
 
         $updateData = [
             SessionHandler::SESSION_DATA => $sessionData,
-            SessionHandler::EXPIRES_AT => (new \DateTimeImmutable())->setTimestamp($expiryTime)
+            SessionHandler::EXPIRES_AT   => (new \DateTimeImmutable())->setTimestamp($expiryTime)
         ];
 
         $updateIdentifier = [SessionHandler::SESSION_ID => $sessionId];
@@ -138,7 +169,10 @@ class SessionHandlerTest extends TestCase
         $handler->write($sessionId, $sessionData);
     }
 
-    public function testClose()
+    /**
+     * @throws DBALException
+     */
+    public function testClose(): void
     {
         $connection = $this->createMock(Connection::class);
 
@@ -148,9 +182,9 @@ class SessionHandlerTest extends TestCase
 
         /** @var SessionHandler|MockObject $handler */
         $handler = $this->getMockBuilder(SessionHandler::class)
-            ->setConstructorArgs([$this->getDBManager()])
-            ->setMethods(['getConnection'])
-            ->getMock();
+                        ->setConstructorArgs([$this->getDBManager()])
+                        ->setMethods(['getConnection'])
+                        ->getMock();
 
         $handler
             ->expects($this->once())
@@ -160,20 +194,24 @@ class SessionHandlerTest extends TestCase
         $this->assertTrue($handler->close());
     }
 
-    public function testOpen()
+    public function testOpen(): void
     {
         $this->assertTrue($this->handler->open('yalla', 'yolo'));
     }
 
-    public function testDestroy()
+    /**
+     * @throws DBALException
+     * @throws InvalidArgumentException
+     */
+    public function testDestroy(): void
     {
         $sessionId   = \uniqid('sess', true);
         $sessionData = 'something';
 
         $data = [
-            SessionHandler::SESSION_ID => $sessionId,
+            SessionHandler::SESSION_ID   => $sessionId,
             SessionHandler::SESSION_DATA => $sessionData,
-            SessionHandler::EXPIRES_AT => (new \DateTimeImmutable())->setTimestamp(\time() - 1)
+            SessionHandler::EXPIRES_AT   => (new \DateTimeImmutable())->setTimestamp(\time() - 1)
         ];
 
         $this->assertEquals(0, $this->countRows($this->handler->getTableName()));
@@ -183,22 +221,26 @@ class SessionHandlerTest extends TestCase
         $this->assertEquals(0, $this->countRows($this->handler->getTableName()));
     }
 
-    public function testGc()
+    /**
+     * @throws \Doctrine\DBAL\Exception
+     * @throws DBALException
+     */
+    public function testGc(): void
     {
         $expiredCount = 0;
-        $insertedRows = \mt_rand(3, 10);
+        $insertedRows = \random_int(3, 10);
         for ($i = 0; $i < $insertedRows; $i++) {
             $expiresAt = (new \DateTimeImmutable())->setTimestamp(\time() + 2);
-            if (\mt_rand(0, 1) === 1) {
+            if (\random_int(0, 1) === 1) {
                 $expiresAt = (new \DateTimeImmutable())->setTimestamp(\time());
                 $expiredCount++;
             }
 
             $this->handler->insert([
-                SessionHandler::SESSION_ID => \uniqid('sess', true),
-                SessionHandler::SESSION_DATA => \sprintf('round %s', $i),
-                SessionHandler::EXPIRES_AT => $expiresAt
-            ]);
+                                       SessionHandler::SESSION_ID   => \uniqid('sess', true),
+                                       SessionHandler::SESSION_DATA => \sprintf('round %s', $i),
+                                       SessionHandler::EXPIRES_AT   => $expiresAt
+                                   ]);
         }
 
         $this->assertEquals($insertedRows, $this->countRows($this->handler->getTableName()));
@@ -206,15 +248,20 @@ class SessionHandlerTest extends TestCase
         $this->assertEquals($insertedRows - $expiredCount, $this->countRows($this->handler->getTableName()));
     }
 
-    public function testValidateIdSuccess()
+    /**
+     * @throws \Doctrine\DBAL\Driver\Exception
+     * @throws DBALException
+     * @throws \Doctrine\DBAL\Exception
+     */
+    public function testValidateIdSuccess(): void
     {
         $sessionId   = \uniqid('sess', true);
         $sessionData = 'whateverData';
 
         $data = [
-            SessionHandler::SESSION_ID => $sessionId,
+            SessionHandler::SESSION_ID   => $sessionId,
             SessionHandler::SESSION_DATA => $sessionData,
-            SessionHandler::EXPIRES_AT => (new \DateTimeImmutable())->setTimestamp(\time() + 1)
+            SessionHandler::EXPIRES_AT   => (new \DateTimeImmutable())->setTimestamp(\time() + 1)
         ];
 
         $this->handler->insert($data);
@@ -222,15 +269,20 @@ class SessionHandlerTest extends TestCase
         $this->assertTrue($this->handler->validateId($sessionId));
     }
 
-    public function testValidateIdSessionExpired()
+    /**
+     * @throws \Doctrine\DBAL\Driver\Exception
+     * @throws DBALException
+     * @throws \Doctrine\DBAL\Exception
+     */
+    public function testValidateIdSessionExpired(): void
     {
         $sessionId   = \uniqid('sess', true);
         $sessionData = 'whateverData';
 
         $data = [
-            SessionHandler::SESSION_ID => $sessionId,
+            SessionHandler::SESSION_ID   => $sessionId,
             SessionHandler::SESSION_DATA => $sessionData,
-            SessionHandler::EXPIRES_AT => (new \DateTimeImmutable())->setTimestamp(\time())
+            SessionHandler::EXPIRES_AT   => (new \DateTimeImmutable())->setTimestamp(\time())
         ];
 
         $this->handler->insert($data);
@@ -238,12 +290,21 @@ class SessionHandlerTest extends TestCase
         $this->assertFalse($this->handler->validateId($sessionId));
     }
 
-    public function testValidateIdSessionDoesNotExist()
+    /**
+     * @throws \Doctrine\DBAL\Driver\Exception
+     * @throws \Doctrine\DBAL\Exception
+     */
+    public function testValidateIdSessionDoesNotExist(): void
     {
         $this->assertFalse($this->handler->validateId(\uniqid('foobar', true)));
     }
 
-    public function testUpdateTimestamp()
+    /**
+     * @throws DBALException
+     * @throws ReflectionException
+     * @throws \Doctrine\DBAL\Exception
+     */
+    public function testUpdateTimestamp(): void
     {
         $sessionId   = \uniqid('sess', true);
         $sessionData = 'whateverData';
@@ -251,9 +312,9 @@ class SessionHandlerTest extends TestCase
 
 
         $data = [
-            SessionHandler::SESSION_ID => $sessionId,
+            SessionHandler::SESSION_ID   => $sessionId,
             SessionHandler::SESSION_DATA => $sessionData,
-            SessionHandler::EXPIRES_AT => (new \DateTimeImmutable())->setTimestamp($expiresAt)
+            SessionHandler::EXPIRES_AT   => (new \DateTimeImmutable())->setTimestamp($expiresAt)
         ];
 
         $this->handler->insert($data);
@@ -273,8 +334,21 @@ class SessionHandlerTest extends TestCase
 
         /** @var \DateTimeImmutable $expiresAt */
         $expiresAt = Type::getType(Type::DATETIME_IMMUTABLE)
-            ->convertToPHPValue($stmt->fetchColumn(), $this->getDBManager()->getConnection()->getDatabasePlatform());
+                         ->convertToPHPValue(
+                             $stmt->fetchColumn(),
+                             $this->getDBManager()->getConnection()->getDatabasePlatform()
+                         );
 
         $this->assertEquals($expectedExpiresAtTimestamp, $expiresAt->getTimestamp());
+    }
+
+    /**
+     * @throws DBALException
+     * @throws Throwable
+     */
+    protected function setUp(): void
+    {
+        $this->handler = new SessionHandler($this->getDBManager());
+        parent::setUp();
     }
 }

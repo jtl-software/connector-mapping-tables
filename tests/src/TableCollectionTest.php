@@ -4,19 +4,23 @@ declare(strict_types=1);
 
 namespace Jtl\Connector\MappingTables;
 
+use Doctrine\DBAL\DBALException;
+use Exception;
+use Throwable;
+
 class TableCollectionTest extends TestCase
 {
     /**
      * @var TableStub
      */
-    protected $table;
+    protected \Jtl\Connector\Dbc\AbstractTable $table;
 
     /**
      * @var TableCollection
      */
-    protected $collection;
+    protected TableCollection $collection;
 
-    public function testToArray()
+    public function testToArray(): void
     {
         $collection = new TableCollection($this->table);
         $tables     = $collection->toArray();
@@ -24,7 +28,10 @@ class TableCollectionTest extends TestCase
         $this->assertEquals($this->table, $tables[0]);
     }
 
-    public function testSetAndGet()
+    /**
+     * @throws MappingTablesException
+     */
+    public function testSetAndGet(): void
     {
         $collection = new TableCollection();
         $this->assertCount(0, $collection->toArray());
@@ -34,19 +41,19 @@ class TableCollectionTest extends TestCase
         $this->assertEquals($this->table, $table);
     }
 
-    public function testHas()
+    public function testHas(): void
     {
         $collection = new TableCollection($this->table);
         $this->assertTrue($collection->has(TableStub::TYPE1));
     }
 
-    public function testHasNot()
+    public function testHasNot(): void
     {
         $collection = new TableCollection($this->table);
         $this->assertFalse($collection->has(9854));
     }
 
-    public function testRemoveByType()
+    public function testRemoveByType(): void
     {
         $table1 = $this->createStub(TableInterface::class);
         $table1->method('getTypes')->willReturn([1, 2, 3]);
@@ -61,18 +68,21 @@ class TableCollectionTest extends TestCase
         $this->assertTrue($table1 === $collection->toArray()[0]);
     }
 
-    public function testRemoveByInstance()
+    /**
+     * @throws MappingTablesException
+     */
+    public function testRemoveByInstance(): void
     {
         $table = $this->createStub(TableInterface::class);
         $table->method('getTypes')->willReturn([1, 2, 3, 4, 5, 6, 7, 8, 9]);
 
         $collection = new TableCollection($table);
-        $this->assertEquals($table, $collection->get(\mt_rand(1, 9)));
+        $this->assertEquals($table, $collection->get(\random_int(1, 9)));
         $collection->removeByInstance($table);
-        $this->assertFalse($collection->has(\mt_rand(1, 9)));
+        $this->assertFalse($collection->has(\random_int(1, 9)));
     }
 
-    public function testGetNotExistingTableWithStrictModeEnabled()
+    public function testGetNotExistingTableWithStrictModeEnabled(): void
     {
         $this->expectException(MappingTablesException::class);
         $this->expectExceptionCode(MappingTablesException::TABLE_FOR_TYPE_NOT_FOUND);
@@ -81,7 +91,10 @@ class TableCollectionTest extends TestCase
         $collection->get(12434);
     }
 
-    public function testGetNotExistingTableWithStrictModeDisabled()
+    /**
+     * @throws MappingTablesException
+     */
+    public function testGetNotExistingTableWithStrictModeDisabled(): void
     {
         $type       = 73443534;
         $collection = new TableCollection($this->table);
@@ -91,6 +104,11 @@ class TableCollectionTest extends TestCase
         $this->assertInstanceOf(TableDummy::class, $table);
     }
 
+    /**
+     * @throws DBALException
+     * @throws Throwable
+     * @throws Exception
+     */
     protected function setUp(): void
     {
         $this->table      = new TableStub($this->getDbManager());

@@ -2,28 +2,22 @@
 
 declare(strict_types=1);
 
-/**
- * @author Immanuel Klinkenberg <immanuel.klinkenberg@jtl-software.com>
- * @copyright 2010-2017 JTL-Software GmbH
- */
-
 namespace Jtl\Connector\Dbc\Schema;
 
 use Doctrine\DBAL\DBALException;
 use Doctrine\DBAL\Schema\SchemaException;
-use Jtl\Connector\Dbc\TestCase;
+use Exception;
 use Jtl\Connector\Dbc\TableStub;
+use Jtl\Connector\Dbc\TestCase;
+use Throwable;
 
 class TableRestrictionTest extends TestCase
 {
-    protected function setUp(): void
-    {
-        $this->table = new TableStub($this->getDBManager());
-        parent::setUp();
-        $this->insertFixtures($this->table, self::getTableStubFixtures());
-    }
-
-    public function testInitializationSuccessful()
+    /**
+     * @throws SchemaException
+     * @throws DBALException
+     */
+    public function testInitializationSuccessful(): void
     {
         $tableSchema = $this->table->getTableSchema();
         $column      = TableStub::B;
@@ -38,7 +32,7 @@ class TableRestrictionTest extends TestCase
      * @throws SchemaException
      * @throws DBALException
      */
-    public function testInitializationWithNotExistingColumn()
+    public function testInitializationWithNotExistingColumn(): void
     {
         $this->expectException(SchemaException::class);
         $this->expectExceptionCode(SchemaException::COLUMN_DOESNT_EXIST);
@@ -46,7 +40,11 @@ class TableRestrictionTest extends TestCase
         new TableRestriction($tableSchema, 'yolo', 'c');
     }
 
-    public function testCreate()
+    /**
+     * @throws DBALException
+     * @throws SchemaException
+     */
+    public function testCreate(): void
     {
         $tableSchema = $this->table->getTableSchema();
         $column      = TableStub::C;
@@ -55,5 +53,17 @@ class TableRestrictionTest extends TestCase
         $this->assertEquals($tableSchema, $restriction->getTable());
         $this->assertEquals($column, $restriction->getColumnName());
         $this->assertEquals($value, $restriction->getColumnValue());
+    }
+
+    /**
+     * @throws DBALException
+     * @throws Throwable
+     * @throws Exception
+     */
+    protected function setUp(): void
+    {
+        $this->table = new TableStub($this->getDBManager());
+        parent::setUp();
+        $this->insertFixtures($this->table, self::getTableStubFixtures());
     }
 }

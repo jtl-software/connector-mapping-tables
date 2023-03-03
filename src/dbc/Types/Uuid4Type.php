@@ -16,11 +16,12 @@ class Uuid4Type extends Type
         NAME = 'uuid4';
 
     /**
-     * @param array $column
+     * @param array            $column
      * @param AbstractPlatform $platform
-     * @return mixed|string
+     *
+     * @return string
      */
-    public function getSQLDeclaration(array $column, AbstractPlatform $platform)
+    public function getSQLDeclaration(array $column, AbstractPlatform $platform): string
     {
         $column['length'] = 16;
         $column['fixed']  = true;
@@ -29,22 +30,24 @@ class Uuid4Type extends Type
     }
 
     /**
-     * @param mixed $value
+     * @param mixed            $value
      * @param AbstractPlatform $platform
+     *
      * @return mixed|string
      */
-    public function convertToPHPValue($value, AbstractPlatform $platform)
+    public function convertToPHPValue($value, AbstractPlatform $platform): mixed
     {
         return \ctype_xdigit(\str_replace('-', '', $value)) ? $value : \bin2hex($value);
     }
 
     /**
-     * @param mixed $value
+     * @param mixed            $value
      * @param AbstractPlatform $platform
-     * @return mixed|string
+     *
+     * @return string
      * @throws ConversionException
      */
-    public function convertToDatabaseValue($value, AbstractPlatform $platform)
+    public function convertToDatabaseValue($value, AbstractPlatform $platform): string
     {
         $converted = \hex2bin(\str_replace('-', '', $value));
         if ($converted === false) {
@@ -55,6 +58,14 @@ class Uuid4Type extends Type
     }
 
     /**
+     * @return string
+     */
+    public function getName(): string
+    {
+        return self::NAME;
+    }
+
+    /**
      * Modifies the SQL expression (identifier, parameter) to convert to a PHP value.
      *
      * @param string           $sqlExpr
@@ -62,7 +73,7 @@ class Uuid4Type extends Type
      *
      * @return string
      */
-    public function convertToPHPValueSQL($sqlExpr, $platform)
+    public function convertToPHPValueSQL($sqlExpr, $platform): string
     {
         if ($platform instanceof MySqlPlatform || $platform instanceof SqlitePlatform) {
             return $platform->getLowerExpression(\sprintf('HEX(%s)', $sqlExpr));
@@ -72,18 +83,11 @@ class Uuid4Type extends Type
     }
 
     /**
-     * @return string
-     */
-    public function getName()
-    {
-        return self::NAME;
-    }
-
-    /**
      * @param AbstractPlatform $platform
+     *
      * @return boolean
      */
-    public function requiresSQLCommentHint(AbstractPlatform $platform)
+    public function requiresSQLCommentHint(AbstractPlatform $platform): bool
     {
         return true;
     }
@@ -91,7 +95,7 @@ class Uuid4Type extends Type
     /**
      * @return boolean
      */
-    public function canRequireSQLConversion()
+    public function canRequireSQLConversion(): bool
     {
         return true;
     }

@@ -2,11 +2,6 @@
 
 declare(strict_types=1);
 
-/**
- * @author Immanuel Klinkenberg <immanuel.klinkenberg@jtl-software.com>
- * @copyright 2010-2017 JTL-Software GmbH
- */
-
 namespace Jtl\Connector\Dbc;
 
 class TableCollection
@@ -14,10 +9,11 @@ class TableCollection
     /**
      * @var AbstractTable[]
      */
-    protected $tables = [];
+    protected array $tables = [];
 
     /**
      * MappingTableCollection constructor.
+     *
      * @param AbstractTable[] $tables
      */
     public function __construct(array $tables = [])
@@ -29,6 +25,7 @@ class TableCollection
 
     /**
      * @param AbstractTable $table
+     *
      * @return TableCollection
      */
     public function set(AbstractTable $table): TableCollection
@@ -39,6 +36,7 @@ class TableCollection
 
     /**
      * @param AbstractTable $table
+     *
      * @return boolean
      * @throws \Exception
      */
@@ -53,28 +51,17 @@ class TableCollection
 
     /**
      * @param string $name
+     *
      * @return boolean
      */
-    public function removeByName(string $name): bool
-    {
-        if ($this->has($name)) {
-            unset($this->tables[$name]);
-            return true;
-        }
-        return false;
-    }
-
-    /**
-     * @param string $name
-     * @return boolean
-     */
-    public function has(string $name)
+    public function has(string $name): bool
     {
         return isset($this->tables[$name]) && $this->tables[$name] instanceof AbstractTable;
     }
 
     /**
      * @param string $name
+     *
      * @return AbstractTable
      * @throws \Exception
      */
@@ -87,7 +74,22 @@ class TableCollection
     }
 
     /**
+     * @param string $name
+     *
+     * @return boolean
+     */
+    public function removeByName(string $name): bool
+    {
+        if ($this->has($name)) {
+            unset($this->tables[$name]);
+            return true;
+        }
+        return false;
+    }
+
+    /**
      * @param string $className
+     *
      * @return TableCollection
      */
     public function filterByInstanceClass(string $className): TableCollection
@@ -97,24 +99,7 @@ class TableCollection
 
     /**
      * @param string $className
-     * @return AbstractTable|null
-     */
-    public function filterOneByInstanceClass(string $className): ?AbstractTable
-    {
-        $tables = $this->filterArrayByInstanceClass($className);
-        return \count($tables) > 0 ? \reset($tables) : null;
-    }
-
-    /**
-     * @return AbstractTable[]
-     */
-    public function toArray(): array
-    {
-        return \array_values($this->tables);
-    }
-
-    /**
-     * @param string $className
+     *
      * @return AbstractTable[]
      */
     protected function filterArrayByInstanceClass(string $className): array
@@ -127,8 +112,27 @@ class TableCollection
             throw RuntimeException::classNotChildOfTable($className);
         }
 
-        return \array_filter($this->toArray(), function (AbstractTable $table) use ($className) {
+        return \array_filter($this->toArray(), static function (AbstractTable $table) use ($className) {
             return $table instanceof $className;
         });
+    }
+
+    /**
+     * @return AbstractTable[]
+     */
+    public function toArray(): array
+    {
+        return \array_values($this->tables);
+    }
+
+    /**
+     * @param string $className
+     *
+     * @return AbstractTable|null
+     */
+    public function filterOneByInstanceClass(string $className): ?AbstractTable
+    {
+        $tables = $this->filterArrayByInstanceClass($className);
+        return \count($tables) > 0 ? \reset($tables) : null;
     }
 }

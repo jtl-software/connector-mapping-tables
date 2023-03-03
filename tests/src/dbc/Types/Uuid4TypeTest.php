@@ -15,7 +15,7 @@ use PHPUnit\Framework\TestCase;
 
 class Uuid4TypeTest extends TestCase
 {
-    public function testRequiresSQLCommentHint()
+    public function testRequiresSQLCommentHint(): void
     {
         $platform = $this->createMock(AbstractPlatform::class);
         $type     = new Uuid4Type();
@@ -27,9 +27,10 @@ class Uuid4TypeTest extends TestCase
      *
      * @param string $givenValue
      * @param string $convertedValue
+     *
      * @throws ConversionException
      */
-    public function testConvertToDatabaseValue(string $givenValue, string $convertedValue)
+    public function testConvertToDatabaseValue(string $givenValue, string $convertedValue): void
     {
         $platform = $this->createMock(AbstractPlatform::class);
         $type     = new Uuid4Type();
@@ -42,7 +43,7 @@ class Uuid4TypeTest extends TestCase
      * @param string $givenValue
      * @param string $convertedValue
      */
-    public function testConvertToPHPValue(string $givenValue, string $convertedValue)
+    public function testConvertToPHPValue(string $givenValue, string $convertedValue): void
     {
         $platform = $this->createMock(AbstractPlatform::class);
         $type     = new Uuid4Type();
@@ -53,11 +54,14 @@ class Uuid4TypeTest extends TestCase
      * @dataProvider convertToPHPValueSQLProvider
      *
      * @param AbstractPlatform $platform
-     * @param string $columnExpresion
-     * @param string $expectedExpression
+     * @param string           $columnExpresion
+     * @param string           $expectedExpression
      */
-    public function testConvertToPHPValueSQL(AbstractPlatform $platform, string $columnExpresion, string $expectedExpression)
-    {
+    public function testConvertToPHPValueSQL(
+        AbstractPlatform $platform,
+        string           $columnExpresion,
+        string           $expectedExpression
+    ): void {
         $this->assertEquals($expectedExpression, (new Uuid4Type())->convertToPHPValueSQL($columnExpresion, $platform));
     }
 

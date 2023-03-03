@@ -12,10 +12,11 @@ class TableEvent extends Event
     /**
      * @var Table
      */
-    protected $table;
+    protected Table $table;
 
     /**
      * TableEvent constructor.
+     *
      * @param Table $table
      */
     public function __construct(Table $table)
