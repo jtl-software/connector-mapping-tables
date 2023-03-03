@@ -9,15 +9,8 @@ use Doctrine\DBAL\Exception;
 
 class TableProxy
 {
-    /**
-     * @var integer
-     */
-    protected $type;
-
-    /**
-     * @var AbstractTable
-     */
-    protected $table;
+    protected int           $type;
+    protected AbstractTable $table;
 
     /**
      * TableProxy constructor.
@@ -43,14 +36,16 @@ class TableProxy
     }
 
     /**
-     * @param array    $where
-     * @param array    $parameters
-     * @param array    $orderBy
+     * @param string[] $where
+     * @param string[] $parameters
+     * @param string[] $orderBy
      * @param int|null $limit
      * @param int|null $offset
      *
      * @return int
      * @throws DBALException
+     * @throws MappingTablesException
+     * @throws \Doctrine\DBAL\Driver\Exception
      */
     public function count(
         array $where = [],
@@ -89,13 +84,13 @@ class TableProxy
     }
 
     /**
-     * @param array        $where
-     * @param array        $parameters
-     * @param array        $orderBy
+     * @param string[]     $where
+     * @param string[]     $parameters
+     * @param string[]     $orderBy
      * @param integer|null $limit
      * @param integer|null $offset
      *
-     * @return array
+     * @return string[]
      * @throws DBALException
      * @throws MappingTablesException
      */
@@ -110,10 +105,10 @@ class TableProxy
     }
 
     /**
-     * @param array $endpoints
+     * @param string[] $endpoints
      *
-     * @return array
-     * @throws DBALException
+     * @return string[]
+     * @throws DBALException|MappingTablesException
      */
     public function filterMappedEndpoints(array $endpoints): array
     {
@@ -125,6 +120,7 @@ class TableProxy
      *
      * @return string|null
      * @throws Exception
+     * @throws MappingTablesException
      */
     public function getEndpoint(int $hostId): ?string
     {
@@ -135,7 +131,7 @@ class TableProxy
      * @param string $endpoint
      *
      * @return int|null
-     * @throws DBALException|MappingTablesException
+     * @throws DBALException|MappingTablesException|\Doctrine\DBAL\Driver\Exception
      */
     public function getHostId(string $endpoint): ?int
     {

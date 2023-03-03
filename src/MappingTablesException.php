@@ -120,11 +120,11 @@ class MappingTablesException extends \Exception
     }
 
     /**
-     * @param integer $type
+     * @param int|null $type
      *
      * @return MappingTablesException
      */
-    public static function tableNotResponsibleForType(int $type): self
+    public static function tableNotResponsibleForType(?int $type): self
     {
         $msg = \sprintf('Table is not responsible for type %s', $type);
         return new self($msg, self::TABLE_NOT_RESPONSIBLE_FOR_TYPE);

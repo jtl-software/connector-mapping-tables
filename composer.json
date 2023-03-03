@@ -5,31 +5,29 @@
   "license": "MIT",
   "authors": [
     {
-      "name": "Immanuel Klinkenberg",
-      "email": "immanuel.klinkenberg@jtl-software.com"
+      "name": "JTL-Software GmbH"
     }
   ],
   "require": {
     "php": ">=8.0",
     "doctrine/dbal": "^2.5",
-    "jtl/connector-dbc": "^2.1.8",
     "jtl/connector": ">=4.0"
   },
   "require-dev": {
     "phpunit/phpunit": "^9.1",
     "jtl/unit-test": "^0.1.0",
-    "phpstan/phpstan": "^0.12.79",
-    "friendsofphp/php-cs-fixer": "^3.0"
+    "phpstan/phpstan": "^0.12.79"
   },
   "autoload": {
     "psr-4": {
-      "Jtl\\Connector\\MappingTables\\": "src/"
+      "Jtl\\Connector\\MappingTables\\": "src/",
+      "Jtl\\Connector\\Dbc\\": "src/dbc/"
     }
   },
   "autoload-dev": {
     "psr-4": {
       "Jtl\\Connector\\MappingTables\\": "tests/src/",
-      "Jtl\\Connector\\Dbc\\": "vendor/jtl/connector-dbc/tests/src/"
+      "Jtl\\Connector\\Dbc\\": "tests/src/dbc/"
     }
   }
 }

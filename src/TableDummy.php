@@ -84,9 +84,9 @@ class TableDummy implements TableInterface
     }
 
     /**
-     * @param array        $where
-     * @param array        $parameters
-     * @param array        $orderBy
+     * @param string[]     $where
+     * @param string[]     $parameters
+     * @param string[]     $orderBy
      * @param integer|null $limit
      * @param integer|null $offset
      * @param integer|null $type
@@ -105,14 +105,14 @@ class TableDummy implements TableInterface
     }
 
     /**
-     * @param array        $where
-     * @param array        $parameters
-     * @param array        $orderBy
+     * @param string[]     $where
+     * @param string[]     $parameters
+     * @param string[]     $orderBy
      * @param integer|null $limit
      * @param integer|null $offset
      * @param integer|null $type
      *
-     * @return array
+     * @return array<empty>
      */
     public function findEndpoints(
         array $where = [],
@@ -126,7 +126,7 @@ class TableDummy implements TableInterface
     }
 
     /**
-     * @param array $endpoints
+     * @param array|string[] $endpoints
      *
      * @return array|string[]
      */

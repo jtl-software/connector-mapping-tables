@@ -11,7 +11,7 @@ class TableManager implements PrimaryKeyMapperInterface
     /**
      * @var TableCollection
      */
-    protected $collection;
+    protected TableCollection $collection;
 
     /**
      * MappingTablesManager constructor.
@@ -146,7 +146,7 @@ class TableManager implements PrimaryKeyMapperInterface
     }
 
     /**
-     * @param array $tables
+     * @param TableInterface[] $tables
      *
      * @return TableManager
      */
