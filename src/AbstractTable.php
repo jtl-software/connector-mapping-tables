@@ -554,7 +554,7 @@ abstract class AbstractTable extends AbstractDbcTable implements TableInterface
     protected function explodeEndpoint(string $endpointId): array
     {
         if (empty($endpointId)) {
-            throw MappingTablesException::emptyEndpointId();
+            throw MappingTablesException::emptyEndpointId($this);
         }
 
         return explode($this->endpointDelimiter, $endpointId);
