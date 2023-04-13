@@ -14,7 +14,9 @@ class TableCollection
     /**
      * MappingTableCollection constructor.
      *
-     * @param AbstractTable[] $tables
+     * @param array<AbstractTable> $tables
+     *
+     * @throws DbcRuntimeException
      */
     public function __construct(array $tables = [])
     {
@@ -27,6 +29,8 @@ class TableCollection
      * @param AbstractTable $table
      *
      * @return TableCollection
+     * @throws DbcRuntimeException
+     * @throws DbcRuntimeException
      */
     public function set(AbstractTable $table): TableCollection
     {
@@ -63,12 +67,12 @@ class TableCollection
      * @param string $name
      *
      * @return AbstractTable
-     * @throws \Exception
+     * @throws DbcRuntimeException
      */
     public function get(string $name): AbstractTable
     {
         if (!$this->has($name)) {
-            throw RuntimeException::tableNotFound($name);
+            throw DbcRuntimeException::tableNotFound($name);
         }
         return $this->tables[$name];
     }
@@ -91,25 +95,27 @@ class TableCollection
      * @param string $className
      *
      * @return TableCollection
+     * @throws DbcRuntimeException
      */
     public function filterByInstanceClass(string $className): TableCollection
     {
-        return new static($this->filterArrayByInstanceClass($className));
+        return new self($this->filterArrayByInstanceClass($className));
     }
 
     /**
      * @param string $className
      *
-     * @return AbstractTable[]
+     * @return array<AbstractTable>
+     * @throws DbcRuntimeException
      */
     protected function filterArrayByInstanceClass(string $className): array
     {
         if (!\class_exists($className)) {
-            throw RuntimeException::classNotFound($className);
+            throw DbcRuntimeException::classNotFound($className);
         }
 
         if (!\is_a($className, AbstractTable::class, true)) {
-            throw RuntimeException::classNotChildOfTable($className);
+            throw DbcRuntimeException::classNotChildOfTable($className);
         }
 
         return \array_filter($this->toArray(), static function (AbstractTable $table) use ($className) {
@@ -129,6 +135,7 @@ class TableCollection
      * @param string $className
      *
      * @return AbstractTable|null
+     * @throws DbcRuntimeException
      */
     public function filterOneByInstanceClass(string $className): ?AbstractTable
     {

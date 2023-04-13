@@ -52,9 +52,9 @@ class TableRestriction
      * @return TableRestriction
      * @throws SchemaException
      */
-    public static function create(Table $table, string $columnName, $columnValue): TableRestriction
+    public static function create(Table $table, string $columnName, mixed $columnValue): TableRestriction
     {
-        return new static($table, $columnName, $columnValue);
+        return new self($table, $columnName, $columnValue);
     }
 
     /**
@@ -76,7 +76,7 @@ class TableRestriction
     /**
      * @return mixed
      */
-    public function getColumnValue()
+    public function getColumnValue(): mixed
     {
         return $this->value;
     }

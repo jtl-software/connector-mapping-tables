@@ -7,12 +7,14 @@ namespace Jtl\Connector\Dbc\Mapping;
 use Doctrine\DBAL\DBALException;
 use Doctrine\DBAL\Exception;
 use Doctrine\DBAL\Exception\InvalidArgumentException;
+use Doctrine\DBAL\ForwardCompatibility\Result;
 use Doctrine\DBAL\Schema\SchemaException;
 use Doctrine\DBAL\Types\Type;
 use Jtl\Connector\Dbc\CoordinatesStub;
-use Jtl\Connector\Dbc\RuntimeException;
+use Jtl\Connector\Dbc\DbcRuntimeException;
 use Jtl\Connector\Dbc\TableStub;
 use Jtl\Connector\Dbc\TestCase;
+use PHPUnit\Framework\ExpectationFailedException;
 use ReflectionException;
 use Throwable;
 
@@ -23,11 +25,20 @@ class TableTest extends TestCase
      */
     protected CoordinatesStub $coords;
 
+    /**
+     * @throws \SebastianBergmann\RecursionContext\InvalidArgumentException
+     * @throws ExpectationFailedException
+     */
     public function testGetName(): void
     {
         $this->assertEquals(CoordinatesStub::TABLE_NAME, $this->coords->getName());
     }
 
+    /**
+     * @throws \SebastianBergmann\RecursionContext\InvalidArgumentException
+     * @throws \RuntimeException
+     * @throws ExpectationFailedException
+     */
     public function testGetTableName(): void
     {
         $this->assertEquals(self::TABLE_PREFIX . $this->coords->getName(), $this->coords->getTableName());
@@ -40,10 +51,12 @@ class TableTest extends TestCase
      */
     public function testRestrict(): void
     {
-        $this->table->restrict(TableStub::B, 'a string');
-        $data = $this->table->findAll();
+        $this->assertInstanceOf(TableStub::class, $this->table);
+        $table = $this->table;
+        $table->restrict(TableStub::B, 'a string');
+        $data = $table->findAll();
         $this->assertCount(1, $data);
-        $row = \reset($data);
+        $row = \reset($data) !== false ? \reset($data) : throw new \RuntimeException('$row must not be false.');
         $this->assertEquals(1, $row[TableStub::A]);
         $this->assertEquals('a string', $row[TableStub::B]);
         $this->assertEquals(new \DateTime('@' . \strtotime("2017-03-29 00:00:00")), $row[TableStub::C]);
@@ -51,6 +64,12 @@ class TableTest extends TestCase
 
     /**
      * @throws DBALException
+     * @throws ExpectationFailedException
+     * @throws DbcRuntimeException
+     * @throws SchemaException
+     * @throws \PHPUnit\Framework\Exception
+     * @throws \SebastianBergmann\RecursionContext\InvalidArgumentException
+     * @throws \RuntimeException
      */
     public function testGetTableSchema(): void
     {
@@ -67,6 +86,12 @@ class TableTest extends TestCase
 
     /**
      * @throws DBALException
+     * @throws ExpectationFailedException
+     * @throws DbcRuntimeException
+     * @throws SchemaException
+     * @throws \PHPUnit\Framework\Exception
+     * @throws \SebastianBergmann\RecursionContext\InvalidArgumentException
+     * @throws \RuntimeException
      */
     public function testGetColumnTypes(): void
     {
@@ -82,6 +107,11 @@ class TableTest extends TestCase
 
     /**
      * @throws DBALException
+     * @throws ExpectationFailedException
+     * @throws DbcRuntimeException
+     * @throws \PHPUnit\Framework\Exception
+     * @throws \SebastianBergmann\RecursionContext\InvalidArgumentException
+     * @throws \RuntimeException
      */
     public function testGetColumnNames(): void
     {
@@ -96,21 +126,31 @@ class TableTest extends TestCase
     }
 
     /**
-     * @throws ReflectionException
+     * @return void
+     * @throws DbcRuntimeException
      * @throws Exception
-     * @throws DBALException
+     * @throws ExpectationFailedException
+     * @throws ReflectionException
+     * @throws \PHPUnit\Framework\Exception
+     * @throws \RuntimeException
+     * @throws \SebastianBergmann\RecursionContext\InvalidArgumentException
      */
     public function testConvertToPhpValuesAssoc(): void
     {
         $connection = $this->table->getDbManager()->getConnection();
-        $rows       = $connection->createQueryBuilder()
+        $result     = $connection->createQueryBuilder()
                                  ->select($this->table->getColumnNames())
                                  ->from($this->table->getTableName())
-                                 ->execute()
-                                 ->fetchAll();
+                                 ->execute();
+        $rows       = $result instanceof Result
+            ? $result->fetchAll()
+            : throw new \RuntimeException('$result must be instance of ' . Result::class);
 
         $this->assertCount(2, $rows);
         $mappedRow = $this->invokeMethodFromObject($this->table, 'convertToPhpValues', $rows[1]);
+        if (!\is_array($mappedRow)) {
+            throw new \RuntimeException('$mappedRow must be an array');
+        }
         $this->assertArrayHasKey(TableStub::ID, $mappedRow);
         $this->assertIsInt($mappedRow[TableStub::ID]);
         $this->assertEquals(3, $mappedRow[TableStub::ID]);
@@ -125,72 +165,95 @@ class TableTest extends TestCase
     }
 
     /**
-     * @throws ReflectionException
      * @throws Exception
+     * @throws ExpectationFailedException
+     * @throws ReflectionException
+     * @throws DbcRuntimeException
+     * @throws \PHPUnit\Framework\Exception
+     * @throws \SebastianBergmann\RecursionContext\InvalidArgumentException
+     * @throws \RuntimeException
      */
     public function testConvertToPhpValuesPartiallyAssoc(): void
     {
         $connection = $this->table->getDbManager()->getConnection();
-        $rows       = $connection->createQueryBuilder()
+        $result     = $connection->createQueryBuilder()
                                  ->select(['a', 'c'])
                                  ->from($this->table->getTableName())
-                                 ->execute()
-                                 ->fetchAll();
+                                 ->execute();
+        $rows       = $result instanceof Result
+            ? $result->fetchAll()
+            : throw new \RuntimeException('$result must be instance of ' . Result::class);
 
         $this->assertCount(2, $rows);
+        /** @var array<string> $mappedRow */
         $mappedRow = $this->invokeMethodFromObject($this->table, 'convertToPhpValues', $rows[1]);
         $this->assertCount(2, $mappedRow);
         $this->assertArrayHasKey(TableStub::A, $mappedRow);
-        $this->assertTrue(\is_int($mappedRow[TableStub::A]));
+        $this->assertIsInt($mappedRow[TableStub::A]);
         $this->assertEquals(4, $mappedRow[TableStub::A]);
         $this->assertArrayHasKey(TableStub::C, $mappedRow);
         $this->assertInstanceOf(\DateTimeImmutable::class, $mappedRow[TableStub::C]);
     }
 
     /**
-     * @throws ReflectionException
-     * @throws Exception
      * @throws DBALException
+     * @throws Exception
+     * @throws ExpectationFailedException
+     * @throws ReflectionException
+     * @throws DbcRuntimeException
+     * @throws \PHPUnit\Framework\Exception
+     * @throws \SebastianBergmann\RecursionContext\InvalidArgumentException|\RuntimeException
      */
     public function testConvertToPhpValuesNumeric(): void
     {
         $connection = $this->table->getDbManager()->getConnection();
-        $rows       = $connection->createQueryBuilder()
+        $result     = $connection->createQueryBuilder()
                                  ->select($this->table->getColumnNames())
                                  ->from($this->table->getTableName())
-                                 ->execute()
-                                 ->fetchAll(\PDO::FETCH_NUM);
+                                 ->execute();
+        $rows       = $result instanceof Result
+            ? $result->fetchAll(\PDO::FETCH_NUM)
+            : throw new \RuntimeException('$result must be instance of ' . Result::class);
 
         $this->assertCount(2, $rows);
+        /** @var array<int|string, string> $mappedRow */
         $mappedRow = $this->invokeMethodFromObject($this->table, 'convertToPhpValues', $rows[1]);
         $this->assertArrayHasKey(0, $mappedRow);
-        $this->assertTrue(\is_int($mappedRow[0]));
+        $this->assertIsInt($mappedRow[0]);
         $this->assertEquals(3, $mappedRow[0]);
         $this->assertArrayHasKey(1, $mappedRow);
-        $this->assertTrue(\is_int($mappedRow[1]));
+        $this->assertIsInt($mappedRow[1]);
         $this->assertEquals(4, $mappedRow[1]);
         $this->assertArrayHasKey(2, $mappedRow);
-        $this->assertTrue(\is_string($mappedRow[2]));
+        $this->assertIsString($mappedRow[2]);
         $this->assertEquals('b string', $mappedRow[2]);
         $this->assertArrayHasKey(3, $mappedRow);
         $this->assertInstanceOf(\DateTimeImmutable::class, $mappedRow[3]);
     }
 
     /**
-     * @throws ReflectionException
      * @throws Exception
+     * @throws ReflectionException
+     * @throws DbcRuntimeException
+     * @throws \PHPUnit\Framework\Exception
+     * @throws ExpectationFailedException
+     * @throws \SebastianBergmann\RecursionContext\InvalidArgumentException
+     * @throws \RuntimeException
      */
     public function testConvertToPhpValuesPartiallyNumericFails(): void
     {
-        $this->expectException(RuntimeException::class);
-        $this->expectExceptionCode(RuntimeException::INDICES_MISSING);
+        $this->expectException(DbcRuntimeException::class);
+        $this->expectExceptionCode(DbcRuntimeException::INDICES_MISSING);
 
         $connection = $this->table->getDbManager()->getConnection();
-        $rows       = $connection->createQueryBuilder()
+        $result     = $connection->createQueryBuilder()
                                  ->select(['a', 'c'])
                                  ->from($this->table->getTableName())
-                                 ->execute()
-                                 ->fetchAll(\PDO::FETCH_NUM);
+                                 ->execute();
+
+        $rows = $result instanceof Result
+            ? $result->fetchAll(\PDO::FETCH_NUM)
+            : throw new \RuntimeException('$result must be instance of ' . Result::class);
 
         $this->assertCount(2, $rows);
         $this->invokeMethodFromObject($this->table, 'convertToPhpValues', $rows[1]);
@@ -205,10 +268,13 @@ class TableTest extends TestCase
         $a = \mt_rand();
         $b = 'foobar';
         $c = new \DateTimeImmutable(\sprintf('@%d', \random_int(1, \time())));
+        $this->assertInstanceOf(TableStub::class, $this->table);
         $this->table->insert(['a' => $a, 'b' => $b, 'c' => $c]);
         $rows = $this->table->find(['a' => $a, 'b' => $b]);
         $this->assertCount(1, $rows);
         $data = \reset($rows);
+        $this->assertIsNotBool($data);
+        $this->assertIsArray($data);
         $this->assertArrayHasKey('c', $data);
         $this->assertInstanceOf(\DateTimeImmutable::class, $data['c']);
         $this->assertEquals($c, $data['c']);
@@ -223,10 +289,13 @@ class TableTest extends TestCase
         $a = \mt_rand();
         $b = 'foobar';
         $c = new \DateTimeImmutable(\sprintf('@%d', \random_int(1, \time())));
+        $this->assertInstanceOf(TableStub::class, $this->table);
         $this->table->insert(['a' => $a, 'b' => $b, 'c' => $c->format('Y-m-d H:i:s')], []);
         $rows = $this->table->find(['a' => $a, 'b' => $b]);
         $this->assertCount(1, $rows);
         $data = \reset($rows);
+        $this->assertIsNotBool($data);
+        $this->assertIsArray($data);
         $this->assertArrayHasKey('c', $data);
         $this->assertEquals($c, $data['c']);
     }
@@ -242,6 +311,7 @@ class TableTest extends TestCase
         $b    = 'foobar';
         $c    = new \DateTimeImmutable(\sprintf('@%d', \random_int(1, \time())));
         $newC = new \DateTimeImmutable(\sprintf('@%d', \random_int(1, \time())));
+        $this->assertInstanceOf(TableStub::class, $this->table);
         $this->table->insert(['a' => $a, 'b' => $b, 'c' => $c]);
         $this->table->update(['c' => $newC], ['a' => $a, 'b' => $b]);
         $rows = $this->table->find(['a' => $a, 'b' => $b]);
@@ -259,6 +329,7 @@ class TableTest extends TestCase
         $b    = 'foobar';
         $c    = new \DateTimeImmutable(\sprintf('@%d', \random_int(1, \time())));
         $newC = new \DateTimeImmutable(\sprintf('@%d', \random_int(1, \time())));
+        $this->assertInstanceOf(TableStub::class, $this->table);
         $this->table->insert(['a' => $a, 'b' => $b, 'c' => $c]);
         $this->table->update(['c' => $newC->format('Y-m-d H:i:s')], ['a' => $a, 'b' => $b], []);
         $rows = $this->table->find(['a' => $a, 'b' => $b]);
@@ -275,6 +346,7 @@ class TableTest extends TestCase
         $a = \mt_rand();
         $b = 'foobar';
         $c = new \DateTimeImmutable(\sprintf('@%d', \random_int(1, \time())));
+        $this->assertInstanceOf(TableStub::class, $this->table);
         $this->table->insert(['a' => $a, 'b' => $b, 'c' => $c]);
         $this->table->delete(['a' => $a, 'c' => $c]);
         $this->assertCount(0, $this->table->find(['a' => $a, 'b' => $b]));
@@ -290,6 +362,7 @@ class TableTest extends TestCase
         $a = \mt_rand();
         $b = 'foobar';
         $c = new \DateTimeImmutable(\sprintf('@%d', \random_int(1, \time())));
+        $this->assertInstanceOf(TableStub::class, $this->table);
         $this->table->insert(['a' => $a, 'b' => $b, 'c' => $c]);
         $this->table->delete(['a' => $a, 'c' => $c->format('Y-m-d H:i:s')], []);
         $this->assertCount(0, $this->table->find(['a' => $a, 'b' => $b]));
@@ -303,7 +376,8 @@ class TableTest extends TestCase
      */
     protected function setUp(): void
     {
-        $this->table  = new TableStub($this->getDBManager());
+        $this->table = new TableStub($this->getDBManager());
+        $this->assertInstanceOf(TableStub::class, $this->table);
         $this->coords = new CoordinatesStub($this->getDBManager());
         parent::setUp();
         $this->insertFixtures($this->table, self::getTableStubFixtures());

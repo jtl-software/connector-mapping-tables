@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Jtl\Connector\Dbc\Types;
 
+use Doctrine\DBAL\Exception;
 use Doctrine\DBAL\Platforms\AbstractPlatform;
 use Doctrine\DBAL\Platforms\MySqlPlatform;
 use Doctrine\DBAL\Platforms\SqlitePlatform;
@@ -16,10 +17,11 @@ class Uuid4Type extends Type
         NAME = 'uuid4';
 
     /**
-     * @param array            $column
+     * @param mixed[]          $column
      * @param AbstractPlatform $platform
      *
      * @return string
+     * @throws Exception
      */
     public function getSQLDeclaration(array $column, AbstractPlatform $platform): string
     {
@@ -30,18 +32,18 @@ class Uuid4Type extends Type
     }
 
     /**
-     * @param mixed            $value
+     * @param string           $value
      * @param AbstractPlatform $platform
      *
-     * @return mixed|string
+     * @return string
      */
-    public function convertToPHPValue($value, AbstractPlatform $platform): mixed
+    public function convertToPHPValue($value, AbstractPlatform $platform): string
     {
         return \ctype_xdigit(\str_replace('-', '', $value)) ? $value : \bin2hex($value);
     }
 
     /**
-     * @param mixed            $value
+     * @param string           $value
      * @param AbstractPlatform $platform
      *
      * @return string

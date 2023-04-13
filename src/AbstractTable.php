@@ -11,12 +11,14 @@ use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use Doctrine\DBAL\Platforms\AbstractPlatform;
 use Doctrine\DBAL\Result;
 use Doctrine\DBAL\Schema\Column;
+use Doctrine\DBAL\Schema\SchemaException;
 use Doctrine\DBAL\Schema\Table;
 use Doctrine\DBAL\Types\Type;
 use Doctrine\DBAL\Types\Types;
 use Jtl\Connector\Dbc\AbstractTable as AbstractDbcTable;
 use Jtl\Connector\Dbc\DbManager;
 use Jtl\Connector\Dbc\Query\QueryBuilder;
+use Jtl\Connector\Dbc\DbcRuntimeException;
 use Jtl\Connector\Dbc\TableException;
 use Jtl\Connector\MappingTables\Schema\EndpointColumn;
 
@@ -177,6 +179,8 @@ abstract class AbstractTable extends AbstractDbcTable implements TableInterface
      *
      * @return mixed[]
      * @throws DBALException|MappingTablesException
+     * @throws DbcRuntimeException
+     * @throws \RuntimeException
      */
     public function extractEndpoint(string $endpointId): array
     {
@@ -198,7 +202,10 @@ abstract class AbstractTable extends AbstractDbcTable implements TableInterface
      * @param mixed[] $data
      *
      * @return mixed[]
-     * @throws DBALException|MappingTablesException
+     * @throws DBALException
+     * @throws MappingTablesException
+     * @throws DbcRuntimeException
+     * @throws \RuntimeException
      */
     protected function createEndpointData(array $data): array
     {
@@ -248,7 +255,10 @@ abstract class AbstractTable extends AbstractDbcTable implements TableInterface
      * @param int|null $type
      *
      * @return string|null
-     * @throws Exception|MappingTablesException
+     * @throws Exception
+     * @throws MappingTablesException
+     * @throws DbcRuntimeException
+     * @throws \RuntimeException
      */
     public function getEndpoint(int $hostId, int $type = null): ?string
     {
@@ -270,7 +280,11 @@ abstract class AbstractTable extends AbstractDbcTable implements TableInterface
      * @param integer|null $type
      *
      * @return QueryBuilder
-     * @throws MappingTablesException|Exception
+     * @throws Exception
+     * @throws MappingTablesException
+     * @throws DbcRuntimeException
+     * @throws \RuntimeException
+     * @throws \RuntimeException
      */
     protected function createEndpointIdQuery(int $hostId, int $type = null): QueryBuilder
     {
@@ -311,7 +325,7 @@ abstract class AbstractTable extends AbstractDbcTable implements TableInterface
     }
 
     /**
-     * @param mixed[] $data
+     * @param array<string, mixed>|array<string> $data
      *
      * @return string
      */
@@ -357,6 +371,9 @@ abstract class AbstractTable extends AbstractDbcTable implements TableInterface
      * @return integer
      * @throws DBALException
      * @throws MappingTablesException
+     * @throws DbcRuntimeException
+     * @throws \RuntimeException
+     * @throws \RuntimeException
      */
     public function save(string $endpoint, int $hostId): int
     {
@@ -386,7 +403,10 @@ abstract class AbstractTable extends AbstractDbcTable implements TableInterface
      *
      * @return integer
      * @throws DBALException
+     * @throws Exception
      * @throws MappingTablesException
+     * @throws DbcRuntimeException
+     * @throws \RuntimeException
      */
     public function remove(string $endpoint = null, int $hostId = null, int $type = null): int
     {
@@ -448,7 +468,10 @@ abstract class AbstractTable extends AbstractDbcTable implements TableInterface
      * @param integer|null $type
      *
      * @return integer
-     * @throws MappingTablesException|Exception
+     * @throws Exception
+     * @throws MappingTablesException
+     * @throws DbcRuntimeException
+     * @throws \RuntimeException
      */
     public function clear(int $type = null): int
     {
@@ -517,6 +540,9 @@ abstract class AbstractTable extends AbstractDbcTable implements TableInterface
      * @return QueryBuilder
      * @throws DBALException
      * @throws MappingTablesException
+     * @throws DbcRuntimeException
+     * @throws \RuntimeException
+     * @throws \RuntimeException
      */
     public function createFindQuery(
         array $where = [],
@@ -577,7 +603,9 @@ abstract class AbstractTable extends AbstractDbcTable implements TableInterface
      *
      * @return string[]
      * @throws DBALException
+     * @throws Exception
      * @throws MappingTablesException
+     * @throws \RuntimeException
      */
     public function findEndpoints(
         array $where = [],
@@ -605,7 +633,11 @@ abstract class AbstractTable extends AbstractDbcTable implements TableInterface
      * @param string[] $endpoints
      *
      * @return array|string[]
-     * @throws DBALException|MappingTablesException
+     * @throws DBALException
+     * @throws Exception
+     * @throws MappingTablesException
+     * @throws DbcRuntimeException
+     * @throws \RuntimeException
      */
     public function filterMappedEndpoints(array $endpoints): array
     {
@@ -694,6 +726,8 @@ abstract class AbstractTable extends AbstractDbcTable implements TableInterface
      * @return mixed|null
      * @throws DBALException
      * @throws MappingTablesException
+     * @throws DbcRuntimeException
+     * @throws \RuntimeException
      */
     public function extractValueFromEndpoint(string $field, string $endpoint): mixed
     {
@@ -735,6 +769,8 @@ abstract class AbstractTable extends AbstractDbcTable implements TableInterface
     /**
      * @return Table
      * @throws Exception
+     * @throws DbcRuntimeException
+     * @throws \RuntimeException
      */
     protected function createSchemaTable(): Table
     {
@@ -745,7 +781,12 @@ abstract class AbstractTable extends AbstractDbcTable implements TableInterface
      * @param Table $tableSchema
      *
      * @return void
+     * @throws Exception
      * @throws MappingTablesException
+     * @throws DbcRuntimeException
+     * @throws SchemaException
+     * @throws \RuntimeException
+     * @throws \RuntimeException
      */
     protected function createTableSchema(Table $tableSchema): void
     {
@@ -770,6 +811,8 @@ abstract class AbstractTable extends AbstractDbcTable implements TableInterface
      * @param string $name
      *
      * @return string
+     * @throws DbcRuntimeException
+     * @throws \RuntimeException
      */
     public function createIndexName(string $name): string
     {

@@ -4,15 +4,15 @@ declare(strict_types=1);
 
 namespace Jtl\Connector\Dbc;
 
-use Doctrine\DBAL\DBALException;
-use Doctrine\DBAL\Exception\InvalidArgumentException;
+use Doctrine\DBAL\Exception;
 use Jtl\Connector\Dbc\Query\QueryBuilder;
 use Jtl\Connector\Dbc\Schema\TableRestriction;
+use RuntimeException;
 
 class Connection extends \Doctrine\DBAL\Connection
 {
     /**
-     * @var mixed[]
+     * @var array<string, array<string, mixed>>
      */
     protected array $tableRestrictions = [];
 
@@ -50,7 +50,7 @@ class Connection extends \Doctrine\DBAL\Connection
     /**
      * @param string|null $tableExpression
      *
-     * @return mixed[]
+     * @return array<string, mixed>|array<string, array<string, mixed>>
      */
     public function getTableRestrictions(string $tableExpression = null): array
     {
@@ -65,9 +65,9 @@ class Connection extends \Doctrine\DBAL\Connection
     }
 
     /**
-     * @param string   $tableExpression
-     * @param mixed[]  $data
-     * @param string[] $types
+     * @param string                                $tableExpression
+     * @param array<int, array<int|string, scalar>> $data
+     * @param string[]                              $types
      *
      * @return integer
      * @throws \Exception
@@ -94,15 +94,20 @@ class Connection extends \Doctrine\DBAL\Connection
      * @param string[] $types
      *
      * @return integer
-     * @throws DBALException
+     * @throws Exception
+     * @throws DbcRuntimeException|\RuntimeException
      */
     public function insert($tableExpression, array $data, array $types = []): int
     {
-        return parent::insert(
+        $return = parent::insert(
             $tableExpression,
             \array_merge($data, $this->getTableRestrictions($tableExpression)),
             $types
         );
+
+        return \is_numeric($return)
+            ? (int)$return
+            : throw new RuntimeException('insert must return a numeric value.');
     }
 
     /**
@@ -112,7 +117,8 @@ class Connection extends \Doctrine\DBAL\Connection
      * @param string[] $types
      *
      * @return integer
-     * @throws DBALException
+     * @throws Exception
+     * @throws DbcRuntimeException
      */
     public function update($tableExpression, array $data, array $identifiers, array $types = []): int
     {
@@ -120,7 +126,11 @@ class Connection extends \Doctrine\DBAL\Connection
         $data         = \array_merge($data, $restrictions);
         $identifiers  = \array_merge($identifiers, $restrictions);
 
-        return parent::update($tableExpression, $data, $identifiers, $types);
+        $return = parent::update($tableExpression, $data, $identifiers, $types);
+
+        return \is_numeric($return)
+            ? (int)$return
+            : throw new RuntimeException('update must return a numeric value.');
     }
 
     /**
@@ -129,14 +139,18 @@ class Connection extends \Doctrine\DBAL\Connection
      * @param string[] $types
      *
      * @return int
-     * @throws DBALException
-     * @throws InvalidArgumentException
+     * @throws Exception
+     * @throws DbcRuntimeException
      */
     public function delete($tableExpression, array $identifiers, array $types = []): int
     {
         $restrictions = $this->getTableRestrictions($tableExpression);
         $identifiers  = \array_merge($identifiers, $restrictions);
 
-        return parent::delete($tableExpression, $identifiers, $types);
+        $return = parent::delete($tableExpression, $identifiers, $types);
+
+        return \is_numeric($return)
+            ? (int)$return
+            : throw new RuntimeException('delete must return a numeric value.');
     }
 }

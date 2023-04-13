@@ -5,11 +5,12 @@ declare(strict_types=1);
 namespace Jtl\Connector\Dbc;
 
 use Doctrine\DBAL\DBALException;
+use RuntimeException;
 
 class DbManagerStub extends DbManager
 {
     /**
-     * @return array
+     * @return array<int, AbstractTable>
      */
     public function getTables(): array
     {
@@ -17,8 +18,10 @@ class DbManagerStub extends DbManager
     }
 
     /**
-     * @return array
+     * @return array<int, \Doctrine\DBAL\Schema\Table>
      * @throws DBALException
+     * @throws DbcRuntimeException
+     * @throws DbcRuntimeException
      */
     public function getSchemaTables(): array
     {

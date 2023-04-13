@@ -6,6 +6,8 @@ namespace Jtl\Connector\Dbc;
 
 use Doctrine\DBAL\DBALException;
 use Exception;
+use PHPUnit\Framework\ExpectationFailedException;
+use SebastianBergmann\RecursionContext\InvalidArgumentException;
 use Throwable;
 
 class TableCollectionTest extends TestCase
@@ -48,6 +50,12 @@ class TableCollectionTest extends TestCase
         $this->assertCount(1, $this->collection->toArray());
     }
 
+    /**
+     * @throws ExpectationFailedException
+     * @throws DbcRuntimeException
+     * @throws \PHPUnit\Framework\Exception
+     * @throws InvalidArgumentException
+     */
     public function testRemoveByName(): void
     {
         $this->assertCount(1, $this->collection->toArray());
@@ -55,6 +63,11 @@ class TableCollectionTest extends TestCase
         $this->assertCount(0, $this->collection->toArray());
     }
 
+    /**
+     * @throws ExpectationFailedException
+     * @throws \PHPUnit\Framework\Exception
+     * @throws InvalidArgumentException
+     */
     public function testRemoveByNameNotFound(): void
     {
         $this->assertCount(1, $this->collection->toArray());
@@ -62,11 +75,20 @@ class TableCollectionTest extends TestCase
         $this->assertCount(1, $this->collection->toArray());
     }
 
+    /**
+     * @throws InvalidArgumentException
+     * @throws ExpectationFailedException
+     * @throws DbcRuntimeException
+     */
     public function testHas(): void
     {
         $this->assertTrue($this->collection->has($this->table->getTableName()));
     }
 
+    /**
+     * @throws InvalidArgumentException
+     * @throws ExpectationFailedException
+     */
     public function testHasNot(): void
     {
         $this->assertFalse($this->collection->has('foo'));
@@ -86,8 +108,8 @@ class TableCollectionTest extends TestCase
      */
     public function testGetButNotFound(): void
     {
-        $this->expectException(RuntimeException::class);
-        $this->expectExceptionCode(RuntimeException::TABLE_NOT_FOUND);
+        $this->expectException(DbcRuntimeException::class);
+        $this->expectExceptionCode(DbcRuntimeException::TABLE_NOT_FOUND);
         $this->collection->get('foobar');
     }
 
@@ -116,15 +138,15 @@ class TableCollectionTest extends TestCase
 
     public function testFilterByInstanceClassNotFound(): void
     {
-        $this->expectException(RuntimeException::class);
-        $this->expectExceptionCode(RuntimeException::CLASS_NOT_FOUND);
+        $this->expectException(DbcRuntimeException::class);
+        $this->expectExceptionCode(DbcRuntimeException::CLASS_NOT_FOUND);
         $this->collection->filterByInstanceClass('notexistent');
     }
 
     public function testFilterByInstanceClassNotAChildOfAbstractTable(): void
     {
-        $this->expectException(RuntimeException::class);
-        $this->expectExceptionCode(RuntimeException::CLASS_NOT_A_TABLE);
+        $this->expectException(DbcRuntimeException::class);
+        $this->expectExceptionCode(DbcRuntimeException::CLASS_NOT_A_TABLE);
         $this->collection->filterByInstanceClass(\ArrayIterator::class);
     }
 
@@ -142,6 +164,11 @@ class TableCollectionTest extends TestCase
         $this->assertEquals($expected, $actual);
     }
 
+    /**
+     * @throws InvalidArgumentException
+     * @throws DbcRuntimeException
+     * @throws ExpectationFailedException
+     */
     public function testFilterOneByInstanceClassReturnNull(): void
     {
         $actual = $this->collection->filterOneByInstanceClass(Table2Stub::class);

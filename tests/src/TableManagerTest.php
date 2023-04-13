@@ -6,14 +6,14 @@ namespace Jtl\Connector\MappingTables;
 
 use Doctrine\DBAL\DBALException;
 use Exception;
+use Jtl\Connector\Dbc\DbcRuntimeException;
+use PHPUnit\Framework\ExpectationFailedException;
+use SebastianBergmann\RecursionContext\InvalidArgumentException;
 use Throwable;
 
 class TableManagerTest extends TestCase
 {
-    /**
-     * @var TableStub
-     */
-    protected \Jtl\Connector\Dbc\AbstractTable $table;
+    protected \Jtl\Connector\Dbc\TableStub|TableStub $table;
 
     /**
      * @var TableManager
@@ -21,7 +21,10 @@ class TableManagerTest extends TestCase
     protected TableManager $mtm;
 
     /**
+     * @throws ExpectationFailedException
+     * @throws InvalidArgumentException
      * @throws MappingTablesException
+     * @throws \PHPUnit\Framework\Exception
      */
     public function testGetMappingTable(): void
     {
@@ -30,6 +33,8 @@ class TableManagerTest extends TestCase
     }
 
     /**
+     * @throws ExpectationFailedException
+     * @throws InvalidArgumentException
      * @throws MappingTablesException
      */
     public function testGetHostId(): void
@@ -41,6 +46,8 @@ class TableManagerTest extends TestCase
     }
 
     /**
+     * @throws ExpectationFailedException
+     * @throws InvalidArgumentException
      * @throws MappingTablesException
      */
     public function testGetEndpointId(): void
@@ -51,6 +58,8 @@ class TableManagerTest extends TestCase
     }
 
     /**
+     * @throws ExpectationFailedException
+     * @throws InvalidArgumentException
      * @throws MappingTablesException
      */
     public function testSave(): void
@@ -63,6 +72,8 @@ class TableManagerTest extends TestCase
     }
 
     /**
+     * @throws ExpectationFailedException
+     * @throws InvalidArgumentException
      * @throws MappingTablesException
      */
     public function testDeleteByEndpointId(): void
@@ -73,6 +84,8 @@ class TableManagerTest extends TestCase
     }
 
     /**
+     * @throws ExpectationFailedException
+     * @throws InvalidArgumentException
      * @throws MappingTablesException
      */
     public function testDeleteByHostId(): void
@@ -83,7 +96,10 @@ class TableManagerTest extends TestCase
     }
 
     /**
+     * @throws ExpectationFailedException
+     * @throws InvalidArgumentException
      * @throws MappingTablesException
+     * @throws \PHPUnit\Framework\Exception
      */
     public function testFindAllEndpointsIds(): void
     {
@@ -92,7 +108,10 @@ class TableManagerTest extends TestCase
     }
 
     /**
+     * @throws ExpectationFailedException
+     * @throws InvalidArgumentException
      * @throws MappingTablesException
+     * @throws \PHPUnit\Framework\Exception
      */
     public function testFindNotFetchedEndpoints(): void
     {
@@ -115,8 +134,12 @@ class TableManagerTest extends TestCase
     }
 
     /**
-     * @throws MappingTablesException
      * @throws DBALException
+     * @throws ExpectationFailedException
+     * @throws InvalidArgumentException
+     * @throws MappingTablesException
+     * @throws DbcRuntimeException
+     * @throws \RuntimeException
      */
     public function testClear(): void
     {
@@ -126,8 +149,12 @@ class TableManagerTest extends TestCase
     }
 
     /**
-     * @throws MappingTablesException
      * @throws DBALException
+     * @throws ExpectationFailedException
+     * @throws InvalidArgumentException
+     * @throws MappingTablesException
+     * @throws DbcRuntimeException
+     * @throws \RuntimeException
      */
     public function testClearByType(): void
     {
@@ -141,6 +168,8 @@ class TableManagerTest extends TestCase
     }
 
     /**
+     * @throws ExpectationFailedException
+     * @throws InvalidArgumentException
      * @throws MappingTablesException
      */
     public function testCount(): void
@@ -150,6 +179,9 @@ class TableManagerTest extends TestCase
 
     /**
      * @throws MappingTablesException
+     * @throws \PHPUnit\Framework\Exception
+     * @throws ExpectationFailedException
+     * @throws InvalidArgumentException
      */
     public function testGetNotExistingTableWithStrictModeDisabled(): void
     {

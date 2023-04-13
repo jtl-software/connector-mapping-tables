@@ -4,22 +4,27 @@ declare(strict_types=1);
 
 namespace Jtl\Connector\Dbc;
 
-use Doctrine\DBAL\DBALException;
+use Doctrine\DBAL\Exception;
+use Doctrine\DBAL\Exception as DBALException;
+use Doctrine\DBAL\Platforms\AbstractPlatform;
 use Doctrine\DBAL\Query\QueryBuilder;
+use Doctrine\DBAL\Result;
 use Jtl\UnitTest\TestCase as JtlTestCase;
 use PDO;
+use PDOException;
+use RuntimeException;
 use Throwable;
 
 abstract class TestCase extends JtlTestCase
 {
     public const TABLE_PREFIX = 'pre_';
     public const SCHEMA       = \TESTROOT . '/tmp/db.sqlite';
-    protected AbstractTable         $table;
-    private PDO                     $pdo;
-    private DbManager|DbManagerStub $dbManager;
+    protected TableStub|\Jtl\Connector\MappingTables\TableStub $table;
+    private PDO                                                $pdo;
+    private DbManager                                          $dbManager;
 
     /**
-     * @return mixed[]
+     * @return array<int, array<string, int|string|\DateTimeImmutable>>
      */
     public static function getTableStubFixtures(): array
     {
@@ -30,7 +35,7 @@ abstract class TestCase extends JtlTestCase
     }
 
     /**
-     * @return mixed[]
+     * @return array<int, array<string, int|float>>
      */
     public static function getCoordinatesFixtures(): array
     {
@@ -55,20 +60,25 @@ abstract class TestCase extends JtlTestCase
     }
 
     /**
-     * @return DbManager|DbManagerStub
+     * @return DbManager
      * @throws DBALException
+     * @throws PDOException
+     * @throws RuntimeException|\Doctrine\DBAL\DBALException
      */
-    protected function getDBManager()
+    protected function getDBManager(): DbManager
     {
-        if (!$this->dbManager instanceof DbManagerStub) {
-            $this->dbManager = DbManagerStub::createFromPDO($this->getPDO(), null, self::TABLE_PREFIX);
+        if (!isset($this->dbManager)) {
+            /** @var DbManagerStub $dbManagerStub */
+            $dbManagerStub   = DbManagerStub::createFromParams(['pdo' => $this->getPDO()], null, self::TABLE_PREFIX);
+            $this->dbManager = $dbManagerStub;
         }
         return $this->dbManager;
     }
 
     /**
      * @return PDO
-     * @throws \RuntimeException
+     * @throws RuntimeException
+     * @throws PDOException
      */
     protected function getPDO(): PDO
     {
@@ -78,7 +88,7 @@ abstract class TestCase extends JtlTestCase
                 && !\mkdir($concurrentDirectory = \dirname(self::SCHEMA))
                 && !\is_dir($concurrentDirectory)
             ) {
-                throw new \RuntimeException(\sprintf('Directory "%s" was not created', $concurrentDirectory));
+                throw new RuntimeException(\sprintf('Directory "%s" was not created', $concurrentDirectory));
             }
 
             if (\file_exists(self::SCHEMA)) {
@@ -90,18 +100,23 @@ abstract class TestCase extends JtlTestCase
     }
 
     /**
-     * @param string $tableName
-     * @param array  $conditions
+     * @param string                $tableName
+     * @param array<string, scalar> $conditions
      *
      * @return int
      * @throws DBALException
+     * @throws PDOException
+     * @throws RuntimeException
+     * @throws Exception|\Doctrine\DBAL\DBALException
      */
     protected function countRows(string $tableName, array $conditions = []): int
     {
         $connection = $this->getDbManager()->getConnection();
 
-        $qb = (new QueryBuilder($connection))
-            ->select($connection->getDatabasePlatform()->getCountExpression('*'))
+        /** @var AbstractPlatform $platform */
+        $platform = $connection->getDatabasePlatform();
+        $qb       = (new QueryBuilder($connection))
+            ->select($platform->getCountExpression('*'))
             ->from($tableName);
 
         foreach ($conditions as $column => $value) {
@@ -110,14 +125,20 @@ abstract class TestCase extends JtlTestCase
                 ->setParameter($column, $value);
         }
 
-        return $qb->execute()->fetchColumn();
+        $result = $qb->execute();
+        if ($result instanceof Result === false) {
+            throw new RuntimeException('unexpected Type, expected instance of Result');
+        }
+
+        return (int)$result->rowCount();
     }
 
     /**
-     * @param AbstractTable $table
-     * @param array         $fixtures
+     * @param AbstractTable                            $table
+     * @param array<int, array<string, scalar|object>> $fixtures
      *
      * @throws DBALException
+     * @throws DbcRuntimeException
      */
     protected function insertFixtures(AbstractTable $table, array $fixtures): void
     {

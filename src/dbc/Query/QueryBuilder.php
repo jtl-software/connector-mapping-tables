@@ -5,32 +5,25 @@ declare(strict_types=1);
 namespace Jtl\Connector\Dbc\Query;
 
 use Doctrine\DBAL\Query\Expression\CompositeExpression;
+use Doctrine\DBAL\Query\QueryException;
 use Jtl\Connector\Dbc\Connection;
 
 class QueryBuilder extends \Doctrine\DBAL\Query\QueryBuilder
 {
     /**
-     * @var mixed[]
+     * @var array{empty}|array<string, array<string, mixed>>|array<string, mixed>
      */
-    protected array $tableRestrictions = [];
-
-    /**
-     * @var string|null
-     */
+    protected array   $tableRestrictions = [];
     protected ?string $fromTable;
-
-    /**
-     * @var string|null
-     */
     protected ?string $fromAlias;
 
     /**
      * QueryBuilder constructor.
      *
-     * @param Connection  $connection
-     * @param mixed[]     $tableRestrictions
-     * @param string|null $fromTable
-     * @param string|null $fromAlias
+     * @param Connection                                                            $connection
+     * @param array{empty}|array<string, mixed>|array<string, array<string, mixed>> $tableRestrictions
+     * @param string|null                                                           $fromTable
+     * @param string|null                                                           $fromAlias
      */
     public function __construct(
         Connection $connection,
@@ -46,6 +39,7 @@ class QueryBuilder extends \Doctrine\DBAL\Query\QueryBuilder
 
     /**
      * @return string
+     * @throws QueryException
      */
     public function getSQL(): string
     {
@@ -67,7 +61,12 @@ class QueryBuilder extends \Doctrine\DBAL\Query\QueryBuilder
             }
         }
 
-        foreach ($this->getQueryPart('from') as $table) {
+        /** @var array<array<string, string>|string> $queryPart */
+        $queryPart = $this->getQueryPart('from');
+        foreach ($queryPart as $table) {
+            if (!$table) {
+                continue;
+            }
             $this->assignTableRestrictions(\is_array($table) ? $table['table'] : $table);
         }
         return parent::getSQL();
@@ -76,11 +75,10 @@ class QueryBuilder extends \Doctrine\DBAL\Query\QueryBuilder
     /**
      * @param string $table
      */
-    protected function assignTableRestrictions($table): void
+    protected function assignTableRestrictions(string $table): void
     {
-        if (isset($this->tableRestrictions[$table])) {
+        if (isset($this->tableRestrictions[$table]) && \is_array($this->tableRestrictions[$table])) {
             foreach ($this->tableRestrictions[$table] as $column => $value) {
-                /** @var CompositeExpression $where */
                 $id    = 'glob_id_' . $column;
                 $where = $this->getQueryPart('where');
                 $this->setParameter($id, $value);
@@ -91,7 +89,7 @@ class QueryBuilder extends \Doctrine\DBAL\Query\QueryBuilder
                 if (
                     !$where instanceof CompositeExpression
                     || $where->getType() !== CompositeExpression::TYPE_AND
-                    || !\str_contains($where, $whereCondition)
+                    || (\is_string($where) && !\str_contains($where, $whereCondition)) //@phpstan-ignore-line
                 ) {
                     $this->andWhere($whereCondition);
                 }

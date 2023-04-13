@@ -6,11 +6,12 @@ namespace Jtl\Connector\Dbc\Console\Command;
 
 use Jtl\Connector\Dbc\DbManager;
 use Symfony\Component\Console\Command\Command;
+use Symfony\Component\Console\Exception\LogicException;
 
 abstract class AbstractDbManagerCommand extends Command
 {
     /**
-     * @var string[]
+     * @var array<string, mixed>
      */
     protected array $dbParams;
 
@@ -24,6 +25,8 @@ abstract class AbstractDbManagerCommand extends Command
      *
      * @param DbManager   $dbManager
      * @param string|null $name
+     *
+     * @throws LogicException
      */
     public function __construct(DbManager $dbManager, string $name = null)
     {

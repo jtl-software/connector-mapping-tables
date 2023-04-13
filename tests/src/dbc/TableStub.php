@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace Jtl\Connector\Dbc;
 
 use Doctrine\DBAL\DBALException;
+use Doctrine\DBAL\Exception;
+use Doctrine\DBAL\ForwardCompatibility\Result;
 use Doctrine\DBAL\Schema\SchemaException;
 use Doctrine\DBAL\Schema\Table;
 use Doctrine\DBAL\Types\Type;
@@ -30,7 +32,8 @@ class TableStub extends AbstractTable
      *
      * @return AbstractTable
      * @throws DBALException
-     * @throws SchemaException
+     * @throws DbcRuntimeException
+     * @throws SchemaException|\RuntimeException
      */
     public function restrict(string $column, $value): AbstractTable
     {
@@ -38,11 +41,13 @@ class TableStub extends AbstractTable
     }
 
     /**
-     * @param int        $fetchType
-     * @param array|null $columns
+     * @param int                     $fetchType
+     * @param array<int, string>|null $columns
      *
-     * @return mixed[]
+     * @return array<int, array<string>>
      * @throws DBALException
+     * @throws Exception
+     * @throws DbcRuntimeException|\RuntimeException
      */
     public function findAll(int $fetchType = \PDO::FETCH_ASSOC, array $columns = null): array
     {
@@ -54,16 +59,26 @@ class TableStub extends AbstractTable
                      ->from($this->getTableName())
                      ->execute();
 
-        return $this->convertAllToPhpValues($stmt->fetchAll($fetchType));
+        if ($stmt instanceof Result === false) {
+            throw new \RuntimeException('$stmt must be instance of ' . Result::class);
+        }
+
+        /** @var array<int, array<string>> $result */
+        $result = $stmt->fetchAll($fetchType);
+
+        return $this->convertAllToPhpValues($result);
     }
 
     /**
-     * @param array $identifier
-     * @param int   $fetchType
-     * @param array $columns
+     * @param array<string, mixed> $identifier
+     * @param int                  $fetchType
+     * @param array<string>|null   $columns
      *
-     * @return array|mixed[]
+     * @return array<int, array<string>>
      * @throws DBALException
+     * @throws Exception
+     * @throws DbcRuntimeException
+     * @throws \RuntimeException
      */
     public function find(array $identifier, int $fetchType = \PDO::FETCH_ASSOC, array $columns = null): array
     {
@@ -80,14 +95,22 @@ class TableStub extends AbstractTable
         }
 
         $stmt = $qb->execute();
+        if ($stmt instanceof Result === false) {
+            throw new \RuntimeException('$stmt must be instance of ' . Result::class);
+        }
 
-        return $this->convertAllToPhpValues($stmt->fetchAll($fetchType));
+        /** @var array<int, array<string>> $result */
+        $result = $stmt->fetchAll($fetchType);
+
+        return $this->convertAllToPhpValues($result);
     }
 
     /**
      * @param Table $tableSchema
      *
      * @return void
+     * @throws Exception
+     * @throws SchemaException
      */
     protected function createTableSchema(Table $tableSchema): void
     {

@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Jtl\Connector\Dbc;
 
-class RuntimeException extends \RuntimeException
+class DbcRuntimeException extends \RuntimeException
 {
     public const
         TABLE_NOT_FOUND   = 10,
@@ -18,21 +18,21 @@ class RuntimeException extends \RuntimeException
     /**
      * @param string $tableName
      *
-     * @return RuntimeException
+     * @return DbcRuntimeException
      */
     public static function tableNotFound(string $tableName): self
     {
-        return new static(\sprintf('Table with name %s not found', $tableName), self::TABLE_NOT_FOUND);
+        return new self(\sprintf('Table with name %s not found', $tableName), self::TABLE_NOT_FOUND);
     }
 
     /**
      * @param string $tableName
      *
-     * @return RuntimeException
+     * @return DbcRuntimeException
      */
     public static function tableEmpty(string $tableName): self
     {
-        return new static(
+        return new self(
             \sprintf('Table %s is empty. At least one column is required', $tableName),
             self::TABLE_EMPTY
         );
@@ -41,52 +41,52 @@ class RuntimeException extends \RuntimeException
     /**
      * @param string $columnName
      *
-     * @return RuntimeException
+     * @return DbcRuntimeException
      */
     public static function columnNotFound(string $columnName): self
     {
-        return new static(\sprintf('A Column with name %s could not get found', $columnName), self::COLUMN_NOT_FOUND);
+        return new self(\sprintf('A Column with name %s could not get found', $columnName), self::COLUMN_NOT_FOUND);
     }
 
     /**
      * @param string $className
      *
-     * @return RuntimeException
+     * @return DbcRuntimeException
      */
     public static function classNotFound(string $className): self
     {
-        return new static(\sprintf('A class with name %s could not get found', $className), self::CLASS_NOT_FOUND);
+        return new self(\sprintf('A class with name %s could not get found', $className), self::CLASS_NOT_FOUND);
     }
 
     /**
      * @param string $className
      *
-     * @return RuntimeException
+     * @return DbcRuntimeException
      */
     public static function classNotChildOfTable(string $className): self
     {
-        return new static(
+        return new self(
             \sprintf('The class %s does not inherit from %s', $className, AbstractTable::class),
             self::CLASS_NOT_A_TABLE
         );
     }
 
     /**
-     * @return RuntimeException
+     * @return DbcRuntimeException
      */
     public static function numericIndicesMissing(): self
     {
-        return new static(
+        return new self(
             'Converting a row with a subset of columns is only possible with associative indices',
             self::INDICES_MISSING
         );
     }
 
     /**
-     * @return static
+     * @return self
      */
     public static function tableNameEmpty(): self
     {
-        return new static('Table name cannot be an empty string', self::TABLE_NAME_EMPTY);
+        return new self('Table name cannot be an empty string', self::TABLE_NAME_EMPTY);
     }
 }

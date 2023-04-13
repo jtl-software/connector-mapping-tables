@@ -7,24 +7,21 @@ namespace Jtl\Connector\Dbc;
 use Doctrine\DBAL\Configuration;
 use Doctrine\DBAL\DBALException;
 use Doctrine\DBAL\DriverManager;
+use Doctrine\DBAL\Exception;
+use Doctrine\DBAL\Schema\AbstractSchemaManager;
 use Doctrine\DBAL\Schema\Schema;
+use Doctrine\DBAL\Schema\SchemaException;
 use Doctrine\DBAL\Schema\Table;
+use RuntimeException;
 
 class DbManager
 {
-    /**
-     * @var Connection
-     */
     protected Connection $connection;
 
     /**
      * @var AbstractTable[]
      */
-    protected array $tables = [];
-
-    /**
-     * @var string|null
-     */
+    protected array   $tables = [];
     protected ?string $tablesPrefix;
 
     /**
@@ -40,30 +37,6 @@ class DbManager
     }
 
     /**
-     * @param \PDO               $pdo
-     * @param Configuration|null $config
-     * @param string|null        $tablesPrefix
-     *
-     * @return DbManager
-     * @throws DBALException
-     * @deprecated Is getting removed in a future release. Use static::createFromParams() instead.
-     *
-     */
-    public static function createFromPDO(
-        \PDO          $pdo,
-        Configuration $config = null,
-        string        $tablesPrefix = null
-    ): DbManager {
-        $params     = [
-            'pdo'          => $pdo,
-            'wrapperClass' => Connection::class
-        ];
-        $connection = DriverManager::getConnection($params, $config);
-
-        return new static($connection, $tablesPrefix);
-    }
-
-    /**
      * @return Connection
      */
     public function getConnection(): Connection
@@ -72,28 +45,30 @@ class DbManager
     }
 
     /**
-     * @param string[]           $params
-     * @param Configuration|null $config
-     * @param string|null        $tablesPrefix
+     * @param array<string, mixed> $params
+     * @param Configuration|null   $config
+     * @param string|null          $tablesPrefix
      *
-     * @return DbManager
+     * @return self
      * @throws DBALException
      */
     public static function createFromParams(
         array         $params,
         Configuration $config = null,
         string        $tablesPrefix = null
-    ): DbManager {
+    ): self {
         $params['wrapperClass'] = Connection::class;
-        $connection             = DriverManager::getConnection($params, $config);
+        /** @var Connection $connection */
+        $connection = DriverManager::getConnection($params, $config);
 
-        return new static($connection, $tablesPrefix);
+        return new self($connection, $tablesPrefix);
     }
 
     /**
      * @param AbstractTable $table
      *
      * @return DbManager
+     * @throws DbcRuntimeException
      */
     public function registerTable(AbstractTable $table): DbManager
     {
@@ -105,6 +80,7 @@ class DbManager
     /**
      * @return string[]
      * @throws DBALException
+     * @throws DbcRuntimeException
      */
     public function getSchema(): array
     {
@@ -114,8 +90,9 @@ class DbManager
     /**
      * @return Table[]
      * @throws DBALException
+     * @throws DbcRuntimeException
      */
-    protected function getSchemaTables(): array
+    public function getSchemaTables(): array
     {
         return \array_map(static function (AbstractTable $table) {
             return $table->getTableSchema();
@@ -125,7 +102,7 @@ class DbManager
     /**
      * @return AbstractTable[]
      */
-    protected function getTables(): array
+    public function getTables(): array
     {
         return \array_values($this->tables);
     }
@@ -133,6 +110,8 @@ class DbManager
     /**
      * @return boolean
      * @throws DBALException
+     * @throws DbcRuntimeException
+     * @throws DbcRuntimeException|\RuntimeException
      */
     public function hasSchemaUpdates(): bool
     {
@@ -142,17 +121,25 @@ class DbManager
     /**
      * @return string[]
      * @throws DBALException
+     * @throws DbcRuntimeException
+     * @throws Exception
+     * @throws SchemaException
+     * @throws DbcRuntimeException|RuntimeException
      */
     public function getSchemaUpdates(): array
     {
-        $originalSchemaAssetsFilter = $this->connection->getConfiguration()->getSchemaAssetsFilter();
-        $this->connection->getConfiguration()->setSchemaAssetsFilter($this->createSchemaAssetsFilterCallback());
-        $fromSchema       = $this->connection->getSchemaManager()->createSchema();
+        /** @var Configuration $configuration */
+        $configuration = $this->connection->getConfiguration();
+        /** @var AbstractSchemaManager $schemaManager */
+        $schemaManager              = $this->connection->getSchemaManager();
+        $originalSchemaAssetsFilter = $configuration->getSchemaAssetsFilter();
+        $configuration->setSchemaAssetsFilter($this->createSchemaAssetsFilterCallback());
+        $fromSchema       = $schemaManager->createSchema();
         $updateStatements = $fromSchema->getMigrateToSql(
             new Schema($this->getSchemaTables()),
             $this->connection->getDatabasePlatform()
         );
-        $this->connection->getConfiguration()->setSchemaAssetsFilter($originalSchemaAssetsFilter);
+        $configuration->setSchemaAssetsFilter($originalSchemaAssetsFilter);
         return $updateStatements;
     }
 
@@ -187,7 +174,7 @@ class DbManager
      */
     public function hasTablesPrefix(): bool
     {
-        return \is_string($this->tablesPrefix) && \strlen($this->tablesPrefix) > 0;
+        return \is_string($this->tablesPrefix) && $this->tablesPrefix !== '';
     }
 
     /**
@@ -202,11 +189,12 @@ class DbManager
      * @param string $shortName
      *
      * @return string
+     * @throws DbcRuntimeException
      */
     public function createTableName(string $shortName): string
     {
         if ($shortName === '') {
-            throw RuntimeException::tableNameEmpty();
+            throw DbcRuntimeException::tableNameEmpty();
         }
         return \sprintf('%s%s', (string)$this->tablesPrefix, $shortName);
     }

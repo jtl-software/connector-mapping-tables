@@ -131,7 +131,7 @@ class TableCollection
      */
     protected function getTableDummy(int $type): TableDummy
     {
-        if (!$this->tableDummy instanceof TableDummy) {
+        if (!isset($this->tableDummy)) {
             $this->tableDummy = new TableDummy();
         }
 

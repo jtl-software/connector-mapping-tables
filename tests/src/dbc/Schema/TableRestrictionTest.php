@@ -7,15 +7,22 @@ namespace Jtl\Connector\Dbc\Schema;
 use Doctrine\DBAL\DBALException;
 use Doctrine\DBAL\Schema\SchemaException;
 use Exception;
+use Jtl\Connector\Dbc\DbcRuntimeException;
 use Jtl\Connector\Dbc\TableStub;
 use Jtl\Connector\Dbc\TestCase;
+use PHPUnit\Framework\ExpectationFailedException;
+use SebastianBergmann\RecursionContext\InvalidArgumentException;
 use Throwable;
 
 class TableRestrictionTest extends TestCase
 {
     /**
-     * @throws SchemaException
      * @throws DBALException
+     * @throws ExpectationFailedException
+     * @throws InvalidArgumentException
+     * @throws DbcRuntimeException
+     * @throws SchemaException
+     * @throws \RuntimeException
      */
     public function testInitializationSuccessful(): void
     {
@@ -29,8 +36,10 @@ class TableRestrictionTest extends TestCase
     }
 
     /**
-     * @throws SchemaException
      * @throws DBALException
+     * @throws DbcRuntimeException
+     * @throws SchemaException
+     * @throws \RuntimeException
      */
     public function testInitializationWithNotExistingColumn(): void
     {
@@ -43,6 +52,10 @@ class TableRestrictionTest extends TestCase
     /**
      * @throws DBALException
      * @throws SchemaException
+     * @throws DbcRuntimeException
+     * @throws ExpectationFailedException
+     * @throws InvalidArgumentException
+     * @throws \RuntimeException
      */
     public function testCreate(): void
     {

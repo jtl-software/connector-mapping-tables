@@ -7,7 +7,7 @@ namespace Jtl\Connector\MappingTables;
 abstract class TestCase extends \Jtl\Connector\Dbc\TestCase
 {
     /**
-     * @return mixed[]
+     * @return array<int, array{'id1': int, 'id2': int, 'strg': string, 'identity_type': int, 'host_id': int}>
      */
     public static function getTableStubFixtures(): array
     {

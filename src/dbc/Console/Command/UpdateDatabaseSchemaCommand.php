@@ -6,6 +6,7 @@ namespace Jtl\Connector\Dbc\Console\Command;
 
 use Drieschel\Oauth2\Server\Database\TableFactory;
 use Jtl\Connector\Dbc\DbManager;
+use Symfony\Component\Console\Exception\InvalidArgumentException;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
@@ -19,6 +20,7 @@ class UpdateDatabaseSchemaCommand extends AbstractDbManagerCommand
 
     /**
      *
+     * @throws InvalidArgumentException
      */
     protected function configure(): void
     {

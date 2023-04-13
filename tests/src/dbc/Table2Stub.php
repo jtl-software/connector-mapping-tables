@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Jtl\Connector\Dbc;
 
+use Doctrine\DBAL\Exception;
+use Doctrine\DBAL\Schema\SchemaException;
 use Doctrine\DBAL\Schema\Table;
 use Doctrine\DBAL\Types\Type;
 
@@ -25,6 +27,8 @@ class Table2Stub extends AbstractTable
      * @param Table $tableSchema
      *
      * @return void
+     * @throws Exception
+     * @throws SchemaException
      */
     protected function createTableSchema(Table $tableSchema): void
     {

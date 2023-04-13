@@ -12,19 +12,38 @@ use Doctrine\DBAL\Schema\Column;
 use Doctrine\DBAL\Schema\SchemaException;
 use Doctrine\DBAL\Types\Types;
 use Jtl\Connector\Dbc\DbManager;
+use PHPUnit\Framework\ExpectationFailedException;
+use PHPUnit\Framework\MockObject\ClassAlreadyExistsException;
+use PHPUnit\Framework\MockObject\ClassIsFinalException;
+use PHPUnit\Framework\MockObject\ClassIsReadonlyException;
+use PHPUnit\Framework\MockObject\DuplicateMethodException;
+use PHPUnit\Framework\MockObject\IncompatibleReturnValueException;
+use PHPUnit\Framework\MockObject\InvalidMethodNameException;
+use PHPUnit\Framework\MockObject\MethodCannotBeConfiguredException;
+use PHPUnit\Framework\MockObject\MethodNameAlreadyConfiguredException;
+use PHPUnit\Framework\MockObject\OriginalConstructorInvocationRequiredException;
+use PHPUnit\Framework\MockObject\RuntimeException;
+use PHPUnit\Framework\MockObject\UnknownTypeException;
 use ReflectionException;
+use SebastianBergmann\RecursionContext\InvalidArgumentException;
 use Throwable;
 
 class AbstractTableTest extends TestCase
 {
-    protected \Jtl\Connector\Dbc\AbstractTable $table;
+    protected \Jtl\Connector\Dbc\TableStub|TableStub $table;
 
     /**
      * @throws DBALException
+     * @throws ExpectationFailedException
+     * @throws InvalidArgumentException
+     * @throws \Jtl\Connector\Dbc\DbcRuntimeException
+     * @throws \RuntimeException
      */
     public function testTableSchema(): void
     {
-        $tableSchema = $this->table->getTableSchema();
+        /** @var TableStub $tableStub */
+        $tableStub   = $this->table;
+        $tableSchema = $tableStub->getTableSchema();
         $this->assertTrue($tableSchema->hasColumn(AbstractTable::HOST_ID));
         $this->assertTrue($tableSchema->hasColumn(TableStub::COL_ID1));
         $this->assertTrue($tableSchema->hasColumn(TableStub::COL_ID2));
@@ -33,13 +52,21 @@ class AbstractTableTest extends TestCase
 
     /**
      * @throws DBALException
+     * @throws ExpectationFailedException
+     * @throws InvalidArgumentException
      * @throws SchemaException
+     * @throws \Jtl\Connector\Dbc\DbcRuntimeException
+     * @throws \PHPUnit\Framework\Exception
+     * @throws \RuntimeException
      */
     public function testHostIndex(): void
     {
-        $tableSchema = $this->table->getTableSchema();
-        $this->assertTrue($tableSchema->hasIndex($this->table->createIndexName(AbstractTable::HOST_INDEX_NAME)));
-        $hostIndex   = $tableSchema->getIndex($this->table->createIndexName(AbstractTable::HOST_INDEX_NAME));
+        $this->assertInstanceOf(TableStub::class, $this->table);
+        /** @var TableStub $table */
+        $table       = $this->table;
+        $tableSchema = $table->getTableSchema();
+        $this->assertTrue($tableSchema->hasIndex($table->createIndexName(AbstractTable::HOST_INDEX_NAME)));
+        $hostIndex   = $tableSchema->getIndex($table->createIndexName(AbstractTable::HOST_INDEX_NAME));
         $hostColumns = $hostIndex->getColumns();
         $this->assertCount(1, $hostColumns);
         /** @var Column $hostColumn */
@@ -49,12 +76,22 @@ class AbstractTableTest extends TestCase
 
     /**
      * @throws DBALException
+     * @throws ExpectationFailedException
+     * @throws InvalidArgumentException
+     * @throws SchemaException
+     * @throws \Jtl\Connector\Dbc\DbcRuntimeException
+     * @throws \PHPUnit\Framework\Exception
+     * @throws \RuntimeException
      */
     public function testPrimaryIndex(): void
     {
-        $tableSchema = $this->table->getTableSchema();
+        $this->assertInstanceOf(TableStub::class, $this->table);
+        /** @var TableStub $tableStub */
+        $tableStub   = $this->table;
+        $tableSchema = $tableStub->getTableSchema();
         $this->assertTrue($tableSchema->hasPrimaryKey());
-        $primaryKey     = $tableSchema->getPrimaryKey();
+        $primaryKey = $tableSchema->getPrimaryKey();
+        $this->assertNotNull($primaryKey);
         $primaryColumns = $primaryKey->getColumns();
         $this->assertCount(3, $primaryColumns);
         $this->assertEquals(TableStub::COL_ID1, $primaryColumns[0]);
@@ -63,14 +100,22 @@ class AbstractTableTest extends TestCase
     }
 
     /**
-     * @throws SchemaException
      * @throws DBALException
+     * @throws ExpectationFailedException
+     * @throws InvalidArgumentException
+     * @throws SchemaException
+     * @throws \Jtl\Connector\Dbc\DbcRuntimeException
+     * @throws \PHPUnit\Framework\Exception
+     * @throws \RuntimeException
      */
     public function testEndpointIndex(): void
     {
-        $tableSchema = $this->table->getTableSchema();
-        $this->assertTrue($tableSchema->hasIndex($this->table->createIndexName(AbstractTable::ENDPOINT_INDEX_NAME)));
-        $epIndex   = $tableSchema->getIndex($this->table->createIndexName(AbstractTable::ENDPOINT_INDEX_NAME));
+        $this->assertInstanceOf(TableStub::class, $this->table);
+        /** @var TableStub $tableStub */
+        $tableStub   = $this->table;
+        $tableSchema = $tableStub->getTableSchema();
+        $this->assertTrue($tableSchema->hasIndex($tableStub->createIndexName(AbstractTable::ENDPOINT_INDEX_NAME)));
+        $epIndex   = $tableSchema->getIndex($tableStub->createIndexName(AbstractTable::ENDPOINT_INDEX_NAME));
         $epColumns = $epIndex->getColumns();
         $this->assertCount(4, $epColumns);
         $this->assertEquals(TableStub::COL_ID1, $epColumns[0]);
@@ -81,76 +126,110 @@ class AbstractTableTest extends TestCase
 
     /**
      * @throws DBALException
-     * @throws \Doctrine\DBAL\Driver\Exception
+     * @throws ExpectationFailedException
+     * @throws InvalidArgumentException
      * @throws MappingTablesException
+     * @throws \Doctrine\DBAL\Driver\Exception
+     * @throws \RuntimeException
      */
     public function testGetHostId(): void
     {
-        $this->assertEquals(3, $this->table->getHostId(\sprintf('1||1||foo||%s', TableStub::TYPE1)));
-        $this->assertEquals(2, $this->table->getHostId(\sprintf('1||2||bar||%s', TableStub::TYPE2)));
-        $this->assertEquals(5, $this->table->getHostId(\sprintf('4||2||foobar||%s', TableStub::TYPE1)));
+        $this->assertInstanceOf(TableStub::class, $this->table);
+        /** @var TableStub $tableStub */
+        $tableStub = $this->table;
+        $this->assertEquals(3, $tableStub->getHostId(\sprintf('1||1||foo||%s', TableStub::TYPE1)));
+        $this->assertEquals(2, $tableStub->getHostId(\sprintf('1||2||bar||%s', TableStub::TYPE2)));
+        $this->assertEquals(5, $tableStub->getHostId(\sprintf('4||2||foobar||%s', TableStub::TYPE1)));
     }
 
     /**
-     * @throws MappingTablesException
      * @throws Exception
+     * @throws ExpectationFailedException
+     * @throws InvalidArgumentException
+     * @throws MappingTablesException
+     * @throws \Jtl\Connector\Dbc\DbcRuntimeException
+     * @throws \RuntimeException
      */
     public function testGetEndpointId(): void
     {
+        $this->assertInstanceOf(TableStub::class, $this->table);
+        /** @var TableStub $tableStub */
+        $tableStub = $this->table;
         $this->assertEquals(
             \sprintf('1||1||foo||%s', TableStub::TYPE1),
-            $this->table->getEndpoint(3, TableStub::TYPE1)
+            $tableStub->getEndpoint(3, TableStub::TYPE1)
         );
         $this->assertEquals(
             \sprintf('1||2||bar||%s', TableStub::TYPE2),
-            $this->table->getEndpoint(2, TableStub::TYPE2)
+            $tableStub->getEndpoint(2, TableStub::TYPE2)
         );
         $this->assertEquals(
             \sprintf('4||2||foobar||%s', TableStub::TYPE1),
-            $this->table->getEndpoint(5, TableStub::TYPE1)
+            $tableStub->getEndpoint(5, TableStub::TYPE1)
         );
     }
 
     /**
-     * @throws MappingTablesException
      * @throws DBALException
+     * @throws ExpectationFailedException
+     * @throws InvalidArgumentException
+     * @throws MappingTablesException
+     * @throws \Jtl\Connector\Dbc\DbcRuntimeException
+     * @throws \RuntimeException
      */
     public function testSave(): void
     {
-        $this->table->save(\sprintf('1||45||yolo||%s', TableStub::TYPE1), 4);
-        $this->assertEquals(5, $this->countRows($this->table->getTableName()));
+        $this->assertInstanceOf(TableStub::class, $this->table);
+        /** @var TableStub $tableStub */
+        $tableStub = $this->table;
+        $tableStub->save(\sprintf('1||45||yolo||%s', TableStub::TYPE1), 4);
+        $this->assertEquals(5, $this->countRows($tableStub->getTableName()));
     }
 
     /**
-     * @throws MappingTablesException
      * @throws DBALException
      * @throws Exception
+     * @throws ExpectationFailedException
+     * @throws InvalidArgumentException
+     * @throws MappingTablesException
+     * @throws \Jtl\Connector\Dbc\DbcRuntimeException
+     * @throws \RuntimeException
      */
     public function testDeleteByEndpointId(): void
     {
+        $this->assertInstanceOf(TableStub::class, $this->table);
+        /** @var TableStub $tableStub */
+        $tableStub = $this->table;
         $this->assertEquals(
             \sprintf('1||1||foo||%s', TableStub::TYPE1),
-            $this->table->getEndpoint(3, TableStub::TYPE1)
+            $tableStub->getEndpoint(3, TableStub::TYPE1)
         );
-        $this->table->remove(\sprintf('1||1||foo||%s', TableStub::TYPE1), null, TableStub::TYPE1);
-        $this->assertEquals(3, $this->countRows($this->table->getTableName()));
-        $this->assertEquals(null, $this->table->getEndpoint(3, TableStub::TYPE1));
+        $tableStub->remove(\sprintf('1||1||foo||%s', TableStub::TYPE1), null, TableStub::TYPE1);
+        $this->assertEquals(3, $this->countRows($tableStub->getTableName()));
+        $this->assertEquals(null, $tableStub->getEndpoint(3, TableStub::TYPE1));
     }
 
     /**
-     * @throws MappingTablesException
      * @throws DBALException
      * @throws Exception
+     * @throws ExpectationFailedException
+     * @throws InvalidArgumentException
+     * @throws MappingTablesException
+     * @throws \Jtl\Connector\Dbc\DbcRuntimeException
+     * @throws \RuntimeException
      */
     public function testDeleteByHostId(): void
     {
+        $this->assertInstanceOf(TableStub::class, $this->table);
+        /** @var TableStub $tableStub */
+        $tableStub = $this->table;
         $this->assertEquals(
             \sprintf('1||1||foo||%s', TableStub::TYPE1),
-            $this->table->getEndpoint(3, TableStub::TYPE1)
+            $tableStub->getEndpoint(3, TableStub::TYPE1)
         );
-        $this->table->remove(null, 3, TableStub::TYPE1);
-        $this->assertEquals(3, $this->countRows($this->table->getTableName()));
-        $this->assertEquals(null, $this->table->getEndpoint(3, TableStub::TYPE1));
+        $tableStub->remove(null, 3, TableStub::TYPE1);
+        $this->assertEquals(3, $this->countRows($tableStub->getTableName()));
+        $this->assertEquals(null, $tableStub->getEndpoint(3, TableStub::TYPE1));
     }
 
     /**
@@ -159,20 +238,28 @@ class AbstractTableTest extends TestCase
      * @param string|null $endpoint
      *
      * @throws DBALException
+     * @throws Exception
+     * @throws ExpectationFailedException
+     * @throws InvalidArgumentException
      * @throws MappingTablesException
-     * @throws Exception|\Doctrine\DBAL\Driver\Exception
+     * @throws \Doctrine\DBAL\Driver\Exception
+     * @throws \Jtl\Connector\Dbc\DbcRuntimeException
+     * @throws \RuntimeException
      */
     public function testDeleteByHostIdMultipleEntries(?string $endpoint): void
     {
+        $this->assertInstanceOf(TableStub::class, $this->table);
+        /** @var TableStub $tableStub */
+        $tableStub       = $this->table;
         $relatedHostId   = 5;
         $anotherEndpoint = \sprintf('5||7||wat||%s', TableStub::TYPE1);
-        $this->table->save($anotherEndpoint, $relatedHostId);
-        $this->assertEquals(5, $this->countRows($this->table->getTableName()));
-        $this->assertEquals($relatedHostId, $this->table->getHostId($anotherEndpoint));
-        $this->table->remove($endpoint, $relatedHostId, TableStub::TYPE1);
-        $this->assertEquals(2, $this->countRows($this->table->getTableName()));
-        $this->assertNull($this->table->getEndpoint($relatedHostId, TableStub::TYPE1));
-        $this->assertNull($this->table->getHostId($anotherEndpoint));
+        $tableStub->save($anotherEndpoint, $relatedHostId);
+        $this->assertEquals(5, $this->countRows($tableStub->getTableName()));
+        $this->assertEquals($relatedHostId, $tableStub->getHostId($anotherEndpoint));
+        $tableStub->remove($endpoint, $relatedHostId, TableStub::TYPE1);
+        $this->assertEquals(2, $this->countRows($tableStub->getTableName()));
+        $this->assertNull($tableStub->getEndpoint($relatedHostId, TableStub::TYPE1));
+        $this->assertNull($tableStub->getHostId($anotherEndpoint));
     }
 
     /**
@@ -187,106 +274,163 @@ class AbstractTableTest extends TestCase
     }
 
     /**
-     * @throws MappingTablesException
      * @throws DBALException
      * @throws Exception
+     * @throws ExpectationFailedException
+     * @throws InvalidArgumentException
+     * @throws MappingTablesException
+     * @throws \Jtl\Connector\Dbc\DbcRuntimeException
+     * @throws \RuntimeException
      */
     public function testClearDifferentTypes(): void
     {
-        $this->table->clear(TableStub::TYPE1);
-        $this->assertEquals(1, $this->countRows($this->table->getTableName()));
-        $this->table->clear(TableStub::TYPE2);
-        $this->assertEquals(0, $this->countRows($this->table->getTableName()));
+        $this->assertInstanceOf(TableStub::class, $this->table);
+        /** @var TableStub $tableStub */
+        $tableStub = $this->table;
+        $tableStub->clear(TableStub::TYPE1);
+        $this->assertEquals(1, $this->countRows($tableStub->getTableName()));
+        $tableStub->clear(TableStub::TYPE2);
+        $this->assertEquals(0, $this->countRows($tableStub->getTableName()));
     }
 
     /**
-     * @throws MappingTablesException
      * @throws DBALException
      * @throws Exception
+     * @throws ExpectationFailedException
+     * @throws InvalidArgumentException
+     * @throws MappingTablesException
+     * @throws \Jtl\Connector\Dbc\DbcRuntimeException
+     * @throws \RuntimeException
      */
     public function testClearAll(): void
     {
-        $this->assertEquals(4, $this->countRows($this->table->getTableName()));
-        $this->table->clear();
-        $this->assertEquals(0, $this->countRows($this->table->getTableName()));
+        $this->assertInstanceOf(TableStub::class, $this->table);
+        /** @var TableStub $tableStub */
+        $tableStub = $this->table;
+        $this->assertEquals(4, $this->countRows($tableStub->getTableName()));
+        $tableStub->clear();
+        $this->assertEquals(0, $this->countRows($tableStub->getTableName()));
     }
 
     /**
      * @throws Exception
+     * @throws MappingTablesException
+     * @throws \Jtl\Connector\Dbc\DbcRuntimeException
+     * @throws \RuntimeException|\SebastianBergmann\RecursionContext\InvalidArgumentException
      */
     public function testClearUnknownType(): void
     {
         $this->expectException(MappingTablesException::class);
         $this->expectExceptionCode(MappingTablesException::TABLE_NOT_RESPONSIBLE_FOR_TYPE);
-        $this->table->clear(44232);
+        $this->assertInstanceOf(TableStub::class, $this->table);
+        /** @var TableStub $tableStub */
+        $tableStub = $this->table;
+        $tableStub->clear(44232);
     }
 
     /**
      * @throws DBALException
-     * @throws MappingTablesException|\Doctrine\DBAL\Driver\Exception
+     * @throws Exception
+     * @throws ExpectationFailedException
+     * @throws InvalidArgumentException
+     * @throws MappingTablesException
+     * @throws \Doctrine\DBAL\Driver\Exception
+     * @throws \Jtl\Connector\Dbc\DbcRuntimeException
+     * @throws \RuntimeException
      */
     public function testCount(): void
     {
-        $this->assertEquals(4, $this->countRows($this->table->getTableName()));
-        $this->assertEquals(3, $this->table->count([], [], [], null, null, TableStub::TYPE1));
-        $this->assertEquals(1, $this->table->count([], [], [], null, null, TableStub::TYPE2));
-        $this->table->remove(\sprintf('1||1||foo||%s', TableStub::TYPE1), null, TableStub::TYPE1);
-        $this->assertEquals(3, $this->countRows($this->table->getTableName()));
-        $this->assertEquals(2, $this->table->count([], [], [], null, null, TableStub::TYPE1));
+        $this->assertInstanceOf(TableStub::class, $this->table);
+        /** @var TableStub $tableStub */
+        $tableStub = $this->table;
+        $this->assertEquals(4, $this->countRows($tableStub->getTableName()));
+        $this->assertEquals(3, $tableStub->count([], [], [], null, null, TableStub::TYPE1));
+        $this->assertEquals(1, $tableStub->count([], [], [], null, null, TableStub::TYPE2));
+        $tableStub->remove(\sprintf('1||1||foo||%s', TableStub::TYPE1), null, TableStub::TYPE1);
+        $this->assertEquals(3, $this->countRows($tableStub->getTableName()));
+        $this->assertEquals(2, $tableStub->count([], [], [], null, null, TableStub::TYPE1));
     }
 
     /**
+     * @throws DBALException
+     * @throws ExpectationFailedException
+     * @throws InvalidArgumentException
      * @throws MappingTablesException
-     * @throws DBALException|\Doctrine\DBAL\Driver\Exception
+     * @throws \Doctrine\DBAL\Driver\Exception
+     * @throws \RuntimeException
      */
     public function testCountWithWhereCondition(): void
     {
-        $where = [TableStub::COL_ID2 . ' = :' . TableStub::COL_ID2];
+        $this->assertInstanceOf(TableStub::class, $this->table);
+        /** @var TableStub $tableStub */
+        $tableStub = $this->table;
+        $where     = [TableStub::COL_ID2 . ' = :' . TableStub::COL_ID2];
         $this->assertEquals(
             0,
-            $this->table->count($where, [TableStub::COL_ID2 => 63], [], null, null, TableStub::TYPE1)
+            $tableStub->count($where, [TableStub::COL_ID2 => 63], [], null, null, TableStub::TYPE1)
         );
         $this->assertEquals(
             1,
-            $this->table->count($where, [TableStub::COL_ID2 => 1], [], null, null, TableStub::TYPE1)
+            $tableStub->count($where, [TableStub::COL_ID2 => 1], [], null, null, TableStub::TYPE1)
         );
         $this->assertEquals(
             1,
-            $this->table->count($where, [TableStub::COL_ID2 => 2], [], null, null, TableStub::TYPE1)
+            $tableStub->count($where, [TableStub::COL_ID2 => 2], [], null, null, TableStub::TYPE1)
         );
     }
 
     /**
-     * @throws MappingTablesException
      * @throws DBALException
+     * @throws Exception
+     * @throws ExpectationFailedException
+     * @throws InvalidArgumentException
+     * @throws MappingTablesException
+     * @throws \PHPUnit\Framework\Exception
+     * @throws \RuntimeException
      */
     public function testFindEndpointsByType(): void
     {
-        $endpoints = $this->table->findEndpoints([], [], [], null, null, TableStub::TYPE1);
+        $this->assertInstanceOf(TableStub::class, $this->table);
+        /** @var TableStub $tableStub */
+        $tableStub = $this->table;
+        $endpoints = $tableStub->findEndpoints([], [], [], null, null, TableStub::TYPE1);
         $this->assertCount(3, $endpoints);
         $this->assertEquals(\sprintf('1||1||foo||%s', TableStub::TYPE1), $endpoints[0]);
         $this->assertEquals(\sprintf('4||2||foobar||%s', TableStub::TYPE1), $endpoints[1]);
-        $endpoints = $this->table->findEndpoints([], [], [], null, null, TableStub::TYPE2);
+        $endpoints = $tableStub->findEndpoints([], [], [], null, null, TableStub::TYPE2);
         $this->assertCount(1, $endpoints);
         $this->assertEquals(\sprintf('1||2||bar||%s', TableStub::TYPE2), $endpoints[0]);
     }
 
     /**
-     * @throws MappingTablesException
      * @throws DBALException
      * @throws Exception
+     * @throws ExpectationFailedException
+     * @throws InvalidArgumentException
+     * @throws MappingTablesException
+     * @throws \Jtl\Connector\Dbc\DbcRuntimeException
+     * @throws \RuntimeException
      */
     public function testFindAllEndpointsWithNoData(): void
     {
-        $this->table->clear(TableStub::TYPE1);
-        $endpoints = $this->table->findEndpoints([], [], [], null, null, TableStub::TYPE1);
+        $this->assertInstanceOf(TableStub::class, $this->table);
+        /** @var TableStub $tableStub */
+        $tableStub = $this->table;
+        $tableStub->clear(TableStub::TYPE1);
+        $endpoints = $tableStub->findEndpoints([], [], [], null, null, TableStub::TYPE1);
         $this->assertIsArray($endpoints);
         $this->assertEmpty($endpoints);
     }
 
     /**
-     * @throws MappingTablesException
      * @throws DBALException
+     * @throws Exception
+     * @throws ExpectationFailedException
+     * @throws InvalidArgumentException
+     * @throws MappingTablesException
+     * @throws \Jtl\Connector\Dbc\DbcRuntimeException
+     * @throws \PHPUnit\Framework\Exception
+     * @throws \RuntimeException
      */
     public function testFilterMappedEndpoints(): void
     {
@@ -303,18 +447,26 @@ class AbstractTableTest extends TestCase
 
         $endpoints = \array_merge($mapped, $notMappedExpected);
 
-        $notMappedActual = $this->table->filterMappedEndpoints($endpoints);
+        $this->assertInstanceOf(TableStub::class, $this->table);
+        /** @var TableStub $tableStub */
+        $tableStub       = $this->table;
+        $notMappedActual = $tableStub->filterMappedEndpoints($endpoints);
         $this->assertCount(3, $notMappedActual);
         $this->assertEquals($notMappedExpected, $notMappedActual);
     }
 
     /**
+     * @throws ExpectationFailedException
+     * @throws InvalidArgumentException
      * @throws ReflectionException
+     * @throws \PHPUnit\Framework\Exception
      */
     public function testCreateEndpointData(): void
     {
         $endpointData = ['5', '7', 'foobar', TableStub::TYPE1];
-        $data         = $this->invokeMethodFromObject($this->table, 'createEndpointData', $endpointData);
+        $this->assertInstanceOf(TableStub::class, $this->table);
+        $data = $this->invokeMethodFromObject($this->table, 'createEndpointData', $endpointData);
+        $this->assertIsArray($data);
         $this->assertCount(4, $data);
         $this->assertArrayHasKey('id1', $data);
         $this->assertIsInt($data['id1']);
@@ -325,41 +477,77 @@ class AbstractTableTest extends TestCase
     }
 
     /**
-     * @throws ReflectionException
+     * @return void
+     * @throws \PHPUnit\Framework\Exception
+     * @throws \PHPUnit\Framework\ExpectationFailedException
+     * @throws \ReflectionException
+     * @throws \SebastianBergmann\RecursionContext\InvalidArgumentException
      */
     public function testCreateEndpointDataFailsTooMuchData(): void
     {
         $this->expectException(MappingTablesException::class);
         $this->expectExceptionCode(MappingTablesException::WRONG_ENDPOINT_PARTS_AMOUNT);
         $endpointData = ['foo', 'bar', '123', '21', '1.3'];
+        $this->assertInstanceOf(TableStub::class, $this->table);
         $this->invokeMethodFromObject($this->table, 'createEndpointData', $endpointData);
     }
 
     /**
-     * @throws ReflectionException
+     * @return void
+     * @throws \PHPUnit\Framework\Exception
+     * @throws \PHPUnit\Framework\ExpectationFailedException
+     * @throws \ReflectionException
+     * @throws \SebastianBergmann\RecursionContext\InvalidArgumentException
      */
     public function testCreateEndpointDataFailsNotEnoughData(): void
     {
         $this->expectException(MappingTablesException::class);
         $this->expectExceptionCode(MappingTablesException::WRONG_ENDPOINT_PARTS_AMOUNT);
         $endpointData = ['foo', 'bar'];
+        $this->assertInstanceOf(TableStub::class, $this->table);
         $this->invokeMethodFromObject($this->table, 'createEndpointData', $endpointData);
     }
 
+    /**
+     * @return void
+     * @throws \PHPUnit\Framework\Exception
+     * @throws \PHPUnit\Framework\ExpectationFailedException
+     * @throws \SebastianBergmann\RecursionContext\InvalidArgumentException
+     */
     public function testBuildEndpoint(): void
     {
-        $data     = ['f', 'u', 'c', 'k'];
-        $expected = \implode($this->table->getEndpointDelimiter(), $data);
-        $endpoint = $this->table->buildEndpoint($data);
+        $data = ['f', 'u', 'c', 'k'];
+        $this->assertInstanceOf(TableStub::class, $this->table);
+        /** @var TableStub $tableStub */
+        $tableStub = $this->table;
+        $expected  = \implode($tableStub->getEndpointDelimiter(), $data);
+        $endpoint  = $tableStub->buildEndpoint($data);
         $this->assertEquals($expected, $endpoint);
     }
 
     /**
      * @dataProvider endpointWithColumnKeysProvider
      *
-     * @param array  $endpointData
-     * @param array  $endpointColumnNames
-     * @param string $expectedEndpoint
+     * @param array<string, mixed> $endpointData
+     * @param array<int, string>   $endpointColumnNames
+     * @param string               $expectedEndpoint
+     *
+     * @throws ClassAlreadyExistsException
+     * @throws ClassIsFinalException
+     * @throws ClassIsReadonlyException
+     * @throws DuplicateMethodException
+     * @throws ExpectationFailedException
+     * @throws IncompatibleReturnValueException
+     * @throws InvalidArgumentException
+     * @throws InvalidMethodNameException
+     * @throws MethodCannotBeConfiguredException
+     * @throws MethodNameAlreadyConfiguredException
+     * @throws OriginalConstructorInvocationRequiredException
+     * @throws RuntimeException
+     * @throws UnknownTypeException
+     * @throws \PHPUnit\Framework\Exception
+     * @throws \PHPUnit\Framework\InvalidArgumentException
+     * @throws \PHPUnit\Framework\MockObject\ReflectionException
      */
     public function testBuildEndpointWithColumnKeys(
         array  $endpointData,
@@ -379,7 +567,7 @@ class AbstractTableTest extends TestCase
     }
 
     /**
-     * @return array
+     * @return array<int, array<int, array<string, string>|array<int, string>|string>>
      */
     public function endpointWithColumnKeysProvider(): array
     {
@@ -393,8 +581,12 @@ class AbstractTableTest extends TestCase
     }
 
     /**
-     * @throws MappingTablesException
      * @throws DBALException
+     * @throws ExpectationFailedException
+     * @throws InvalidArgumentException
+     * @throws MappingTablesException
+     * @throws \Jtl\Connector\Dbc\DbcRuntimeException
+     * @throws \RuntimeException
      */
     public function testExtractEndpoint(): void
     {
@@ -406,42 +598,66 @@ class AbstractTableTest extends TestCase
                 TableStub::COL_VAR           => 'bar',
                 AbstractTable::IDENTITY_TYPE => TableStub::TYPE1
             ];
-        $data     = $this->table->extractEndpoint($endpoint);
+        $this->assertInstanceOf(TableStub::class, $this->table);
+        /** @var TableStub $tableStub */
+        $tableStub = $this->table;
+        $data      = $tableStub->extractEndpoint($endpoint);
         $this->assertEquals($expected, $data);
     }
 
     /**
+     * @throws ExpectationFailedException
+     * @throws InvalidArgumentException
      * @throws MappingTablesException
+     * @throws \PHPUnit\Framework\Exception
      */
     public function testExplodeEndpoint(): void
     {
+        $this->assertInstanceOf(TableStub::class, $this->table);
+        /** @var TableStub $tableStub */
+        $tableStub = $this->table;
         $delimiter = '>=<';
-        $this->table->setEndpointDelimiter($delimiter);
+        $tableStub->setEndpointDelimiter($delimiter);
         $exptected1 = 'foo';
         $exptected2 = 'bar';
         $endpoint   = \sprintf('%s%s%s', $exptected1, $delimiter, $exptected2);
-        $exploded   = $this->table->explodeEndpoint($endpoint);
+        $exploded   = $tableStub->explodeEndpoint($endpoint);
         $this->assertCount(2, $exploded);
         $this->assertEquals($exptected1, $exploded[0]);
         $this->assertEquals($exptected2, $exploded[1]);
     }
 
+    /**
+     * @return void
+     * @throws \Jtl\Connector\MappingTables\MappingTablesException
+     * @throws \PHPUnit\Framework\Exception
+     * @throws \PHPUnit\Framework\ExpectationFailedException
+     * @throws \SebastianBergmann\RecursionContext\InvalidArgumentException
+     */
     public function testExplodeEndpointWithEmptyString(): void
     {
         $this->expectException(MappingTablesException::class);
         $this->expectExceptionCode(MappingTablesException::EMPTY_ENDPOINT_ID);
-        $this->table->explodeEndpoint('');
+        $this->assertInstanceOf(TableStub::class, $this->table);
+        /** @var TableStub $tableStub */
+        $tableStub = $this->table;
+        $tableStub->explodeEndpoint('');
     }
 
     /**
      * @throws DBALException
+     * @throws \Jtl\Connector\Dbc\DbcRuntimeException
+     * @throws \RuntimeException|\SebastianBergmann\RecursionContext\InvalidArgumentException
      */
     public function testExtractEndpointUnknownType(): void
     {
         $this->expectException(MappingTablesException::class);
         $this->expectExceptionCode(MappingTablesException::TABLE_NOT_RESPONSIBLE_FOR_TYPE);
         $endpoint = \sprintf('3||5||bar||%s', 3244);
-        $this->table->extractEndpoint($endpoint);
+        $this->assertInstanceOf(TableStub::class, $this->table);
+        /** @var TableStub $tableStub */
+        $tableStub = $this->table;
+        $tableStub->extractEndpoint($endpoint);
     }
 
     /**
@@ -472,7 +688,8 @@ class AbstractTableTest extends TestCase
         $table->setEndpointColumn('test', Types::DATETIME_IMMUTABLE);
         $schema     = $table->getTableSchema();
         $primaryKey = $schema->getPrimaryKey();
-        $this->assertTrue(\in_array('test', $primaryKey->getColumns()));
+        $this->assertNotNull($primaryKey);
+        $this->assertContains('test', $primaryKey->getColumns());
     }
 
     /**
@@ -488,11 +705,13 @@ class AbstractTableTest extends TestCase
         $schema = $table->getTableSchema();
         $this->assertTrue($schema->hasColumn('test'));
         $primaryKey = $schema->getPrimaryKey();
+        $this->assertNotNull($primaryKey);
         $this->assertNotContains('test', $primaryKey->getColumns());
     }
 
     /**
      * @throws DBALException
+     * @throws \RuntimeException
      */
     public function testEmptyTypes(): void
     {
@@ -515,15 +734,22 @@ class AbstractTableTest extends TestCase
      *
      * @throws DBALException
      * @throws MappingTablesException
+     * @throws ExpectationFailedException
+     * @throws InvalidArgumentException
+     * @throws \Jtl\Connector\Dbc\DbcRuntimeException
+     * @throws \RuntimeException
      */
     public function testExtractValueFromEndpoint(string $field, string $endpoint, $expectedValue): void
     {
-        $actualValue = $this->table->extractValueFromEndpoint($field, $endpoint);
+        $this->assertInstanceOf(TableStub::class, $this->table);
+        /** @var TableStub $tableStub */
+        $tableStub   = $this->table;
+        $actualValue = $tableStub->extractValueFromEndpoint($field, $endpoint);
         $this->assertEquals($expectedValue, $actualValue);
     }
 
     /**
-     * @return array[]
+     * @return array<int, array<int, int|string>>
      */
     public function extractValueFromEndpointProvider(): array
     {
@@ -540,20 +766,29 @@ class AbstractTableTest extends TestCase
      * @param mixed[] $types
      *
      * @throws DBALException
+     * @throws \RuntimeException
      */
     public function testWrongTypes(array $types): void
     {
         $this->expectException(MappingTablesException::class);
         $this->expectExceptionCode(MappingTablesException::TYPES_WRONG_DATA_TYPE);
         new class ($this->getDBManager(), $types) extends TableStub {
+            /** @var mixed[] */
             protected array $types = [];
 
+            /**
+             * @param DbManager $dbManager
+             * @param mixed[]   $types
+             */
             public function __construct(DbManager $dbManager, array $types)
             {
                 $this->types = $types;
                 parent::__construct($dbManager);
             }
 
+            /**
+             * @return mixed[]
+             */
             public function getTypes(): array
             {
                 return $this->types;
@@ -562,7 +797,7 @@ class AbstractTableTest extends TestCase
     }
 
     /**
-     * @return mixed[]
+     * @return array<int, array<int, array<int, string|float|bool|\stdClass>>>
      */
     public function wrongTypesProvider(): array
     {

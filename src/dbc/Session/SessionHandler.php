@@ -9,9 +9,11 @@ use Doctrine\DBAL\DBALException;
 use Doctrine\DBAL\Driver\Exception;
 use Doctrine\DBAL\Exception\InvalidArgumentException;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
+use Doctrine\DBAL\Schema\SchemaException;
 use Doctrine\DBAL\Schema\Table;
 use Doctrine\DBAL\Types\Types;
 use Jtl\Connector\Dbc\AbstractTable;
+use Jtl\Connector\Dbc\DbcRuntimeException;
 use Jtl\Connector\Dbc\DbManager;
 use Jtl\Connector\Dbc\Query\QueryBuilder;
 use ReturnTypeWillChange;
@@ -66,6 +68,8 @@ class SessionHandler extends AbstractTable implements SessionHandlerInterface, S
      * @return bool
      * @throws DBALException
      * @throws InvalidArgumentException
+     * @throws DbcRuntimeException
+     * @throws \RuntimeException
      */
     public function destroy(string $sessionId): bool
     {
@@ -77,7 +81,9 @@ class SessionHandler extends AbstractTable implements SessionHandlerInterface, S
      * @param int $maxLifetime
      *
      * @return bool
+     * @throws DbcRuntimeException
      * @throws \Doctrine\DBAL\Exception
+     * @throws \RuntimeException
      */
     #[ReturnTypeWillChange]
     public function gc(int $maxLifetime): bool
@@ -105,15 +111,17 @@ class SessionHandler extends AbstractTable implements SessionHandlerInterface, S
     /**
      * @param string $sessionId
      *
-     * @return false|mixed|string
+     * @return string
      * @throws Exception|\Doctrine\DBAL\Exception
+     * @throws DbcRuntimeException
+     * @throws \RuntimeException
      */
     #[ReturnTypeWillChange]
-    public function read(string $sessionId)
+    public function read(string $sessionId): string
     {
         $stmt = $this->createReadQuery($sessionId, [self::SESSION_DATA])->execute();
-        if (\is_object($stmt)) {
-            return (string)$stmt->fetchOne();
+        if (\is_object($stmt) && \is_scalar(($fetchOne = $stmt->fetchOne()))) {
+            return (string)$fetchOne;
         }
         return '';
     }
@@ -123,6 +131,8 @@ class SessionHandler extends AbstractTable implements SessionHandlerInterface, S
      * @param array|string[] $columns
      *
      * @return QueryBuilder
+     * @throws DbcRuntimeException
+     * @throws \RuntimeException
      */
     protected function createReadQuery(string $sessionId, array $columns = [self::SESSION_DATA]): QueryBuilder
     {
@@ -140,6 +150,8 @@ class SessionHandler extends AbstractTable implements SessionHandlerInterface, S
      *
      * @return bool
      * @throws DBALException
+     * @throws DbcRuntimeException
+     * @throws \RuntimeException
      */
     public function write(string $sessionId, string $sessionData): bool
     {
@@ -173,6 +185,8 @@ class SessionHandler extends AbstractTable implements SessionHandlerInterface, S
      *
      * @return boolean
      * @throws \Doctrine\DBAL\Exception|Exception
+     * @throws DbcRuntimeException
+     * @throws \RuntimeException
      */
     public function validateId(string $sessionId): bool
     {
@@ -190,6 +204,8 @@ class SessionHandler extends AbstractTable implements SessionHandlerInterface, S
      *
      * @return boolean
      * @throws DBALException
+     * @throws DbcRuntimeException
+     * @throws \RuntimeException
      */
     public function updateTimestamp(string $sessionId, string $sessionData): bool
     {
@@ -211,6 +227,9 @@ class SessionHandler extends AbstractTable implements SessionHandlerInterface, S
 
     /**
      * @param Table $tableSchema
+     *
+     * @throws SchemaException
+     * @throws \Doctrine\DBAL\Exception
      */
     protected function createTableSchema(Table $tableSchema): void
     {

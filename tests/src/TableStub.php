@@ -10,7 +10,7 @@ use Doctrine\DBAL\Schema\Table;
 use Doctrine\DBAL\Types\Types;
 use Jtl\Connector\Dbc\DbManager;
 
-class TableStub extends AbstractTable
+class TableStub extends AbstractTable implements TableInterface
 {
     public const COL_ID1 = 'id1';
     public const COL_ID2 = 'id2';

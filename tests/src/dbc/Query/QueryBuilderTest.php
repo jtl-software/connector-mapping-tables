@@ -6,10 +6,14 @@ namespace Jtl\Connector\Dbc\Query;
 
 use Doctrine\DBAL\DBALException;
 use Doctrine\DBAL\Exception;
+use Doctrine\DBAL\Query\QueryException;
 use Doctrine\DBAL\Schema\SchemaException;
 use Jtl\Connector\Dbc\CoordinatesStub;
+use Jtl\Connector\Dbc\DbcRuntimeException;
 use Jtl\Connector\Dbc\Schema\TableRestriction;
 use Jtl\Connector\Dbc\TestCase;
+use PHPUnit\Framework\ExpectationFailedException;
+use SebastianBergmann\RecursionContext\InvalidArgumentException;
 use Throwable;
 
 class QueryBuilderTest extends TestCase
@@ -34,6 +38,12 @@ class QueryBuilderTest extends TestCase
      */
     protected array $globalIdentifiers = ['foo' => 'bar'];
 
+    /**
+     * @throws QueryException
+     * @throws ExpectationFailedException
+     * @throws InvalidArgumentException
+     * @throws \PHPUnit\Framework\Exception
+     */
     public function testTableRestrictionWithSelect(): void
     {
         $this->qb
@@ -48,6 +58,12 @@ class QueryBuilderTest extends TestCase
         $this->assertContains('foo = :glob_id_foo', $andSplit);
     }
 
+    /**
+     * @throws QueryException
+     * @throws ExpectationFailedException
+     * @throws InvalidArgumentException
+     * @throws \PHPUnit\Framework\Exception
+     */
     public function testTableRestrictionWithInsert(): void
     {
         $this->qb
@@ -61,6 +77,12 @@ class QueryBuilderTest extends TestCase
         $this->assertContains(':glob_id_foo', $values);
     }
 
+    /**
+     * @throws QueryException
+     * @throws ExpectationFailedException
+     * @throws InvalidArgumentException
+     * @throws \PHPUnit\Framework\Exception
+     */
     public function testGlobalIdentifierWithUpdate(): void
     {
         $this->qb->update($this->tableExpression)->set('key', 'value');
@@ -89,6 +111,12 @@ class QueryBuilderTest extends TestCase
         $this->assertEquals(':glob_id_foo', $wheres['foo']);
     }
 
+    /**
+     * @throws QueryException
+     * @throws ExpectationFailedException
+     * @throws InvalidArgumentException
+     * @throws \PHPUnit\Framework\Exception
+     */
     public function testGlobalIdentifierWithDelete(): void
     {
         $this->qb->delete($this->tableExpression)->where('a = b');
@@ -100,8 +128,12 @@ class QueryBuilderTest extends TestCase
 
     /**
      * @throws DBALException
-     * @throws SchemaException
      * @throws Exception
+     * @throws ExpectationFailedException
+     * @throws InvalidArgumentException
+     * @throws SchemaException
+     * @throws DbcRuntimeException
+     * @throws \RuntimeException
      */
     public function testTableRestriction(): void
     {
@@ -109,9 +141,15 @@ class QueryBuilderTest extends TestCase
             new TableRestriction($this->coordsTable->getTableSchema(), CoordinatesStub::COL_X, 1.)
         );
         $this->assertEquals(4, $this->countRows($this->coordsTable->getTableName()));
+        /** @var array<int, array<string, float>>|array{empty} $datasets */
         $datasets = $this->coordsTable->findAll();
-        $this->assertEquals(3, $datasets[0]['z']);
-        $this->assertEquals(5., $datasets[1]['z']);
+        if (empty($datasets)) {
+            $this->fail('$datasets is empty.');
+        }
+        $this->assertArrayHasKey(0, $datasets);
+        $this->assertArrayHasKey(1, $datasets);
+        $this->assertEquals(3, $datasets[0]['z']); //@phpstan-ignore-line
+        $this->assertEquals(5., $datasets[1]['z']); //@phpstan-ignore-line
 
         $qb = $this->getDBManager()->getConnection()->createQueryBuilder();
         $qb->update($this->coordsTable->getTableName())
@@ -120,12 +158,16 @@ class QueryBuilderTest extends TestCase
            ->execute();
 
         $datasets = $this->coordsTable->findAll();
-        $this->assertEquals(10.5, $datasets[0]['z']);
-        $this->assertEquals(10.5, $datasets[1]['z']);
+        $this->assertEquals(10.5, $datasets[0]['z']); //@phpstan-ignore-line
+        $this->assertEquals(10.5, $datasets[1]['z']); //@phpstan-ignore-line
     }
 
     /**
      * @throws DBALException
+     * @throws ExpectationFailedException
+     * @throws InvalidArgumentException
+     * @throws QueryException
+     * @throws \RuntimeException
      */
     public function testSelectWithLockedFromTableAndCalledFromMethod(): void
     {
@@ -139,6 +181,10 @@ class QueryBuilderTest extends TestCase
 
     /**
      * @throws DBALException
+     * @throws ExpectationFailedException
+     * @throws InvalidArgumentException
+     * @throws QueryException
+     * @throws \RuntimeException
      */
     public function testSelectWithLockedFromTableAndFromAliasAndNotCalledFromMethod(): void
     {
@@ -153,6 +199,10 @@ class QueryBuilderTest extends TestCase
 
     /**
      * @throws DBALException
+     * @throws ExpectationFailedException
+     * @throws InvalidArgumentException
+     * @throws QueryException
+     * @throws \RuntimeException
      */
     public function testInsertWithLockedFromTableAndTableNameInInsert(): void
     {
@@ -166,6 +216,10 @@ class QueryBuilderTest extends TestCase
 
     /**
      * @throws DBALException
+     * @throws ExpectationFailedException
+     * @throws InvalidArgumentException
+     * @throws QueryException
+     * @throws \RuntimeException
      */
     public function testInsertWithLockedFromTableAndNotTableNameInInsert(): void
     {
@@ -179,6 +233,10 @@ class QueryBuilderTest extends TestCase
 
     /**
      * @throws DBALException
+     * @throws ExpectationFailedException
+     * @throws InvalidArgumentException
+     * @throws QueryException
+     * @throws \RuntimeException
      */
     public function testUpdateWithLockedFromTableAndFromAliasAndTableNameInUpdate(): void
     {
@@ -193,6 +251,10 @@ class QueryBuilderTest extends TestCase
 
     /**
      * @throws DBALException
+     * @throws ExpectationFailedException
+     * @throws InvalidArgumentException
+     * @throws QueryException
+     * @throws \RuntimeException
      */
     public function testUpdateWithLockedFromTableAndNotTableNameInUpdate(): void
     {
@@ -206,6 +268,10 @@ class QueryBuilderTest extends TestCase
 
     /**
      * @throws DBALException
+     * @throws ExpectationFailedException
+     * @throws InvalidArgumentException
+     * @throws QueryException
+     * @throws \RuntimeException
      */
     public function testDeleteWithLockedFromTableAndTableNameInDelete(): void
     {
@@ -219,6 +285,10 @@ class QueryBuilderTest extends TestCase
 
     /**
      * @throws DBALException
+     * @throws QueryException
+     * @throws ExpectationFailedException
+     * @throws InvalidArgumentException
+     * @throws \RuntimeException
      */
     public function testDeleteWithLockedFromTableAndFromAliasAndTableNameNotInDelete(): void
     {
@@ -231,7 +301,12 @@ class QueryBuilderTest extends TestCase
         $this->assertEquals($expectedSql, $actualSql);
     }
 
-    public function myTrim($str): string
+    /**
+     * @param string $str
+     *
+     * @return string
+     */
+    public function myTrim(string $str): string
     {
         return \trim($str, " \t\n\r\0\x0B()");
     }

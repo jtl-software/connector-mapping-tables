@@ -8,19 +8,27 @@ use Doctrine\DBAL\DBALException;
 use Doctrine\DBAL\DriverManager;
 use Doctrine\DBAL\Exception;
 use Doctrine\DBAL\Exception\InvalidArgumentException;
+use Doctrine\DBAL\ForwardCompatibility\Result;
 use Doctrine\DBAL\Schema\SchemaException;
 use Jtl\Connector\Dbc\Query\QueryBuilder;
 use Jtl\Connector\Dbc\Schema\TableRestriction;
+use PHPUnit\Framework\ExpectationFailedException;
 use Throwable;
 
 class ConnectionTest extends TestCase
 {
-    protected Connection|\Doctrine\DBAL\Connection $connection;
+    protected Connection $connection;
 
     /**
-     * @throws DBALException
-     * @throws SchemaException
-     * @throws Exception
+     * @return void
+     * @throws \Doctrine\DBAL\Exception
+     * @throws \Doctrine\DBAL\Schema\SchemaException
+     * @throws \Jtl\Connector\Dbc\DbcRuntimeException
+     * @throws \PDOException
+     * @throws \PHPUnit\Framework\Exception
+     * @throws \PHPUnit\Framework\ExpectationFailedException
+     * @throws \RuntimeException
+     * @throws \SebastianBergmann\RecursionContext\InvalidArgumentException
      */
     public function testInsertWithTableRestriction(): void
     {
@@ -42,17 +50,28 @@ class ConnectionTest extends TestCase
             ->where(TableStub::A . ' = :a')
             ->setParameter('a', 25)->execute();
 
-        $result = $stmt->fetchAll();
+        $result = $stmt instanceof Result
+            ? $stmt->fetchAll()
+            : throw new DbcRuntimeException('$stmt must be instance of ' . Result::class);
+
         $this->assertCount(1, $result);
+        $this->assertArrayHasKey(0, $result);
         $row = $result[0];
+        $this->assertIsArray($row);
         $this->assertArrayHasKey(TableStub::B, $row);
         $this->assertEquals('b string', $row[TableStub::B]);
     }
 
     /**
-     * @throws DBALException
-     * @throws SchemaException
-     * @throws Exception
+     * @return void
+     * @throws \Doctrine\DBAL\Exception
+     * @throws \Doctrine\DBAL\Schema\SchemaException
+     * @throws \Jtl\Connector\Dbc\DbcRuntimeException
+     * @throws \PDOException
+     * @throws \PHPUnit\Framework\Exception
+     * @throws \PHPUnit\Framework\ExpectationFailedException
+     * @throws \RuntimeException
+     * @throws \SebastianBergmann\RecursionContext\InvalidArgumentException
      */
     public function testUpdateWithTableRestriction(): void
     {
@@ -75,18 +94,28 @@ class ConnectionTest extends TestCase
             ->where(TableStub::A . ' = :a')
             ->setParameter('a', 25)->execute();
 
-        $result = $stmt->fetchAll();
+        $result = $stmt instanceof Result
+            ? $stmt->fetchAll()
+            : throw new DbcRuntimeException('$stmt must be instance of ' . Result::class);
+
         $this->assertCount(1, $result);
+        $this->assertArrayHasKey(0, $result);
         $row = $result[0];
+        $this->assertIsArray($row);
         $this->assertArrayHasKey(TableStub::B, $row);
         $this->assertEquals('b string', $row[TableStub::B]);
     }
 
     /**
-     * @throws DBALException
-     * @throws SchemaException
-     * @throws InvalidArgumentException
-     * @throws Exception
+     * @return void
+     * @throws \Doctrine\DBAL\Exception
+     * @throws \Doctrine\DBAL\Schema\SchemaException
+     * @throws \Jtl\Connector\Dbc\DbcRuntimeException
+     * @throws \PDOException
+     * @throws \PHPUnit\Framework\Exception
+     * @throws \PHPUnit\Framework\ExpectationFailedException
+     * @throws \RuntimeException
+     * @throws \SebastianBergmann\RecursionContext\InvalidArgumentException
      */
     public function testDeleteWithTableRestriction(): void
     {
@@ -102,15 +131,22 @@ class ConnectionTest extends TestCase
             ->from($this->table->getTableName())
             ->execute();
 
-        $result = $stmt->fetchAll();
+        $result = $stmt instanceof Result
+            ? $stmt->fetchAll()
+            : throw new DbcRuntimeException('$stmt must be instance of ' . Result::class);
+
         $this->assertCount(0, $result);
     }
 
     /**
-     * @throws DBALException
-     * @throws SchemaException
-     * @throws InvalidArgumentException
-     * @throws Exception
+     * @return void
+     * @throws \Doctrine\DBAL\Exception
+     * @throws \Doctrine\DBAL\Schema\SchemaException
+     * @throws \Jtl\Connector\Dbc\DbcRuntimeException
+     * @throws \PDOException
+     * @throws \PHPUnit\Framework\ExpectationFailedException
+     * @throws \RuntimeException
+     * @throws \SebastianBergmann\RecursionContext\InvalidArgumentException
      */
     public function testDeleteWithTableRestrictionAndAdditionalIdentifier(): void
     {
@@ -123,8 +159,11 @@ class ConnectionTest extends TestCase
     }
 
     /**
-     * @throws SchemaException
      * @throws DBALException
+     * @throws ExpectationFailedException
+     * @throws SchemaException
+     * @throws DbcRuntimeException
+     * @throws \SebastianBergmann\RecursionContext\InvalidArgumentException
      */
     public function testHasTableRestriction(): void
     {
@@ -151,8 +190,10 @@ class ConnectionTest extends TestCase
             new TableRestriction($coordStub->getTableSchema(), CoordinatesStub::COL_X, 1.)
         );
 
+        /** @var array<string, array<string, int|string>> $restrictions */
         $restrictions = $this->connection->getTableRestrictions();
         $this->assertArrayHasKey($this->table->getTableName(), $restrictions);
+        $this->assertIsArray($restrictions[$this->table->getTableName()]);
         $this->assertArrayHasKey(TableStub::B, $restrictions[$this->table->getTableName()]);
         $this->assertEquals('b string', $restrictions[$this->table->getTableName()][TableStub::B]);
 
@@ -182,6 +223,11 @@ class ConnectionTest extends TestCase
         $this->assertEquals(1., $restrictions[CoordinatesStub::COL_X]);
     }
 
+    /**
+     * @throws \PHPUnit\Framework\Exception
+     * @throws \SebastianBergmann\RecursionContext\InvalidArgumentException
+     * @throws ExpectationFailedException
+     */
     public function testCreateQueryBuilder(): void
     {
         $this->assertInstanceOf(QueryBuilder::class, $this->connection->createQueryBuilder());
@@ -190,6 +236,10 @@ class ConnectionTest extends TestCase
     /**
      * @throws DBALException
      * @throws Exception
+     * @throws ExpectationFailedException
+     * @throws DbcRuntimeException
+     * @throws DbcRuntimeException
+     * @throws \SebastianBergmann\RecursionContext\InvalidArgumentException
      */
     public function testInsert(): void
     {
@@ -245,6 +295,10 @@ class ConnectionTest extends TestCase
     /**
      * @throws DBALException
      * @throws Exception
+     * @throws ExpectationFailedException
+     * @throws DbcRuntimeException
+     * @throws \PHPUnit\Framework\Exception
+     * @throws \SebastianBergmann\RecursionContext\InvalidArgumentException
      */
     public function testUpdateRow(): void
     {
@@ -265,9 +319,17 @@ class ConnectionTest extends TestCase
                                  ->setParameter('id', 1)
                                  ->execute();
 
-        $result = $stmt->fetchAll();
+        $result = $stmt instanceof Result
+            ? $stmt->fetchAll()
+            : throw new DbcRuntimeException('$stmt must be instance of ' . Result::class);
+
         $this->assertCount(1, $result);
         $row = $result[0];
+        $this->assertIsArray($row);
+        $this->assertArrayHasKey(TableStub::ID, $row);
+        $this->assertArrayHasKey(TableStub::A, $row);
+        $this->assertArrayHasKey(TableStub::B, $row);
+        $this->assertArrayHasKey(TableStub::C, $row);
         $this->assertEquals(1, $row[TableStub::ID]);
         $this->assertEquals(25, $row[TableStub::A]);
         $this->assertEquals('another string', $row[TableStub::B]);
@@ -275,9 +337,14 @@ class ConnectionTest extends TestCase
     }
 
     /**
-     * @throws DBALException
-     * @throws InvalidArgumentException
-     * @throws Exception
+     * @return void
+     * @throws \Doctrine\DBAL\Exception
+     * @throws \Jtl\Connector\Dbc\DbcRuntimeException
+     * @throws \PDOException
+     * @throws \PHPUnit\Framework\Exception
+     * @throws \PHPUnit\Framework\ExpectationFailedException
+     * @throws \RuntimeException
+     * @throws \SebastianBergmann\RecursionContext\InvalidArgumentException
      */
     public function testDeleteRow(): void
     {
@@ -291,7 +358,10 @@ class ConnectionTest extends TestCase
                                  ->setParameter('id', 3)
                                  ->execute();
 
-        $result = $stmt->fetchAll();
+        $result = $stmt instanceof Result
+            ? $stmt->fetchAll()
+            : throw new DbcRuntimeException('$stmt must be instance of ' . Result::class);
+
         $this->assertCount(0, $result);
         $this->assertEquals(1, $this->countRows($this->table->getTableName()));
     }
@@ -307,11 +377,12 @@ class ConnectionTest extends TestCase
         $this->table = new TableStub($this->getDBManager());
         parent::setUp();
         $this->insertFixtures($this->table, self::getTableStubFixtures());
-        $params           = [
+        $params = [
             'pdo'          => $this->getPDO(),
             'wrapperClass' => Connection::class
         ];
-        $config           = null;
+        $config = null;
+        /** @var Connection $connection */
         $connection       = DriverManager::getConnection($params, $config);
         $this->connection = $connection;
     }

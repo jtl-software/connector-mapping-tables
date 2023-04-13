@@ -6,6 +6,7 @@ namespace Jtl\Connector\MappingTables;
 
 use Doctrine\DBAL\DBALException;
 use Doctrine\DBAL\Exception;
+use RuntimeException;
 
 class TableProxy
 {
@@ -28,7 +29,10 @@ class TableProxy
 
     /**
      * @return integer
-     * @throws Exception|MappingTablesException
+     * @throws Exception
+     * @throws MappingTablesException
+     * @throws RuntimeException
+     * @throws \Jtl\Connector\Dbc\DbcRuntimeException
      */
     public function clear(): int
     {
@@ -45,6 +49,7 @@ class TableProxy
      * @return int
      * @throws DBALException
      * @throws MappingTablesException
+     * @throws RuntimeException
      * @throws \Doctrine\DBAL\Driver\Exception
      */
     public function count(
@@ -76,7 +81,11 @@ class TableProxy
      * @param int|null    $hostId
      *
      * @return int
-     * @throws DBALException|MappingTablesException
+     * @throws DBALException
+     * @throws Exception
+     * @throws MappingTablesException
+     * @throws RuntimeException
+     * @throws \Jtl\Connector\Dbc\DbcRuntimeException
      */
     public function delete(string $endpoint = null, int $hostId = null): int
     {
@@ -92,7 +101,9 @@ class TableProxy
      *
      * @return string[]
      * @throws DBALException
+     * @throws Exception
      * @throws MappingTablesException
+     * @throws RuntimeException
      */
     public function findEndpoints(
         array $where = [],
@@ -108,7 +119,11 @@ class TableProxy
      * @param string[] $endpoints
      *
      * @return string[]
-     * @throws DBALException|MappingTablesException
+     * @throws DBALException
+     * @throws Exception
+     * @throws MappingTablesException
+     * @throws RuntimeException
+     * @throws \Jtl\Connector\Dbc\DbcRuntimeException
      */
     public function filterMappedEndpoints(array $endpoints): array
     {
@@ -121,6 +136,8 @@ class TableProxy
      * @return string|null
      * @throws Exception
      * @throws MappingTablesException
+     * @throws RuntimeException
+     * @throws \Jtl\Connector\Dbc\DbcRuntimeException
      */
     public function getEndpoint(int $hostId): ?string
     {
@@ -131,7 +148,10 @@ class TableProxy
      * @param string $endpoint
      *
      * @return int|null
-     * @throws DBALException|MappingTablesException|\Doctrine\DBAL\Driver\Exception
+     * @throws DBALException
+     * @throws MappingTablesException
+     * @throws \Doctrine\DBAL\Driver\Exception
+     * @throws RuntimeException
      */
     public function getHostId(string $endpoint): ?int
     {
@@ -176,6 +196,8 @@ class TableProxy
      *
      * @return int
      * @throws DBALException|MappingTablesException
+     * @throws \Jtl\Connector\Dbc\DbcRuntimeException
+     * @throws RuntimeException
      */
     public function save(string $endpoint, int $hostId): int
     {

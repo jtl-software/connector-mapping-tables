@@ -7,7 +7,11 @@ namespace Jtl\Connector\Dbc;
 use Doctrine\DBAL\DBALException;
 use Doctrine\DBAL\Schema\Table;
 use Doctrine\DBAL\Types\Type;
+use Doctrine\DBAL\Types\Types;
 use Exception;
+use PHPUnit\Framework\ExpectationFailedException;
+use RuntimeException;
+use SebastianBergmann\RecursionContext\InvalidArgumentException;
 use Throwable;
 
 class DbManagerTest extends TestCase
@@ -83,15 +87,9 @@ class DbManagerTest extends TestCase
 
     /**
      * @throws DBALException
-     */
-    public function testCreateFromPDO(): void
-    {
-        $dbm = DbManager::createFromPDO($this->getPDO());
-        $this->assertInstanceOf(DbManager::class, $dbm);
-    }
-
-    /**
-     * @throws DBALException
+     * @throws ExpectationFailedException
+     * @throws InvalidArgumentException
+     * @throws \PHPUnit\Framework\Exception
      */
     public function testCreateFromParams(): void
     {
@@ -101,6 +99,9 @@ class DbManagerTest extends TestCase
 
     /**
      * @throws DBALException
+     * @throws ExpectationFailedException
+     * @throws InvalidArgumentException
+     * @throws Exception
      */
     public function testCreateSchemaAssetsFilterCallback(): void
     {
@@ -112,8 +113,10 @@ class DbManagerTest extends TestCase
             $this->assertTrue($callback($table->getTableName()));
         }
 
-        for ($i = 0; $i < \count($tables); $i++) {
-            $this->assertFalse($callback(\uniqid('nxtbl-')));
+        $tablesCount = \count($tables);
+
+        for ($i = 0; $i < $tablesCount; $i++) {
+            $this->assertFalse($callback(\uniqid('nxtbl-', false)));
         }
     }
 
@@ -121,7 +124,8 @@ class DbManagerTest extends TestCase
      * @param DbManager $dbManager
      * @param int|null  $amount
      *
-     * @return AbstractTable[]
+     * @return array<int, AbstractTable>
+     * @throws Exception
      */
     protected function createTableStubs(DbManager $dbManager, int $amount = null): array
     {
@@ -135,8 +139,13 @@ class DbManagerTest extends TestCase
 
                 public function __construct(DbManager $dbManager)
                 {
-                    $this->tableName = \uniqid('tbl-');
+                    $this->tableName = \uniqid('tbl-', false);
                     parent::__construct($dbManager);
+                }
+
+                public function getTableName(): string
+                {
+                    return $this->tableName;
                 }
 
                 protected function getName(): string
@@ -146,7 +155,7 @@ class DbManagerTest extends TestCase
 
                 protected function createTableSchema(Table $tableSchema): void
                 {
-                    $tableSchema->addColumn('id', Type::INTEGER);
+                    $tableSchema->addColumn('id', Types::INTEGER);
                     $tableSchema->setPrimaryKey(['id']);
                 }
             };
@@ -161,6 +170,9 @@ class DbManagerTest extends TestCase
      * @param string      $expectedTableName
      *
      * @throws DBALException
+     * @throws DbcRuntimeException
+     * @throws ExpectationFailedException
+     * @throws InvalidArgumentException
      */
     public function testCreateTableName(string $shortName, ?string $tablesPrefix, string $expectedTableName): void
     {
@@ -171,17 +183,18 @@ class DbManagerTest extends TestCase
 
     /**
      * @throws DBALException
+     * @throws DbcRuntimeException
      */
     public function testCreateTableNameEmptyString(): void
     {
-        $this->expectException(RuntimeException::class);
-        $this->expectExceptionCode(RuntimeException::TABLE_NAME_EMPTY);
+        $this->expectException(DbcRuntimeException::class);
+        $this->expectExceptionCode(DbcRuntimeException::TABLE_NAME_EMPTY);
         $dbm = DbManager::createFromParams(['url' => 'sqlite:///:memory:'], null, 'foo');
         $dbm->createTableName('');
     }
 
     /**
-     * @return array
+     * @return array<array{0: 'foo'|'post', 1: null|'pre', 2: 'foo'|'prepost'}>
      */
     public function tableNameProvider(): array
     {
