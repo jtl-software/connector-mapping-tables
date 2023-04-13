@@ -551,8 +551,7 @@ class AbstractTableTest extends TestCase
         array  $endpointData,
         array  $endpointColumnNames,
         string $expectedEndpoint
-    ): void
-    {
+    ): void {
         $tableMock = $this->createPartialMock(TableStub::class, ['getEndpointColumnNames']);
 
         $tableMock

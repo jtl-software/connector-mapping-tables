@@ -85,11 +85,11 @@ class QueryBuilder extends \Doctrine\DBAL\Query\QueryBuilder
                 $this->setValue($column, ':' . $id);
                 $this->set($column, ':' . $id);
                 $whereCondition = $column . ' = :' . $id;
-                /** @noinspection PhpStrictTypeCheckingInspection */
+
                 if (
                     !$where instanceof CompositeExpression
                     || $where->getType() !== CompositeExpression::TYPE_AND
-                    || (\is_string($where) && !\str_contains($where, $whereCondition)) //@phpstan-ignore-line
+                    || !\str_contains((string)$where, $whereCondition)
                 ) {
                     $this->andWhere($whereCondition);
                 }

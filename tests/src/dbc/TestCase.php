@@ -131,7 +131,9 @@ abstract class TestCase extends JtlTestCase
             throw new RuntimeException('unexpected Type, expected instance of Result');
         }
 
-        return (int)$result->fetchOne();
+        /** @var numeric-string $return */
+        $return = $result->fetchOne();
+        return (int)$return;
     }
 
     /**
