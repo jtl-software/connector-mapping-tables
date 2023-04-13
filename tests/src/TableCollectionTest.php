@@ -21,8 +21,6 @@ use Throwable;
 
 class TableCollectionTest extends TestCase
 {
-    protected \Jtl\Connector\Dbc\TableStub|TableStub $table;
-
     /**
      * @var TableCollection
      */

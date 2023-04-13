@@ -108,6 +108,7 @@ abstract class TestCase extends JtlTestCase
      * @throws PDOException
      * @throws RuntimeException
      * @throws Exception|\Doctrine\DBAL\DBALException
+     * @throws \Doctrine\DBAL\Driver\Exception
      */
     protected function countRows(string $tableName, array $conditions = []): int
     {
@@ -130,7 +131,7 @@ abstract class TestCase extends JtlTestCase
             throw new RuntimeException('unexpected Type, expected instance of Result');
         }
 
-        return (int)$result->rowCount();
+        return (int)$result->fetchOne();
     }
 
     /**

@@ -30,8 +30,6 @@ use Throwable;
 
 class AbstractTableTest extends TestCase
 {
-    protected \Jtl\Connector\Dbc\TableStub|TableStub $table;
-
     /**
      * @throws DBALException
      * @throws ExpectationFailedException
@@ -553,7 +551,8 @@ class AbstractTableTest extends TestCase
         array  $endpointData,
         array  $endpointColumnNames,
         string $expectedEndpoint
-    ): void {
+    ): void
+    {
         $tableMock = $this->createPartialMock(TableStub::class, ['getEndpointColumnNames']);
 
         $tableMock

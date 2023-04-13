@@ -133,7 +133,7 @@ class QueryBuilderTest extends TestCase
      * @throws InvalidArgumentException
      * @throws SchemaException
      * @throws DbcRuntimeException
-     * @throws \RuntimeException
+     * @throws \RuntimeException|\Doctrine\DBAL\Driver\Exception
      */
     public function testTableRestriction(): void
     {

@@ -13,8 +13,6 @@ use Throwable;
 
 class TableManagerTest extends TestCase
 {
-    protected \Jtl\Connector\Dbc\TableStub|TableStub $table;
-
     /**
      * @var TableManager
      */
