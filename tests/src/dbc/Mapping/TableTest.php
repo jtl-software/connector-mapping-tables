@@ -269,7 +269,6 @@ class TableTest extends TestCase
         $a = \mt_rand();
         $b = 'foobar';
         $c = new \DateTimeImmutable(\sprintf('@%d', \random_int(1, \time())));
-        $c->setTimezone(new DateTimeZone('Europe/Berlin'));
         $this->assertInstanceOf(TableStub::class, $this->table);
         $this->table->insert(['a' => $a, 'b' => $b, 'c' => $c]);
         $rows = $this->table->find(['a' => $a, 'b' => $b]);
@@ -281,8 +280,7 @@ class TableTest extends TestCase
         $this->assertInstanceOf(\DateTimeImmutable::class, $data['c']);
         /** @var \DateTimeImmutable $tsFromDb */
         $tsFromDb = $data['c'];
-        $tsFromDb->setTimezone(new DateTimeZone('Europe/Berlin'));
-        $this->assertEquals($c, $tsFromDb);
+        $this->assertEquals($c->getTimestamp(), $tsFromDb->getTimestamp());
     }
 
     /**
