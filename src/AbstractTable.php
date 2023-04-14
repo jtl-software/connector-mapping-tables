@@ -453,7 +453,7 @@ abstract class AbstractTable extends AbstractDbcTable implements TableInterface
      * @return int
      * @throws \RuntimeException
      */
-    private function returnInt(mixed $value, string $methodName): int
+    private function returnInt($value, string $methodName): int
     {
         if (!\is_int($value)) {
             throw new \RuntimeException(
@@ -729,7 +729,7 @@ abstract class AbstractTable extends AbstractDbcTable implements TableInterface
      * @throws DbcRuntimeException
      * @throws \RuntimeException
      */
-    public function extractValueFromEndpoint(string $field, string $endpoint): mixed
+    public function extractValueFromEndpoint(string $field, string $endpoint)
     {
         if (empty($endpoint)) {
             return null;

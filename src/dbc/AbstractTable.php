@@ -223,7 +223,7 @@ abstract class AbstractTable
      * @return mixed
      * @throws Exception
      */
-    protected function convertToDatabaseValue(string $doctrineType, mixed $phpValue): mixed
+    protected function convertToDatabaseValue(string $doctrineType, $phpValue)
     {
         return Type::getType($doctrineType)->convertToDatabaseValue(
             $phpValue,
@@ -312,7 +312,7 @@ abstract class AbstractTable
      * @throws DBALException
      * @throws SchemaException
      */
-    protected function restrict(string $column, mixed $value): AbstractTable
+    protected function restrict(string $column, $value): AbstractTable
     {
         $this->getConnection()->restrictTable(new TableRestriction($this->getTableSchema(), $column, $value));
         return $this;

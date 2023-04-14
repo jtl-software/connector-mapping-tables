@@ -22,7 +22,7 @@ class TableRestriction
     /**
      * @var mixed
      */
-    protected mixed $value;
+    protected $value;
 
     /**
      * TableRestriction constructor.
@@ -33,7 +33,7 @@ class TableRestriction
      *
      * @throws SchemaException
      */
-    public function __construct(Table $table, string $columnName, mixed $columnValue)
+    public function __construct(Table $table, string $columnName, $columnValue)
     {
         if (!$table->hasColumn($columnName)) {
             throw SchemaException::columnDoesNotExist($columnName, $table->getName());
@@ -52,7 +52,7 @@ class TableRestriction
      * @return TableRestriction
      * @throws SchemaException
      */
-    public static function create(Table $table, string $columnName, mixed $columnValue): TableRestriction
+    public static function create(Table $table, string $columnName, $columnValue): TableRestriction
     {
         return new self($table, $columnName, $columnValue);
     }
@@ -76,7 +76,7 @@ class TableRestriction
     /**
      * @return mixed
      */
-    public function getColumnValue(): mixed
+    public function getColumnValue()
     {
         return $this->value;
     }

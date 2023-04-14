@@ -19,9 +19,10 @@ abstract class TestCase extends JtlTestCase
 {
     public const TABLE_PREFIX = 'pre_';
     public const SCHEMA       = \TESTROOT . '/tmp/db.sqlite';
-    protected TableStub|\Jtl\Connector\MappingTables\TableStub $table;
-    private PDO                                                $pdo;
-    private DbManager                                          $dbManager;
+    /** @var TableStub|\Jtl\Connector\MappingTables\TableStub */
+    protected $table;
+    private PDO       $pdo;
+    private DbManager $dbManager;
 
     /**
      * @return array<int, array<string, int|string|\DateTimeImmutable>>

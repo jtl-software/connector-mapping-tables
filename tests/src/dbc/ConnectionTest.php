@@ -7,11 +7,10 @@ namespace Jtl\Connector\Dbc;
 use Doctrine\DBAL\DBALException;
 use Doctrine\DBAL\DriverManager;
 use Doctrine\DBAL\Exception;
-use Doctrine\DBAL\Exception\InvalidArgumentException;
-use Doctrine\DBAL\ForwardCompatibility\Result;
 use Doctrine\DBAL\Schema\SchemaException;
 use Jtl\Connector\Dbc\Query\QueryBuilder;
 use Jtl\Connector\Dbc\Schema\TableRestriction;
+use Jtl\Connector\MappingTables\Validator;
 use PHPUnit\Framework\ExpectationFailedException;
 use Throwable;
 
@@ -21,6 +20,8 @@ class ConnectionTest extends TestCase
 
     /**
      * @return void
+     * @throws \Doctrine\DBAL\DBALException
+     * @throws \Doctrine\DBAL\Driver\Exception
      * @throws \Doctrine\DBAL\Exception
      * @throws \Doctrine\DBAL\Schema\SchemaException
      * @throws \Jtl\Connector\Dbc\DbcRuntimeException
@@ -50,9 +51,7 @@ class ConnectionTest extends TestCase
             ->where(TableStub::A . ' = :a')
             ->setParameter('a', 25)->execute();
 
-        $result = $stmt instanceof Result
-            ? $stmt->fetchAll()
-            : throw new DbcRuntimeException('$stmt must be instance of ' . Result::class);
+        $result = Validator::returnResult($stmt, 'stmt')->fetchAll();
 
         $this->assertCount(1, $result);
         $this->assertArrayHasKey(0, $result);
@@ -64,6 +63,8 @@ class ConnectionTest extends TestCase
 
     /**
      * @return void
+     * @throws \Doctrine\DBAL\DBALException
+     * @throws \Doctrine\DBAL\Driver\Exception
      * @throws \Doctrine\DBAL\Exception
      * @throws \Doctrine\DBAL\Schema\SchemaException
      * @throws \Jtl\Connector\Dbc\DbcRuntimeException
@@ -94,9 +95,7 @@ class ConnectionTest extends TestCase
             ->where(TableStub::A . ' = :a')
             ->setParameter('a', 25)->execute();
 
-        $result = $stmt instanceof Result
-            ? $stmt->fetchAll()
-            : throw new DbcRuntimeException('$stmt must be instance of ' . Result::class);
+        $result = Validator::returnResult($stmt, 'stmt')->fetchAll();
 
         $this->assertCount(1, $result);
         $this->assertArrayHasKey(0, $result);
@@ -131,9 +130,7 @@ class ConnectionTest extends TestCase
             ->from($this->table->getTableName())
             ->execute();
 
-        $result = $stmt instanceof Result
-            ? $stmt->fetchAll()
-            : throw new DbcRuntimeException('$stmt must be instance of ' . Result::class);
+        $result = Validator::returnResult($stmt, 'stmt')->fetchAll();
 
         $this->assertCount(0, $result);
     }
@@ -319,9 +316,7 @@ class ConnectionTest extends TestCase
                                  ->setParameter('id', 1)
                                  ->execute();
 
-        $result = $stmt instanceof Result
-            ? $stmt->fetchAll()
-            : throw new DbcRuntimeException('$stmt must be instance of ' . Result::class);
+        $result = Validator::returnResult($stmt, 'stmt')->fetchAll();
 
         $this->assertCount(1, $result);
         $row = $result[0];
@@ -358,9 +353,7 @@ class ConnectionTest extends TestCase
                                  ->setParameter('id', 3)
                                  ->execute();
 
-        $result = $stmt instanceof Result
-            ? $stmt->fetchAll()
-            : throw new DbcRuntimeException('$stmt must be instance of ' . Result::class);
+        $result = Validator::returnResult($stmt, 'stmt')->fetchAll();
 
         $this->assertCount(0, $result);
         $this->assertEquals(1, $this->countRows($this->table->getTableName()));

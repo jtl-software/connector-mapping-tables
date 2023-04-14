@@ -9,7 +9,7 @@
     }
   ],
   "require": {
-    "php": ">=8.0",
+    "php": ">=7.4",
     "doctrine/dbal": "^2.5",
     "jtl/connector": ">=4.0",
     "symfony/event-dispatcher": "^4.3|^5.1",

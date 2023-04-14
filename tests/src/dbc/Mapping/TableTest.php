@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Jtl\Connector\Dbc\Mapping;
 
-use DateTimeZone;
 use Doctrine\DBAL\DBALException;
 use Doctrine\DBAL\Exception;
 use Doctrine\DBAL\Exception\InvalidArgumentException;
@@ -15,6 +14,7 @@ use Jtl\Connector\Dbc\CoordinatesStub;
 use Jtl\Connector\Dbc\DbcRuntimeException;
 use Jtl\Connector\Dbc\TableStub;
 use Jtl\Connector\Dbc\TestCase;
+use Jtl\Connector\MappingTables\Validator;
 use PHPUnit\Framework\ExpectationFailedException;
 use ReflectionException;
 use Throwable;
@@ -57,7 +57,10 @@ class TableTest extends TestCase
         $table->restrict(TableStub::B, 'a string');
         $data = $table->findAll();
         $this->assertCount(1, $data);
-        $row = \reset($data) !== false ? \reset($data) : throw new \RuntimeException('$row must not be false.');
+        $row = \reset($data);
+        if ($row === false) {
+            throw new \RuntimeException('$row must not be false.');
+        }
         $this->assertEquals(1, $row[TableStub::A]);
         $this->assertEquals('a string', $row[TableStub::B]);
         $this->assertEquals(new \DateTime('@' . \strtotime("2017-03-29 00:00:00")), $row[TableStub::C]);
@@ -143,15 +146,12 @@ class TableTest extends TestCase
                                  ->select($this->table->getColumnNames())
                                  ->from($this->table->getTableName())
                                  ->execute();
-        $rows       = $result instanceof Result
-            ? $result->fetchAll()
-            : throw new \RuntimeException('$result must be instance of ' . Result::class);
+
+        $rows = Validator::returnResult($result, 'result')->fetchAll();
 
         $this->assertCount(2, $rows);
         $mappedRow = $this->invokeMethodFromObject($this->table, 'convertToPhpValues', $rows[1]);
-        if (!\is_array($mappedRow)) {
-            throw new \RuntimeException('$mappedRow must be an array');
-        }
+        $mappedRow = Validator::returnArray($mappedRow, 'mappedRow');
         $this->assertArrayHasKey(TableStub::ID, $mappedRow);
         $this->assertIsInt($mappedRow[TableStub::ID]);
         $this->assertEquals(3, $mappedRow[TableStub::ID]);
@@ -181,9 +181,7 @@ class TableTest extends TestCase
                                  ->select(['a', 'c'])
                                  ->from($this->table->getTableName())
                                  ->execute();
-        $rows       = $result instanceof Result
-            ? $result->fetchAll()
-            : throw new \RuntimeException('$result must be instance of ' . Result::class);
+        $rows       = Validator::returnResult($result, 'result')->fetchAll();
 
         $this->assertCount(2, $rows);
         /** @var array<string> $mappedRow */
@@ -212,9 +210,7 @@ class TableTest extends TestCase
                                  ->select($this->table->getColumnNames())
                                  ->from($this->table->getTableName())
                                  ->execute();
-        $rows       = $result instanceof Result
-            ? $result->fetchAll(\PDO::FETCH_NUM)
-            : throw new \RuntimeException('$result must be instance of ' . Result::class);
+        $rows       = Validator::returnResult($result, 'result')->fetchAll(\PDO::FETCH_NUM);
 
         $this->assertCount(2, $rows);
         /** @var array<int|string, string> $mappedRow */
@@ -252,9 +248,7 @@ class TableTest extends TestCase
                                  ->from($this->table->getTableName())
                                  ->execute();
 
-        $rows = $result instanceof Result
-            ? $result->fetchAll(\PDO::FETCH_NUM)
-            : throw new \RuntimeException('$result must be instance of ' . Result::class);
+        $rows = Validator::returnResult($result, 'result')->fetchAll(\PDO::FETCH_NUM);
 
         $this->assertCount(2, $rows);
         $this->invokeMethodFromObject($this->table, 'convertToPhpValues', $rows[1]);
@@ -269,7 +263,6 @@ class TableTest extends TestCase
         $a = \mt_rand();
         $b = 'foobar';
         $c = new \DateTimeImmutable(\sprintf('@%d', \random_int(1, \time())));
-        $c->setTimezone(new DateTimeZone('Europe/Berlin'));
         $this->assertInstanceOf(TableStub::class, $this->table);
         $this->table->insert(['a' => $a, 'b' => $b, 'c' => $c]);
         $rows = $this->table->find(['a' => $a, 'b' => $b]);
@@ -279,9 +272,7 @@ class TableTest extends TestCase
         $this->assertIsArray($data);
         $this->assertArrayHasKey('c', $data);
         $this->assertInstanceOf(\DateTimeImmutable::class, $data['c']);
-        /** @var \DateTimeImmutable $tsFromDb */
-        $tsFromDb = $data['c'];
-        $this->assertEquals($c, $tsFromDb);
+        $this->assertEquals($c, $data['c']);
     }
 
     /**

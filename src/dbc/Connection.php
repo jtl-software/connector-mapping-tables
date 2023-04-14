@@ -105,9 +105,11 @@ class Connection extends \Doctrine\DBAL\Connection
             $types
         );
 
-        return \is_numeric($return)
-            ? (int)$return
-            : throw new RuntimeException('insert must return a numeric value.');
+        if (!\is_numeric($return)) {
+            throw new RuntimeException('insert must return a numeric value.');
+        }
+
+        return (int)$return;
     }
 
     /**
@@ -118,7 +120,7 @@ class Connection extends \Doctrine\DBAL\Connection
      *
      * @return integer
      * @throws Exception
-     * @throws DbcRuntimeException
+     * @throws DbcRuntimeException|\RuntimeException
      */
     public function update($tableExpression, array $data, array $identifiers, array $types = []): int
     {
@@ -128,9 +130,10 @@ class Connection extends \Doctrine\DBAL\Connection
 
         $return = parent::update($tableExpression, $data, $identifiers, $types);
 
-        return \is_numeric($return)
-            ? (int)$return
-            : throw new RuntimeException('update must return a numeric value.');
+        if (!\is_numeric($return)) {
+            throw new RuntimeException('update must return a numeric value.');
+        }
+        return (int)$return;
     }
 
     /**
@@ -140,7 +143,7 @@ class Connection extends \Doctrine\DBAL\Connection
      *
      * @return int
      * @throws Exception
-     * @throws DbcRuntimeException
+     * @throws DbcRuntimeException|\RuntimeException
      */
     public function delete($tableExpression, array $identifiers, array $types = []): int
     {
@@ -149,8 +152,9 @@ class Connection extends \Doctrine\DBAL\Connection
 
         $return = parent::delete($tableExpression, $identifiers, $types);
 
-        return \is_numeric($return)
-            ? (int)$return
-            : throw new RuntimeException('delete must return a numeric value.');
+        if (!\is_numeric($return)) {
+            throw new RuntimeException('delete must return a numeric value.');
+        }
+        return (int)$return;
     }
 }
