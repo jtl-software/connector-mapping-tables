@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Jtl\Connector\Dbc\Mapping;
 
+use DateTimeZone;
 use Doctrine\DBAL\DBALException;
 use Doctrine\DBAL\Exception;
 use Doctrine\DBAL\Exception\InvalidArgumentException;
@@ -267,7 +268,7 @@ class TableTest extends TestCase
     {
         $a = \mt_rand();
         $b = 'foobar';
-        $c = new \DateTimeImmutable(\sprintf('@%d', \random_int(1, \time())));
+        $c = new \DateTimeImmutable(\sprintf('@%d', \random_int(1, \time())), DateTimeZone::EUROPE);
         $this->assertInstanceOf(TableStub::class, $this->table);
         $this->table->insert(['a' => $a, 'b' => $b, 'c' => $c]);
         $rows = $this->table->find(['a' => $a, 'b' => $b]);
