@@ -31,7 +31,7 @@ code_quality:
 test:unit:
   parallel:
     matrix:
-      - VERSION: [ '7.3','7.4','8.0','8.1' ]
+      - VERSION: [ '8.0','8.1' ]
   image: gitlab.jtl-software.com:4567/connector/connector-utils/ci-docker/php/cli:${VERSION}
   stage: test
   script:

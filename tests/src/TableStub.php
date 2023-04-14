@@ -1,25 +1,24 @@
 <?php
-/**
- * @author Immanuel Klinkenberg <immanuel.klinkenberg@jtl-software.com>
- * @copyright 2010-2017 JTL-Software GmbH
- */
+
+declare(strict_types=1);
+
 namespace Jtl\Connector\MappingTables;
 
+use Doctrine\DBAL\Exception;
 use Doctrine\DBAL\Schema\Column;
 use Doctrine\DBAL\Schema\Table;
-use Doctrine\DBAL\Types\Type;
 use Doctrine\DBAL\Types\Types;
 use Jtl\Connector\Dbc\DbManager;
 
-class TableStub extends AbstractTable
+class TableStub extends AbstractTable implements TableInterface
 {
-    const COL_ID1 = 'id1';
-    const COL_ID2 = 'id2';
-    const COL_VAR = 'strg';
+    public const COL_ID1 = 'id1';
+    public const COL_ID2 = 'id2';
+    public const COL_VAR = 'strg';
 
-    const TYPE1 = 815;
-    const TYPE2 = 7;
-    const TABLE_NAME = 'mapping_table';
+    public const TYPE1      = 815;
+    public const TYPE2      = 7;
+    public const TABLE_NAME = 'mapping_table';
 
     public function __construct(DbManager $dbManager)
     {
@@ -34,11 +33,20 @@ class TableStub extends AbstractTable
         return self::TABLE_NAME;
     }
 
+    /**
+     * @throws MappingTablesException
+     * @throws Exception
+     */
     public function defineEndpoint(): void
     {
         $this->setEndpointColumn(self::COL_ID1, Types::INTEGER);
         $this->setEndpointColumn(self::COL_ID2, Types::INTEGER);
         $this->setEndpointColumn(self::COL_VAR, Types::STRING, false);
+    }
+
+    public function setEndpointColumn(string $columnName, string $columnType, bool $primary = true): Column
+    {
+        return parent::setEndpointColumn($columnName, $columnType, $primary);
     }
 
     /**
@@ -68,12 +76,6 @@ class TableStub extends AbstractTable
     {
         return parent::createEndpointData($data);
     }
-
-    public function setEndpointColumn(string $columnName, string $columnType, bool $primary = true): Column
-    {
-        return parent::setEndpointColumn($columnName, $columnType, $primary);
-    }
-
 
     public function hasEndpointColumn($name): bool
     {
