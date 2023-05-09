@@ -13,24 +13,24 @@ class Validator
      * @param mixed       $value
      * @param string|null $name
      *
-     * @return \Doctrine\DBAL\ForwardCompatibility\Result
+     * @return \Doctrine\DBAL\ForwardCompatibility\Result<mixed>
      * @throws \Jtl\Connector\Dbc\DbcRuntimeException
      */
     public static function returnResult($value, ?string $name = null): Result
     {
-        if ($value instanceof Result) {
-            return $value;
+        if ($value instanceof Result === false) {
+            $name = $name ?? 'Variable';
+            throw new DbcRuntimeException($name . ' must be instance of ' . Result::class . ' .');
         }
 
-        $name = $name ?? 'Variable';
-        throw new DbcRuntimeException($name . ' must be instance of ' . Result::class . ' .');
+        return $value;
     }
 
     /**
      * @param mixed       $value
      * @param string|null $name
      *
-     * @return array
+     * @return array<mixed>
      * @throws \Jtl\Connector\Dbc\DbcRuntimeException
      */
     public static function returnArray($value, ?string $name = null): array

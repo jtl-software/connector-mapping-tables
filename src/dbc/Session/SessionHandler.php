@@ -235,13 +235,11 @@ class SessionHandler extends AbstractTable implements SessionHandlerInterface
     /**
      * @param \Psr\Log\LoggerInterface $logger
      *
-     * @return $this
+     * @return void
      */
-    public function setLogger(LoggerInterface $logger): self
+    public function setLogger(LoggerInterface $logger): void
     {
         $this->logger = $logger;
-
-        return $this;
     }
 
     /**
