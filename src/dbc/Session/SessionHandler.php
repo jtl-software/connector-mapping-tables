@@ -12,30 +12,23 @@ use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use Doctrine\DBAL\Schema\SchemaException;
 use Doctrine\DBAL\Schema\Table;
 use Doctrine\DBAL\Types\Types;
+use Jtl\Connector\Core\Session\SessionHandlerInterface;
 use Jtl\Connector\Dbc\AbstractTable;
 use Jtl\Connector\Dbc\DbcRuntimeException;
 use Jtl\Connector\Dbc\DbManager;
 use Jtl\Connector\Dbc\Query\QueryBuilder;
+use Psr\Log\LoggerInterface;
 use ReturnTypeWillChange;
-use SessionHandlerInterface;
-use SessionUpdateTimestampHandlerInterface;
 
-class SessionHandler extends AbstractTable implements SessionHandlerInterface, SessionUpdateTimestampHandlerInterface
+class SessionHandler extends AbstractTable implements SessionHandlerInterface
 {
     public const
         SESSION_ID   = 'session_id',
         SESSION_DATA = 'session_data',
         EXPIRES_AT   = 'expires_at';
-
-    /**
-     * @var string
-     */
-    protected string $tableName;
-
-    /**
-     * @var int
-     */
-    protected int $maxLifetime;
+    protected string          $tableName;
+    protected int             $maxLifetime;
+    protected LoggerInterface $logger;
 
     /**
      * SessionHandler constructor.
@@ -237,5 +230,25 @@ class SessionHandler extends AbstractTable implements SessionHandlerInterface, S
         $tableSchema->addColumn(self::SESSION_DATA, Types::BLOB);
         $tableSchema->addColumn(self::EXPIRES_AT, Types::DATETIME_IMMUTABLE);
         $tableSchema->setPrimaryKey([self::SESSION_ID]);
+    }
+
+    /**
+     * @param \Psr\Log\LoggerInterface $logger
+     *
+     * @return $this
+     */
+    public function setLogger(LoggerInterface $logger): self
+    {
+        $this->logger = $logger;
+
+        return $this;
+    }
+
+    /**
+     * @return \Psr\Log\LoggerInterface
+     */
+    public function getLogger(): LoggerInterface
+    {
+        return $this->logger;
     }
 }
