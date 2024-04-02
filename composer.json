@@ -8,6 +8,7 @@
       "name": "JTL-Software GmbH"
     }
   ],
+  "abandoned": "jtl/connector",
   "require": {
     "php": ">=7.4",
     "doctrine/dbal": "^2.5",
