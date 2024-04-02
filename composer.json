@@ -9,9 +9,9 @@
     }
   ],
   "require": {
-    "php": ">=7.4",
-    "doctrine/dbal": "^2.5",
-    "jtl/connector": ">=4.0",
+    "php": "^8",
+    "doctrine/dbal": "^3",
+    "jtl/connector": "dev-feature/update-dependencies",
     "symfony/event-dispatcher": "^4.3|^5.1",
     "symfony/console": "^4.3|^5.1",
     "ext-pdo": "*"
